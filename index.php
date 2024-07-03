@@ -784,7 +784,7 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         if (window.FakeLoader && typeof window.FakeLoader.showOverlay === 'function') {
             window.FakeLoader.showOverlay();
         }
-        
+         
         setTimeout(() => {
             pedestrian_path_check(sgdt_idx);
             setTimeout(() => {
