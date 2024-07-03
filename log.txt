@@ -1,0 +1,8 @@
+Original log_count: 1, Incremented log_count: 1
+smap_ad_log_t: Array
+smap_ad_log_t: Array
+Original log_count: 1, Incremented log_count: 1
+smap_ad_log_t: Array
+Original log_count: 1, Incremented log_count: 1
+smap_ad_log_t: 1
+Original log_count: 1, Incremented log_count: 1
