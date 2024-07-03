@@ -32,3 +32,4 @@ js/default_dev.js ==> 사용자 관련 js 함수 페이지
 js/default_mng.js ==> 관리자 관련 js 함수 페이지
 js/jalert.js ==> 알럿 관련 js 함수 페이지
 # smap_php
+# smap_python
