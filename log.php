@@ -442,6 +442,7 @@ $expt_cnt = $row['cnt'];
     var markers;
     var polylines;
     var profileMarkers = [];
+    var currentSelectedDate;
     $(document).ready(function() {
         // f_get_box_list2();
         f_calendar_log_init('today'); // 달력 스케쥴
@@ -451,48 +452,52 @@ $expt_cnt = $row['cnt'];
             checkAdCount();
             updateMemberLocationInfo(); // 지도
         }, 300);
+        currentSelectedDate = '<?= $_GET['sdate'] ?>' || new Date().toISOString().split('T')[0];
+        initializePage();
     });
 
+    function initializePage() {
+        f_calendar_log_init('today');
+        f_get_log_location('<?= $row_slmt['sgdt_mt_idx'] ?>');
+        setTimeout(() => {
+            highlightSelectedDate();
+            updateMemberLocationInfo();
+        }, 300);
+    }
+
+    function highlightSelectedDate() {
+        $('.c_id').removeClass('active');
+        $('#calendar_' + currentSelectedDate).addClass('active');
+        $('#event_start_date').val(currentSelectedDate);
+    }
+
     function f_profile_click(i, sgdt_idx) {
-        // console.time("forEachLoopExecutionTime");
         $('#sgdt_mt_idx').val(i);
         $('#sgdt_idx').val(sgdt_idx);
-        var nmy = $('#nmy').val();
-        var csm = $('#csdate').val().substr(0, 7);
-        if (nmy == csm) {
-            var tty = 'today';
-        } else {
-            var tty = '';
-        }
-        // console.log(i);
-        f_calendar_log_init(tty); // 달력 스케쥴
-        f_get_log_location(i); // 위치기록 요약
-        setTimeout(() => {
-            updateMemberLocationInfo(); // 지도
-        }, 100);
+        
+        f_calendar_log_init('today');
+        f_get_log_location(i);
+        updateMemberLocationInfo();
     }
 
     function f_day_click(sdate) {
+        if (sdate === currentSelectedDate) return; // 이미 선택된 날짜면 아무 것도 하지 않음
+        
+        currentSelectedDate = sdate;
+        
         if (typeof(history.pushState) != "undefined") {
-            var state = '';
-            var title = '';
             var url = './log?sdate=' + sdate;
-            history.pushState(state, title, url);
-
-            // f_cld_wrap();
-
-            var sgdt_mt_idx = $('#sgdt_mt_idx').val();
-            $('#event_start_date').val(sdate);
-            $('#schedule-title').text(get_date_t(sdate));
-            $('.c_id').removeClass('active');
-            $('#calendar_' + sdate).addClass('active');
-            setTimeout(() => {
-                f_get_log_location(sgdt_mt_idx); // 위치기록 요약
-                updateMemberLocationInfo(); // 지도
-            }, 100);
+            history.pushState(null, '', url);
         } else {
             location.href = url;
         }
+
+        $('#event_start_date').val(sdate);
+        $('#schedule-title').text(get_date_t(sdate));
+        
+        highlightSelectedDate();
+        f_get_log_location($('#sgdt_mt_idx').val());
+        updateMemberLocationInfo();
     }
 
     function f_get_log_location(i, s = "") {
@@ -704,8 +709,9 @@ $expt_cnt = $row['cnt'];
         form_data.append("act", "get_line");
         form_data.append("sgdt_mt_idx", $('#sgdt_mt_idx').val());
         form_data.append("sgdt_idx", $('#sgdt_idx').val());
-        form_data.append("event_start_date", $('#event_start_date').val());
+        form_data.append("event_start_date", currentSelectedDate); // 전역 변수 사용
         var ad_data = fetchAdDisplayStatus();
+        // console.log('updateMemberLocationInfo : ' + currentSelectedDate);
 
         $.ajax({
             url: "./location_update",
@@ -721,6 +727,7 @@ $expt_cnt = $row['cnt'];
             success: function(data) {
                 if (data) {
                     loadMapData(data);
+                    highlightSelectedDate();
                 } else {
                     console.log('No data received');
                 }
@@ -728,13 +735,13 @@ $expt_cnt = $row['cnt'];
             error: function(err) {
                 console.log(err);
                 jalert('타임아웃');
-                // console.timeEnd("forEachLoopExecutionTime");
             },
         });
     }
 
-
     function initializeMap(my_profile, st_lat, st_lng, markerData) {
+        // console.log('markerData : ' + markerData);
+        // console.log('my_profile : ' + my_profile);
         if (markerData.marker_reload == 'Y') {
             // profileMarkers 배열에 담겨있는 마커 제거
             for (var i = 0; i < profileMarkers.length; i++) {

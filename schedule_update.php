@@ -2244,7 +2244,7 @@ if ($_POST['act'] == "event_source") {
 
     echo $rtn;
     exit;
-} elseif ($_POST['act'] == "pedestrian_path_chk") {
+}elseif ($_POST['act'] == "pedestrian_path_chk") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
     }
@@ -2255,37 +2255,43 @@ if ($_POST['act'] == "event_source") {
     $DB->where('sgdt_exit', 'N');
     $sgdt_row = $DB->getone('smap_group_detail_t');
 
-    // 일정 카운트
-    $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
-    $schedule_count = count($arr_sst_idx);
-    // 일정 등록일/수정일 배열
-    $arr_sst_date = get_schedule_date($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
-    if ($arr_sst_date) {
-        $latest_date = max($arr_sst_date); // 등록/수정일 중 가장 최근일자 뽑아오기
-        $wdate = date('Y-m-d');
-        $DB->where('mt_idx', $_SESSION['_mt_idx']);
-        $DB->where('sgdt_idx', $_POST['sgdt_idx']);
-        $DB->where('sllt_schedule_count', $schedule_count);
-        $DB->where("sllt_wdate >= '" . $latest_date  . "'");
-        $DB->where('sllt_date', $wdate);
-        $DB->orderby('sllt_wdate', 'desc');
-        $sllt_row = $DB->getone('smap_loadpath_log_t');
+    $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
+    $sgdt_list = $DB->get('smap_group_detail_t');
 
-        $result_data = array();
-        if ($sllt_row['sllt_idx']) {
-            $result_data['result'] = 'Y';
-            $result_data['sllt_json_text'] = $sllt_row['sllt_json_text'];
-            $result_data['sllt_json_walk'] = $sllt_row['sllt_json_walk'];
-        } else {
-            $result_data['result'] = 'N';
+    $result_data = array();
+    $result_data['result'] = 'N';
+
+    foreach ($sgdt_list as $sgdt_member) {
+        // 일정 카운트
+        $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+        $schedule_count = count($arr_sst_idx);
+        
+        // 일정 등록일/수정일 배열
+        $arr_sst_date = get_schedule_date($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+        
+        if ($arr_sst_date) {
+            $latest_date = max($arr_sst_date); // 등록/수정일 중 가장 최근일자 뽑아오기
+            $wdate = date('Y-m-d');
+            
+            $DB->where('mt_idx', $sgdt_member['mt_idx']);
+            $DB->where('sgdt_idx', $_POST['sgdt_idx']);
+            $DB->where('sllt_schedule_count', $schedule_count);
+            $DB->where("sllt_wdate >= '" . $latest_date  . "'");
+            $DB->where('sllt_date', $wdate);
+            $DB->orderby('sllt_wdate', 'desc');
+            $sllt_row = $DB->getone('smap_loadpath_log_t');
+
+            if ($sllt_row['sllt_idx']) {
+                $result_data['result'] = 'Y';
+                $result_data['members'][$sgdt_member['mt_idx']] = array(
+                    'sllt_json_text' => $sllt_row['sllt_json_text'],
+                    'sllt_json_walk' => $sllt_row['sllt_json_walk']
+                );
+            }
         }
-    } else {
-        $result_data['result'] = 'N';
     }
 
-    $rtn = json_encode($result_data);
-
-    echo $rtn;
+    echo json_encode($result_data);
 } elseif ($_POST['act'] == "loadpath_add") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');

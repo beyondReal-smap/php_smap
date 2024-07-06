@@ -11,10 +11,11 @@ define("RADDEG", 180.0 / PI);
 define("WEATHER_URL", "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"); // 단기예보(구 동네예보)
 define("WEATHER_URL2", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidLandFcst"); // 중기육상예보조회
 define("WEATHER_URL3", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa");      //중기기온조회
-define("WEATHER_URL4", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst");      //중기전망조회
+define("WEATHER_URL4", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst");      //중기전망조회 
 define("WEATHER_URL5", "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst");      //초단기실황조회
 define("WEATHER_URL6", "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst");      //단기예보조회
 define("SERVICE_KEY", "S26r1Nboahpi0EPnPCY5FKXnMeUSSXm9QRO1WSKvQewZ/HpvdiOvn+NIGw+SacenccO4ElydjH7tcBLnCUQygw=="); // 발급받은 API-KEY (일반 인증키(Decoding))
+// define("SERVICE_KEY", "eu848OhHKYBTXESTOJk2Zvd2dkcvSgkW/5/w4bN3Doo/FKEjD/zuQLsjVFk4Uwn9KbIUYdvNcbXR1MB9IFHy6w=="); // 발급받은 API-KEY (일반 인증키(Decoding))
 
 class weatherClass
 {

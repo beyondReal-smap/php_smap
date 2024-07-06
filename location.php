@@ -763,6 +763,7 @@ $expt_cnt = $row['cnt'];
                         parentElement.removeChild(parentElement.firstChild);
                     }
                     initializeMap(my_profile, st_lat, st_lng, data);
+                    map_panto(st_lat, st_lng)
                 } else {
                     console.log(err);
                 }

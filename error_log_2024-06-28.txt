@@ -1,2 +1,0 @@
-2024-06-28 22:42:42 - mt_idx: 1, Error: Cannot read properties of undefined (reading 'messageHandlers'), Stack: TypeError: Cannot read properties of undefined (reading 'messageHandlers')
-    at https://app2.smap.site/log:833:39, User Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1, Platform: iOS

@@ -3,9 +3,9 @@
 define("APP_AUTHOR", "SMAP - 자녀 일정·위치 확인");
 //상단타이틀, URL 설정
 define("APP_TITLE", 'SMAP - 자녀 일정·위치 확인');
-define("APP_DOMAIN", 'https://app.smap.site');
-define("CDN_HTTP", 'https://app.smap.site');
-define("DESIGN_HTTP", 'https://app.smap.site/design');
+define("APP_DOMAIN", 'https://app2.smap.site');
+define("CDN_HTTP", 'https://app2.smap.site');
+define("DESIGN_HTTP", 'https://app2.smap.site/design');
 define("KEYWORDS", '');
 define("DESCRIPTION", '자녀 위치 확인부터 일정 공유까지, 모든 것을 한 곳에서.');
 define("ADMIN_NAME", 'SMAP');
@@ -13,7 +13,7 @@ define("ADMIN_NAME", 'SMAP');
 define("OG_IMAGE", CDN_HTTP.'/img/og-image.png');
 
 //css, js 캐시 리셋
-$v_txt = "20240528_1";
+$v_txt = "20240522_8";
 
 //키생성
 define("DEBUG_JWT", '4zn0BeG0wAlqsJAjXXrSKA==');
@@ -43,7 +43,7 @@ $_SUB_HEAD_IMAGE = '';
 $chk_webeditor = 'N';
 
 //위치 설정값
-$slt_mlt_accuacy = 50;
+$slt_mlt_accuacy = 40;
 $slt_mlt_speed = 1;
 
 //게시판 리스팅수
