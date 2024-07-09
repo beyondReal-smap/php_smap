@@ -2248,42 +2248,50 @@ if ($_POST['act'] == "event_source") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
     }
-
+    logToFile("start");
+    // smap_group_detail_t에서 sgdt_idx를 통해서 그룹 sgt_idx를 찾는다.
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_show', 'Y');
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
     $sgdt_row = $DB->getone('smap_group_detail_t');
 
+    logToFile("1");
+    // sgt_idx로 그룹원들을 찾는다.
     $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
+    $DB->where('sgdt_show', 'Y');
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
     $sgdt_list = $DB->get('smap_group_detail_t');
-
+    logToFile("2");
     $result_data = array();
     $result_data['result'] = 'N';
 
     foreach ($sgdt_list as $sgdt_member) {
         // 일정 카운트
-        $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+        logToFile($sgdt_member['mt_idx']);
+        $arr_sst_idx = get_schedule_main($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
         $schedule_count = count($arr_sst_idx);
-        
+        logToFile("schedule_count : " . $schedule_count);
         // 일정 등록일/수정일 배열
-        $arr_sst_date = get_schedule_date($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
-        
+        $arr_sst_date = get_schedule_date($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+        logToFile("arr_sst_date : " . $arr_sst_date);
         if ($arr_sst_date) {
             $latest_date = max($arr_sst_date); // 등록/수정일 중 가장 최근일자 뽑아오기
             $wdate = date('Y-m-d');
             
-            $DB->where('mt_idx', $sgdt_member['mt_idx']);
-            $DB->where('sgdt_idx', $_POST['sgdt_idx']);
+            // $DB->where('mt_idx', $sgdt_member['mt_idx']);
+            $DB->where('sgdt_idx', $sgdt_member['sgdt_idx']);
             $DB->where('sllt_schedule_count', $schedule_count);
             $DB->where("sllt_wdate >= '" . $latest_date  . "'");
             $DB->where('sllt_date', $wdate);
             $DB->orderby('sllt_wdate', 'desc');
             $sllt_row = $DB->getone('smap_loadpath_log_t');
+            logToFile($sllt_row);
 
             if ($sllt_row['sllt_idx']) {
                 $result_data['result'] = 'Y';
-                $result_data['members'][$sgdt_member['mt_idx']] = array(
+                $result_data['members'][$sgdt_member['sgdt_idx']] = array(
                     'sllt_json_text' => $sllt_row['sllt_json_text'],
                     'sllt_json_walk' => $sllt_row['sllt_json_walk']
                 );

@@ -3207,6 +3207,15 @@ function get_ad_log_check($mt_idx)
 
     return $row;
 }
+
+// 로그를 파일에 저장하는 함수
+function logToFile($message) {
+    $currentDir = dirname(__FILE__); // 현재 PHP 파일의 디렉토리 경로를 가져옵니다.
+    $logFile = $currentDir . '/logfile.txt';  // 로그 파일 경로 설정
+    $message = date('Y-m-d H:i:s') . ' - ' . $message . PHP_EOL;
+    file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
+}
+
 if($chk_mobile) {
     // 앱토큰값 손실 확인 로그
     unset($arr_query);

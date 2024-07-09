@@ -4975,7 +4975,7 @@ input:checked+.weekday_chk {
 }
 
 .cld_body ul li div.today span {
-    background: rgba(65, 184, 255, 0.16);
+    background: #E6E6B8;
 }
 
 .cld_body ul li div.schdl span:after {

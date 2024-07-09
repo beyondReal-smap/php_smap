@@ -86,18 +86,18 @@ if ($_POST['act'] == "login") {
                 var message = {
                     "type": "memberLogin",
                 };
-                if (isAndroid()) {
+                if (isAndroidDevice()) {
                     window.smapAndroid.memberLogin();
-                } else if (isiOS()) {
+                } else if (isiOSDevice()) {
                     window.webkit.messageHandlers.smapIos.postMessage(message);
                 }
 
-                function isAndroid() {
-                    return navigator.userAgent.match(/Android/i);
+                function isAndroidDevice() {
+                    return /Android/i.test(navigator.userAgent) && typeof window.smapAndroid !== 'undefined';
                 }
 
-                function isiOS() {
-                    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+                function isiOSDevice() {
+                    return /iPhone|iPad|iPod/i.test(navigator.userAgent) && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.smapIos;
                 }
             </script>
 <?php

@@ -666,19 +666,19 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     });
 
     function toggleInfobox() {
-        var infoboxes = document.getElementsByClassName('infobox');
+        var infoboxes = document.getElementsByClassName('infobox5');
         var img = document.getElementById('infoboxImg');
 
         // 이미지 경로 변경
         if (img.src.includes('ico_info_on.png')) {
             img.src = './img/ico_info_off.png';
             for (var i = 0; i < infoboxes.length; i++) {
-                infoboxes[i].classList.remove('on');
+                infoboxes[i].style.display = 'none';
             }
         } else {
             img.src = './img/ico_info_on.png';
             for (var i = 0; i < infoboxes.length; i++) {
-                infoboxes[i].classList.add('on');
+                infoboxes[i].style.display = 'block';
             }
         }
 
@@ -730,7 +730,7 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
                 console.log("Received data:", data);
                 if (data && data.result == 'Y') {
                     pedestrianPathData = data;
-                    processPathData(data);
+                    // processPathData(data);
                 } else {
                     console.log("No path data available or result is not 'Y'");
                 }
@@ -752,9 +752,9 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         }
         
         // 저장된 데이터를 사용합니다.
-        if (pedestrianPathData[sgdt_idx]) {
+        if (pedestrianPathData.members[sgdt_idx]) {
             console.log("Using stored data for sgdt_idx:", sgdt_idx);
-            processPathData(pedestrianPathData[sgdt_idx]);
+            processPathData(pedestrianPathData.members[sgdt_idx]);
         } else {
             console.log("No stored data found, loading new data for sgdt_idx:", sgdt_idx);
             loadPedestrianPathData(sgdt_idx);
@@ -1018,6 +1018,10 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
             });
         });
 
+        if(pedestrianPathData.members[sgdt_idx.value]){
+            processPathData(pedestrianPathData.members[sgdt_idx.value]);
+        }
+
         // initializeMap 함수 끝에 map 변수의 상태를 체크하고 map이 정상적으로 생성되었을 때에만 setCursor 호출
         if (map) {
             map.setCursor('pointer');
@@ -1241,13 +1245,13 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     }
 
     function processPathData(data) {
-        if (!data.members['<?= $_SESSION['_mt_idx'] ?>']['sllt_json_text'] || !data.members['<?= $_SESSION['_mt_idx'] ?>']['sllt_json_walk']) {
+        if (!data) {
             console.error("Invalid data structure");
             return;
         }
 
-        var jsonString = data.members['<?= $_SESSION['_mt_idx'] ?>']['sllt_json_text'];
-        var totalWalkingTime = JSON.parse(data.members['<?= $_SESSION['_mt_idx'] ?>']['sllt_json_walk']);
+        var jsonString = data['sllt_json_text'];
+        var totalWalkingTime = JSON.parse(data['sllt_json_walk']);
         
         var start = jsonString.indexOf('{"type":"FeatureCollection"');
         var end = jsonString.lastIndexOf('}') + 1;
@@ -1677,7 +1681,6 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
                     while (parentElement.firstChild) {
                         parentElement.removeChild(parentElement.firstChild);
                     }
-
                     initializeMap(my_profile, st_lat, st_lng, data);
                 } else {
                     console.log(err);
@@ -1737,9 +1740,9 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
                         }
                     }
                     
-                    if (pedestrianPathData[sgdt_idx]) {
+                    if (pedestrianPathData.members[sgdt_idx]) {
                         console.log("Using stored path data for sgdt_idx:", sgdt_idx);
-                        processPathData(pedestrianPathData[sgdt_idx]);
+                        processPathData(pedestrianPathData.members[sgdt_idx]);
                     } else {
                         console.log("No stored path data, loading new data for sgdt_idx:", sgdt_idx);
                         loadPedestrianPathData(sgdt_idx);

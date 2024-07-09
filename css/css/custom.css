@@ -2875,7 +2875,6 @@ input:checked + .weekday_chk{
 .cld_head ul li.sun{color:#E2173A;}
 .cld_head ul li.sat{color:#1281D5;}
 
-.cld_content{}
 .cld_body .cld_tit { margin-bottom: 1.7rem;color: #000;}
 .cld_body { padding: 1.2rem 0;}
 .cld_body .cld_tit {margin-bottom: 0.5rem;color: #000;}
@@ -2909,9 +2908,9 @@ input:checked + .weekday_chk{
     z-index: 1;
 	border-radius: 50%;
 }
-
-.cld_body ul li div.active span {background: var(--primary);color: #fff;}
-.cld_body ul li div.act_ing:after {
+.cld_body ul li div.active span {background: #140082 !important;color: #fff;}
+/* .cld_body ul li div.active span {background: #140082 !important;color: #fff;} */
+.cld_body ul li div.act_ing:after { 
 	content:'';
     background: var(--primary);
     position: absolute;
@@ -2923,7 +2922,7 @@ input:checked + .weekday_chk{
 .cld_body ul li div.act_ing.act_start:after, .cld_body ul li div.act_ing.act_end:after {width: 50%;position: absolute;}
 .cld_body ul li div.act_ing.act_start:after {left: 50%;}
 .cld_body ul li div.lastday {color: rgba(203, 201, 209, 1);cursor: text;}
-.cld_body ul li div.today span{background: rgba(65,184,255,0.16);}
+.cld_body ul li div.today span{background: #F5F5DC;}
 .cld_body ul li div.schdl span:after {
   content: "";
   display: block;

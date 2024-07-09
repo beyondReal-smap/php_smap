@@ -43,7 +43,7 @@ $_SUB_HEAD_IMAGE = '';
 $chk_webeditor = 'N';
 
 //위치 설정값
-$slt_mlt_accuacy = 40;
+$slt_mlt_accuacy = 50;
 $slt_mlt_speed = 1;
 
 //게시판 리스팅수

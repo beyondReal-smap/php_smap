@@ -190,82 +190,65 @@ if ($_POST['act'] == "recom_list") {
     <?
     }
 } elseif ($_POST['act'] == "calendar_list") {
-    if ($_SESSION['_mt_idx'] == '') {
+    if (empty($_SESSION['_mt_idx'])) {
         p_alert('로그인이 필요합니다.', './login', '');
     }
-
-    if ($_POST['sgdt_mt_idx']) {
-        $mt_idx_t = $_POST['sgdt_mt_idx'];
-    } else {
-        $mt_idx_t = $_SESSION['_mt_idx'];
-    }
-
-    if ($_POST['sdate']) {
-        $sdate = $_POST['sdate'];
-    } else {
-        $sdate = date('Y-m-d');
-    }
-    $lsdate = $_POST['lsdate'];
-    $ledate = $_POST['ledate'];
-
+    
+    $mt_idx_t = $_POST['sgdt_mt_idx'] ?? $_SESSION['_mt_idx'];
+    $sdate = $_POST['sdate'] ?? date('Y-m-d');
+    $lsdate = $_POST['lsdate'] ?? '';
+    $ledate = $_POST['ledate'] ?? '';
+    
+    // Get member information
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
-
-    if ($mem_row['mt_level'] == 5) {
-        // 오늘날짜로부터 14일 전까지 표시
-        $start_date = date('Y-m-d', strtotime($sdate . '-14 days'));
-        $sdate = date('Y-m-d', strtotime($sdate));
-    } else if ($mem_row['mt_level'] == 9) {
-        $start_date = date('Y-m-d', strtotime($sdate . '-14 days'));
-        $sdate = date('Y-m-d', strtotime($sdate));
-    } else {
-        // 오늘날짜로부터 하루 전까지 표시
-        $start_date = date('Y-m-d', strtotime($sdate . '-2 day'));
-        $sdate = date('Y-m-d', strtotime($sdate));
-    }
-
-    $get_first_date_week = date('w', make_mktime($start_date));
-    $get_end_date_week = date('w', make_mktime($sdate));
-    $get_first_date = date('Y-m-d', strtotime($start_date . " - " . $get_first_date_week . "days"));
-    $get_end_date = date('Y-m-d', strtotime($sdate . " + " . (6 - $get_end_date_week) . "days"));
-
-    $diff_days = strtotime($get_end_date) - strtotime($get_first_date);
-    $diff_days = round($diff_days / (60 * 60 * 24)); // 초 단위를 일 단위로 변환하여 반올림
-
-    $arr_data = array();
-
-    if ($get_first_date) {
-        $_POST['start'] = date('Y-m-d', make_mktime($get_first_date));
-        $_POST['end'] = date('Y-m-d', make_mktime($get_end_date));
-    }
-
-    //나의 로그
-    unset($list);
-    $DB->where('mt_idx', $mt_idx_t);
-    $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
-    $DB->where("mlt_speed >= " . $slt_mlt_speed);
-    $DB->where("(mlt_lat > 0 AND mlt_long > 0) ");
-    $DB->where("( mlt_gps_time >= '" . $_POST['start'] . " 00:00:00' and mlt_gps_time <= '" . $_POST['end'] . " 23:59:59' )");
-    $DB->orderby('mlt_gps_time', 'asc');
-    $list = $DB->get('member_location_log_t');
-
-    if ($list) {
-        foreach ($list as $row) {
-            if ($row['mlt_idx']) {
-                $cd = cal_remain_days2($row['mlt_gps_time'], $row['mlt_gps_time']);
-                if ($cd) {
-                    for ($q = 0; $q < $cd; $q++) {
-                        $sdate_t = date("Y-m-d", strtotime($row['mlt_gps_time'] . " +" . $q . " days"));
-                        $arr_data[$sdate_t] = array(
-                            'id' => $row['mlt_idx'],
-                            'start' => $sdate_t,
-                            'end' => $row['mlt_gps_time'],
-                        );
-                    }
-                }
-            }
-        }
-    }
+    
+    // Calculate the start date based on member level
+    $days_back = ($mem_row['mt_level'] == 5 || $mem_row['mt_level'] == 9) ? 14 : 2;
+    $start_date = date('Y-m-d', strtotime("$sdate -$days_back days"));
+    
+    $get_first_date_week = date('w', strtotime($start_date));
+    $get_end_date_week = date('w', strtotime($sdate));
+    $get_first_date = date('Y-m-d', strtotime("$start_date - $get_first_date_week days"));
+    $get_end_date = date('Y-m-d', strtotime("$sdate + " . (6 - $get_end_date_week) . " days"));
+    
+    $diff_days = (strtotime($get_end_date) - strtotime($get_first_date)) / (60 * 60 * 24); // 초 단위를 일 단위로 변환
+    
+    $_POST['start'] = $get_first_date;
+    $_POST['end'] = $get_end_date;
+    
+    $arr_data = [];
+    
+    // Retrieve summarized location logs
+    $sql = "
+        SELECT 
+            mlt_idx,
+            DATE(mlt_gps_time) AS log_date,
+            MIN(mlt_gps_time) AS start_time,
+            MAX(mlt_gps_time) AS end_time
+        FROM 
+            member_location_log_t
+        WHERE 
+            mt_idx = '$mt_idx_t'
+            AND mlt_accuacy < $slt_mlt_accuacy
+            AND mlt_speed >= $slt_mlt_speed
+            AND mlt_lat > 0 AND mlt_long > 0
+            AND mlt_gps_time BETWEEN '" . $_POST['start'] . " 00:00:00' AND '" . $_POST['end'] . " 23:59:59'
+        GROUP BY 
+            DATE(mlt_gps_time)
+        ORDER BY 
+            log_date ASC
+    ";
+    
+    $list = $DB->rawQuery($sql);
+    
+    foreach ($list as $row) {
+        $arr_data[$row['log_date']] = [
+            'id' => $row['mlt_idx'],
+            'start' => $row['start_time'],
+            'end' => $row['end_time'],
+        ];
+    }    
 
     ?>
     <form>
@@ -340,6 +323,7 @@ if ($_POST['act'] == "recom_list") {
         var cld_swiper = new Swiper(".cld_swiper", {
             slidesPerView: 7,
             slidesPerGroup: 7,
+            centeredSlides: true,
             spaceBetween: 0,
             initialSlide: 100, // 마지막장으로
             navigation: {
@@ -853,8 +837,8 @@ if ($_POST['act'] == "recom_list") {
                                                     </span>
                                                 </button>
                                                 <div class="infobox rounded-sm bg-white px_08 py_08">
-                                                    <p class="fs_12 fw_700 text_dynamic"> 00:00 ~ ' . datetype($first_location['mlt_gps_time'], 7) . '</p>
-                                                    <p class="fs_10 fw_500 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
+                                                    <p class="fs_12 fw_800 text_dynamic"> 00:00 ~ ' . datetype($first_location['mlt_gps_time'], 7) . '</p>
+                                                    <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
                                                     <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $address . '</p>
                                                 </div>
                                             </div>';
@@ -871,8 +855,8 @@ if ($_POST['act'] == "recom_list") {
             }
             
             $content = '<div class="point_wrap point2 d-none log_marker"  data-rangeindex="' . $total_log_count . '">
-                            <div class="infobox infobox_2 rounded-sm bg-white px_08 py_08">
-                                <p class="fs_12 fw_700 text_dynamic">' . datetype($row_mlt['mlt_gps_time'], 7) . '</p>
+                            <div class="infobox infobox_2 rounded-sm px_08 py_08" style="background-color: #413F4A; color: #E6F3FF;">
+                                <p class="fs_12 fw_800 text_dynamic">' . datetype($row_mlt['mlt_gps_time'], 7) . '</p>
                             </div>
                         </div>';
             $location_data['startTime_' . $total_log_count] = $row_mlt['mlt_gps_time'];
@@ -1161,8 +1145,8 @@ if ($_POST['act'] == "recom_list") {
                                                 </span>
                                             </button>
                                             <div class="infobox rounded-sm bg-white px_08 py_08">
-                                                <p class="fs_12 fw_700 text_dynamic">' . $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i') . '</p>
-                                                <p class="fs_10 fw_500 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
+                                                <p class="fs_12 fw_800 text_dynamic">' . $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i') . '</p>
+                                                <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
                                                 <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $address . '</p>
                                             </div>
                                         </div>';

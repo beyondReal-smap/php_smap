@@ -261,7 +261,7 @@
 .cld_body ul li div.act_ing.act_start:after, .cld_body ul li div.act_ing.act_end:after {width: 50%;position: absolute;}
 .cld_body ul li div.act_ing.act_start:after {left: 50%;}
 .cld_body ul li div.lastday {color: rgba(203, 201, 209, 1);cursor: text;}
-.cld_body ul li div.today span{background: rgba(65,184,255,0.16);}
+.cld_body ul li div.today span{background: #E3E3AF;}
 .cld_body ul li div.schdl span:after {
   content: "";
   display: block;

@@ -2910,7 +2910,7 @@ input:checked + .weekday_chk{
 	border-radius: 50%;
 }
 
-.cld_body ul li div.active span {background: var(--primary);color: #fff;}
+.cld_body ul li div.active span {background: #140082 ;color: #fff;}
 .cld_body ul li div.act_ing:after {
 	content:'';
     background: var(--primary);
@@ -2923,7 +2923,7 @@ input:checked + .weekday_chk{
 .cld_body ul li div.act_ing.act_start:after, .cld_body ul li div.act_ing.act_end:after {width: 50%;position: absolute;}
 .cld_body ul li div.act_ing.act_start:after {left: 50%;}
 .cld_body ul li div.lastday {color: rgba(203, 201, 209, 1);cursor: text;}
-.cld_body ul li div.today span{background: rgba(65,184,255,0.16);}
+.cld_body ul li div.today span{background: #E5E5C5;}
 .cld_body ul li div.schdl span:after {
   content: "";
   display: block;
@@ -3687,15 +3687,18 @@ input:checked + .weekday_chk{
 */
 /* 지도 마커정보박스 */
 .infobox {
-    display: none;
-    min-width: unset;
-    max-width: unset;
-    width: 90px !important;
+    display: none; /* 필요에 따라 보이도록 수정해야 함 (예: display: block; on hover 등) */
+    min-width: 90px; /* 최소 너비를 설정, 필요에 따라 조정 가능 */
+    max-width: 300px; /* 최대 너비를 설정, 필요에 따라 조정 가능 */
+    width: auto !important; /* 너비를 자동으로 설정 */
     box-sizing: border-box;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 12%);
     position: absolute;
     top: -2.5rem;
     right: -9rem;
+    padding: 10px; /* 텍스트와 박스의 여백을 위한 패딩 설정 */
+    background-color: #fff; /* 인포박스의 배경색 설정, 필요에 따라 조정 가능 */
+    border-radius: 4px; /* 모서리를 둥글게 설정, 필요에 따라 조정 가능 */
 }
 .infobox_2{
     display: none;

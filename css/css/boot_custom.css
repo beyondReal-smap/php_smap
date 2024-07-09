@@ -21,7 +21,8 @@
   --white: #fff;
   --gray: #6c757d;
   --gray-dark: #343a40;
-  --primary: #0046FE;
+  /* --primary: #0046FE; */
+  --primary: #140082;
   --secondary: #F6F8FE;
   --success: #6CBF39;
   --info: #17a2b8;
