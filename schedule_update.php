@@ -1923,83 +1923,124 @@ if ($_POST['act'] == "event_source") {
             </div>
             <p class="fs_14 fw_500 text_light_gray text_dynamic line_h1_3 mt-2"><?= $mem_row['mt_sido'] . ' ' . $mem_row['mt_gu'] . ' ' . $mem_row['mt_dong'] ?></p>
         </div>
-<?php }
+<?php 
+    }
 } elseif ($_POST['act'] == "schedule_map_list") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
     }
+
+    // 캐싱 활용
+    $cache_key = "schedule_map_list_" . $_POST['sgdt_idx'] . "_" . $_SESSION['_mt_idx'];
+    $cached_data = CacheUtil::get($cache_key);
+    if ($cached_data) {
+        echo json_encode($cached_data);
+        exit;
+    }
+
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
     $DB->where('sgdt_show', 'Y');
     $sgdt_row = $DB->getone('smap_group_detail_t');
-    // 나의 위치 마커정보 등록
-    if ($sgdt_row) {
-        $DB->where('mt_idx', $sgdt_row['mt_idx']);
-        $mem_row = $DB->getone('member_t');
 
-        $DB->where('mt_idx', $sgdt_row['mt_idx']);
+    // sgt_idx로 그룹원들을 찾는다.
+    $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
+    $DB->where('sgdt_show', 'Y');
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $sgdt_list = $DB->get('smap_group_detail_t');
+
+    $result_data = [];
+    
+    // 그룹원 데이터 조회 및 캐싱 함수
+    function get_member_data($mt_idx) {
+        global $DB, $ct_no_img_url;
+        
+        $cache_key = "member_data_" . $mt_idx;
+        $cached_data = CacheUtil::get($cache_key);
+        
+        // 캐시된 데이터가 있을 경우, 유효성 검사
+        if ($cached_data) {
+            $DB->where('mt_idx', $mt_idx);
+            $DB->where('mt_update_dt', $cached_data['last_update'], '>');
+            $updated = $DB->getOne('member_t', 'COUNT(*) as count');
+            
+            // DB에 변경이 없으면 캐시된 데이터 반환
+            if ($updated['count'] == 0) {
+                return $cached_data;
+            }
+        }
+        
+        // 새로운 데이터 조회
+        $DB->where('mt_idx', $mt_idx);
+        $mem_row = $DB->getone('member_t');
+    
+        $DB->where('mt_idx', $mt_idx);
         $DB->orderby('mlt_gps_time', 'desc');
         $mt_location_info = $DB->getone('member_location_log_t');
-
-        unset($result_data);
-        $result_data = array(
-            "my_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
-            "mt_long" => $mt_location_info['mlt_long'] == "" ? $mem_row['mt_long'] :  $mt_location_info['mlt_long'],
-            "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
-        );
-    } else {
-        $DB->where('mt_idx', $_SESSION['_mt_idx']);
-        $mem_row = $DB->getone('member_t');
-        unset($result_data);
-        $result_data = array(
-            "my_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
-            "mt_long" => $_SESSION['_mt_long'] == "" ? $mem_row['mt_long'] : $_SESSION['_mt_long'],
-            "my_profile" => $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'],
-        );
+    
+        $current_time = date('Y-m-d H:i:s');
+    
+        $member_data = [
+            "lat" => $mt_location_info['mlt_lat'] ?? $mem_row['mt_lat'],
+            "long" => $mt_location_info['mlt_long'] ?? $mem_row['mt_long'],
+            "profile" => $mem_row['mt_file1'] ? get_image_url($mem_row['mt_file1']) : $ct_no_img_url,
+            "last_update" => $current_time
+        ];
+    
+        // mt_update_dt 업데이트
+        $DB->where('mt_idx', $mt_idx);
+        $DB->update('member_t', ['mt_update_dt' => $current_time]);
+    
+        // 새로운 데이터를 캐시에 저장
+        CacheUtil::set($cache_key, $member_data, 60); // 1분 캐시
+        return $member_data;
     }
 
-    $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); //오너인 그룹수
-    $sgdt_leader_cnt = f_get_leader_cnt($_SESSION['_mt_idx']); //리더인 그룹수
+    if ($sgdt_row) {
+        $my_data = get_member_data($sgdt_row['mt_idx']);
+        $result_data = [
+            "my_lat" => $my_data['lat'],
+            "mt_long" => $my_data['long'],
+            "my_profile" => $my_data['profile'],
+        ];
+    } else {
+        $my_data = get_member_data($_SESSION['_mt_idx']);
+        $result_data = [
+            "my_lat" => $my_data['lat'],
+            "mt_long" => $my_data['long'],
+            "my_profile" => $my_data['profile'],
+        ];
+    }
+
+    $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']);
+    $sgdt_leader_cnt = f_get_leader_cnt($_SESSION['_mt_idx']);
     if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) {
-        // 오너,리더일 경우 해당 그룹의 그룹원 전체 조회
-        $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
-        $DB->where('sgdt_idx', $sgdt_row['sgdt_idx'], '!=');
-        $DB->where('sgdt_discharge', 'N');
-        $DB->where('sgdt_exit', 'N');
-        $DB->where('sgdt_show', 'Y');
-        $sgdt_list = $DB->get('smap_group_detail_t');
         if ($sgdt_list) {
             $profile_count = 1;
             foreach ($sgdt_list as $sgdtg_row) {
-                $DB->where('mt_idx', $sgdtg_row['mt_idx']);
-                $DB->orderby('mlt_gps_time', 'desc');
-                $mt_location_info = $DB->getone('member_location_log_t');
+                if ($sgdtg_row['sgdt_idx'] == $sgdt_row['sgdt_idx']) continue;
+                
+                $member_data = get_member_data($sgdtg_row['mt_idx']);
 
-                $DB->where('mt_idx', $sgdtg_row['mt_idx']);
-                $mem_row = $DB->getone('member_t');
-
-                $result_data['profilemarkerLat_' . $profile_count] = $mt_location_info['mlt_lat'] == "" ? 37.5665 : $mt_location_info['mlt_lat'];
-                $result_data['profilemarkerLong_' . $profile_count] = $mt_location_info['mlt_long'] == "" ? 126.9780 :  $mt_location_info['mlt_long'];
-                $result_data['profilemarkerImg_' . $profile_count] = $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']);
+                $result_data["profilemarkerLat_$profile_count"] = $member_data['lat'];
+                $result_data["profilemarkerLong_$profile_count"] = $member_data['long'];
+                $result_data["profilemarkerImg_$profile_count"] = $member_data['profile'];
                 $profile_count++;
             }
         }
         $result_data['profile_count'] = $profile_count - 1;
     }
+
     $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
     $cnt = count($arr_sst_idx);
     if ($cnt < 1) {
-        // JSON으로 변환하여 출력
         $result_data['schedule_chk'] = 'N';
-        echo json_encode($result_data);
-        exit;
     } else {
         $arr_sst_idx_im = implode(',', $arr_sst_idx);
-        unset($list_sst);
-        $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
+        $DB->where("sst_idx IN ($arr_sst_idx_im)");
         $DB->where('sst_show', 'Y');
-        // $DB->groupBy("mt_idx");
         $DB->orderBy("sst_all_day", "asc");
         $DB->orderBy("sst_sdate", "asc");
         $DB->orderBy("sst_edate", "asc");
@@ -2007,21 +2048,19 @@ if ($_POST['act'] == "event_source") {
 
         if ($list_sst) {
             $count = 1;
-            $ing_chk = false;
-            $complete_chk = false;
             $current_date = date('Y-m-d H:i:s');
-            $color_sets = array(
-                array('#E6F2FF', '#E0F0FF'), // 연한 파란색 + 밝은 연한 파란색
-                array('#D6E6FF', '#E0E6FF'), // 연한 라벤더 + 밝은 연한 라벤더
-                array('#E5F1FF', '#E0F0FF'), // 연한 하늘색 + 밝은 연한 하늘색
-                array('#F0F8FF', '#E6F0FF'), // 연한 앨리스 블루 + 밝은 연한 앨리스 블루
-                array('#E0FFFF', '#E6FFFF'), // 연한 민트색 + 밝은 연한 민트색
-                array('#E6F2FF', '#E0EDFF'), // 연한 파란색 + 밝은 연한 파란색 2
-                array('#D6E6FF', '#E0E0FF'), // 연한 라벤더 + 밝은 연한 라벤더 2
-                array('#E5F1FF', '#E0EDFF'), // 연한 하늘색 + 밝은 연한 하늘색 2
-                array('#F0F8FF', '#E6EDFF'), // 연한 앨리스 블루 + 밝은 연한 앨리스 블루 2
-                array('#E0FFFF', '#E6FEFF')  // 연한 민트색 + 밝은 연한 민트색 2
-            );
+            $color_sets = [
+                ['#E6F2FF', '#E0F0FF'],
+                ['#D6E6FF', '#E0E6FF'],
+                ['#E5F1FF', '#E0F0FF'],
+                ['#F0F8FF', '#E6F0FF'],
+                ['#E0FFFF', '#E6FFFF'],
+                ['#E6F2FF', '#E0EDFF'],
+                ['#D6E6FF', '#E0E0FF'],
+                ['#E5F1FF', '#E0EDFF'],
+                ['#F0F8FF', '#E6EDFF'],
+                ['#E0FFFF', '#E6FEFF'],
+            ];
 
             $random_set = $color_sets[array_rand($color_sets)];
             $color1 = $random_set[0];
@@ -2031,86 +2070,57 @@ if ($_POST['act'] == "event_source") {
                 $mt_info = get_member_t_info($row_sst_a['mt_idx']);
                 $mt_file1_url = get_image_url($mt_info['mt_file1']);
 
-                if ($row_sst_a['sst_all_day'] == 'Y') {
-                    $sst_all_day_t = '하루종일';
-                } else {
-                    $repeat_array = json_decode($row_sst_a['sst_repeat_json'], true);
-                    if ($repeat_array['r1'] == 1 || empty($repeat_array['r1'])) {
-                        $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
-                        $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
-                        $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
-                    } else {
-                        $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
-                        $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
-                        $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
-                    }
-                }
+                $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
+                $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
+                $sst_all_day_t = ($row_sst_a['sst_all_day'] == 'Y') ? '하루종일' : "$sst_sdate_e1 ~ $sst_sdate_e2";
 
-                if ($row_sst_a['sst_all_day'] == 'Y') {
-                    $point_class = 'point2';
-                    $status = 'point_ing';
-                } else if ($current_date >= $row_sst_a['sst_edate']) {
-                    $point_class = 'point1';
-                    $status = 'point_done';
-                } else if ($current_date >= $row_sst_a['sst_sdate'] && $current_date <= $row_sst_a['sst_edate']) {
-                    $point_class = 'point2';
-                    $complete_chk = true;
-                    $status = 'point_ing';
-                } else {
-                    $point_class = 'point3';
-                    $status = 'point_gonna';
-                }
+                $status = ($row_sst_a['sst_all_day'] == 'Y' || ($current_date >= $row_sst_a['sst_sdate'] && $current_date <= $row_sst_a['sst_edate'])) ? 'point_ing' : (($current_date >= $row_sst_a['sst_edate']) ? 'point_done' : 'point_gonna');
+                $point_class = ($status == 'point_ing') ? 'point2' : (($status == 'point_done') ? 'point1' : 'point3');
 
                 $content = '
                     <style>
                     .infobox5 {
                         position: absolute;
-                        left: 50%; /* 아이콘의 중심에 위치 */
-                        top: 100%; /* 아이콘의 아래쪽에 위치 */
-                        transform: translate(10%, -50%); /* 중앙 정렬 및 약간 아래쪽으로 이동 */
+                        left: 50%;
+                        top: 100%;
+                        transform: translate(10%, -50%);
                         background-color: #413F4A;
-                        padding: 0.3rem 0.8rem; /* 상하 0.3rem, 좌우 0.8rem */
+                        padding: 0.3rem 0.8rem;
                         border-radius: 0.4rem;
                         z-index: 1;
-                        display: inline-block; /* 폭을 텍스트에 맞추기 위해 inline-block 사용 */
-                        white-space: nowrap; /* 한 줄로 표시 */
-                        overflow: hidden; /* 넘치는 내용 감춤 */
-                        text-overflow: ellipsis; /* 넘치는 부분은 ...으로 표시 */
-                        margin-top: 0.4rem; /* 타이틀 위에 간격 추가 */
+                        display: inline-block;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        margin-top: 0.4rem;
                     }
-                    
                     .infobox5 span {
                         white-space: nowrap !important;
                         overflow: hidden !important;
                         text-overflow: ellipsis !important;
                     }
-
                     .infobox5 .title {
                         color: ' . $color1 . ';
                         display: block;
                         width: 100%;
-                        margin-bottom: 0.1rem; /* 타이틀과 다음 줄 사이의 간격 조정 */
+                        margin-bottom: 0.1rem;
                         font-size: 12px !important;
                         font-weight: 800 !important;
                     }
-
                     .infobox5 .date-wrapper {
                         display: flex;
                         flex-direction: column;
-                        align-items: flex-start; /* 왼쪽 정렬 */
+                        align-items: flex-start;
                     }
-
                     .infobox5 .date {
                         color: ' . $color2 . ';
-                        margin-bottom: 0; /* S와 E 사이의 간격 제거 */
+                        margin-bottom: 0;
                         font-size: 8px !important;
                         font-weight: 700 !important;
                     }
-
                     .infobox5 .date + .date {
-                        margin-top: 0.05rem; /* E 아래 간격 추가 */
+                        margin-top: 0.05rem;
                     }
-                    
                     </style>
                     <div class="point_wrap ' . $point_class . '">
                         <button type="button" class="btn point ' . $status . '">
@@ -2128,19 +2138,21 @@ if ($_POST['act'] == "event_source") {
                     </div>
                 ';
 
-                $result_data['markerLat_' . $count] = $row_sst_a['sst_location_lat'];
-                $result_data['markerLong_' . $count] = $row_sst_a['sst_location_long'];
-                $result_data['markerContent_' . $count] = $content;
-                $result_data['markerStatus_' . $count] = $status;
+                $result_data["markerLat_$count"] = $row_sst_a['sst_location_lat'];
+                $result_data["markerLong_$count"] = $row_sst_a['sst_location_long'];
+                $result_data["markerContent_$count"] = $content;
+                $result_data["markerStatus_$count"] = $status;
                 $count++;
             }
         }
-        // JSON으로 변환하여 출력
         $result_data['schedule_chk'] = 'Y';
         $result_data['count'] = $count - 1;
-        echo json_encode($result_data);
-        exit;
     }
+
+    // 결과 캐시 저장
+    CacheUtil::set($cache_key, $result_data, 120); // 1분 캐시
+    echo json_encode($result_data);
+    exit;
 } elseif ($_POST['act'] == "load_path_chk") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
@@ -2248,7 +2260,7 @@ if ($_POST['act'] == "event_source") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
     }
-    logToFile("start");
+    // logToFile("start");
     // smap_group_detail_t에서 sgdt_idx를 통해서 그룹 sgt_idx를 찾는다.
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_show', 'Y');
@@ -2256,7 +2268,7 @@ if ($_POST['act'] == "event_source") {
     $DB->where('sgdt_exit', 'N');
     $sgdt_row = $DB->getone('smap_group_detail_t');
 
-    logToFile("1");
+    // logToFile("1");
     // sgt_idx로 그룹원들을 찾는다.
     $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
     $DB->where('sgdt_show', 'Y');

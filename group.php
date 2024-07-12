@@ -17,53 +17,63 @@ if ($_SESSION['_mt_idx'] == '') {
     }
 }
 
-//오너인 그룹수
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgt_show', 'Y');
-$row = $DB->getone('smap_group_t', 'count(*) as cnt');
-$sgt_cnt = $row['cnt'];
+$mt_idx = $_SESSION['_mt_idx'];
 
-//리더인 그룹수
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgdt_owner_chk', 'N');
-$DB->where('sgdt_leader_chk', 'Y');
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_discharge', 'N');
-$DB->where('sgdt_exit', 'N');
-$row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-$sgdt_leader_cnt = $row['cnt'];
+$query = "
+SELECT 
+    SUM(CASE WHEN subquery.query_type = 'owner' THEN subquery.cnt ELSE 0 END) AS sgt_cnt,
+    SUM(CASE WHEN subquery.query_type = 'leader' THEN subquery.cnt ELSE 0 END) AS sgdt_leader_cnt,
+    SUM(CASE WHEN subquery.query_type = 'invited' THEN subquery.cnt ELSE 0 END) AS sgdt_cnt,
+    SUM(CASE WHEN subquery.query_type = 'group_activity' THEN subquery.cnt ELSE 0 END) AS gapt_cnt,
+    SUM(CASE WHEN subquery.query_type = 'except_owner' THEN subquery.cnt ELSE 0 END) AS expt_cnt
+FROM (
+    SELECT 'owner' AS query_type, COUNT(*) AS cnt
+    FROM smap_group_t AS sgt
+    WHERE sgt.mt_idx = $mt_idx AND sgt.sgt_show = 'Y'
+    UNION ALL
+    SELECT 'leader' AS query_type, COUNT(*) AS cnt
+    FROM smap_group_detail_t AS sgdt
+    WHERE sgdt.mt_idx = $mt_idx AND sgdt.sgdt_owner_chk = 'N' AND sgdt.sgdt_leader_chk = 'Y' 
+        AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N'
+    UNION ALL
+    SELECT 'invited' AS query_type, COUNT(*) AS cnt
+    FROM smap_group_detail_t AS sgdt
+    WHERE sgdt.mt_idx = $mt_idx AND sgdt.sgdt_owner_chk = 'N' AND sgdt.sgdt_show = 'Y' 
+        AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N'
+    UNION ALL
+    SELECT 'group_activity' AS query_type, COUNT(*) AS cnt
+    FROM smap_group_detail_t AS sgdt
+    WHERE sgdt.mt_idx = $mt_idx AND sgdt.sgdt_owner_chk = 'N' AND sgdt.sgdt_discharge = 'N' 
+        AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_exit = 'N' AND sgdt.sgdt_group_chk = 'D'
+    UNION ALL
+    SELECT 'except_owner' AS query_type, COUNT(*) AS cnt
+    FROM smap_group_detail_t AS sgdt
+    WHERE sgdt.sgt_idx IN (SELECT sgt.sgt_idx FROM smap_group_t AS sgt WHERE sgt.mt_idx = $mt_idx AND sgt.sgt_show = 'Y')
+        AND sgdt.sgdt_owner_chk = 'N' AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N'
+) as subquery;
+";
 
-//초대된 그룹수
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgdt_owner_chk', 'N');
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_discharge', 'N');
-$DB->where('sgdt_exit', 'N');
-$row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-$sgdt_cnt = $row['cnt'];
+$result = $DB->Query($query);
 
-//그룹활동기한 설정여부
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgdt_owner_chk', 'N');
-$DB->where('sgdt_discharge', 'N');
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_exit', 'N');
-$DB->where('sgdt_group_chk', 'D');
-$row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-$gapt_cnt = $row['cnt'];
+if ($result) {
+    foreach ($result as $row) {
+        $counts = $result[0];
+        $sgt_cnt = $row['sgt_cnt'];
+        $sgdt_leader_cnt = $row['sgdt_leader_cnt'];
+        $sgdt_cnt = $row['sgdt_cnt'];
+        $gapt_cnt = $row['gapt_cnt'];
+        $expt_cnt = $row['expt_cnt'];
+        }
+} else {
+    // 기본값 설정 또는 오류 메시지 표시
+    $sgt_cnt = $sgdt_leader_cnt = $sgdt_cnt = $gapt_cnt = $expt_cnt = 0;
+}
 
 //오너제외한 그룹원 수
 $DB->where('mt_idx', $_SESSION['_mt_idx']);
 $DB->where('sgt_show', 'Y');
 $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
 
-$DB->where('sgt_idx', $row_sgt['sgt_idx']);
-$DB->where('sgdt_owner_chk', 'N');
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_discharge', 'N');
-$DB->where('sgdt_exit', 'N');
-$row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-$expt_cnt = $row['cnt'];
 
 //나의 걸음수
 // $row = get_member_location_log_t_info();
@@ -74,11 +84,11 @@ $expt_cnt = $row['cnt'];
 <script type="text/javascript" src="<?= CDN_HTTP ?>/lib/dragula/dragula.min.js"></script>
 <script type="text/JavaScript" src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
 <script>
-    // console.log("sgt_cnt: <?php echo $sgt_cnt; ?>");
-    // console.log("sgdt_cnt: <?php echo $sgdt_cnt; ?>");
-    // console.log("gapt_cnt: <?php echo $gapt_cnt; ?>");
-    // console.log("expt_cnt: <?php echo $expt_cnt; ?>");
-    // console.log("mt_idx: <?php echo $_SESSION['_mt_idx']; ?>");
+    console.log("sgt_cnt: <?php echo $sgt_cnt; ?>");
+    console.log("sgdt_cnt: <?php echo $sgdt_cnt; ?>");
+    console.log("gapt_cnt: <?php echo $gapt_cnt; ?>");
+    console.log("expt_cnt: <?php echo $expt_cnt; ?>");
+    console.log("mt_idx: <?php echo $_SESSION['_mt_idx']; ?>");
     // 다른 변수들도 동일한 방식으로 출력
 </script>
 <input type="hidden" id="share_url" value="">

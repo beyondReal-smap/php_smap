@@ -2,14 +2,38 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
 if ($_POST['act'] == "list") {
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $DB->where('sgdt_show', 'Y');
-    $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
+    // Apply the filters
+    $mt_idx = $_SESSION['_mt_idx'];
+    $query = "
+        WITH MAIN AS (
+            SELECT *
+            FROM smap_group_detail_t
+            WHERE sgdt_discharge = 'N'
+            AND sgdt_exit = 'N'
+            AND sgdt_show = 'Y'
+        )
+        SELECT MAIN.*
+        FROM MAIN
+        JOIN (
+            SELECT sgt_idx
+            FROM smap_group_detail_t
+            WHERE mt_idx =  $mt_idx
+            AND sgdt_discharge = 'N'
+            AND sgdt_exit = 'N'
+            AND sgdt_show = 'Y'
+        ) AS SUB ON MAIN.sgt_idx = SUB.sgt_idx;
+    ";
+    // Fetch multiple rows
+    $list_sgdt = $DB->Query($query);
+
+    // Count the total number of rows
+    $member_cnt_t = count($list_sgdt);
+
+    // Select one row (you can choose any logic to select a specific row, here we are taking the first row)
+    $row_sgdt = !empty($list_sgdt) ? $list_sgdt[0] : null;
 
     unset($list_sgt);
-    $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
+    $DB->where('sgt_idx',  $row_sgdt['sgt_idx']);
     $DB->where('sgt_show', 'Y');
     $DB->orderBy("sgt_idx", "asc");
     $DB->orderBy("sgt_udate", "desc");
@@ -19,7 +43,7 @@ if ($_POST['act'] == "list") {
         <?php
         if ($list_sgt) {
             foreach ($list_sgt as $row_sgt) {
-                $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
+                // $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
         ?>
                 <div class="border bg-white rounded-lg mb-3">
                     <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'">

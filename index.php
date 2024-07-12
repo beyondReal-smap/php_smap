@@ -591,22 +591,16 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
 <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=6BGAw3YxGA6tVPu0Olbio7fwXiGjDV7g4VRlF3Pq"></script>
 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
 <script>
-    var map = new naver.maps.Map("map", {
-        center: new naver.maps.LatLng(<?= $_SESSION['_mt_lat'] ?>, <?= $_SESSION['_mt_long'] ?>),
-        zoom: 16,
-        mapTypeControl: false
-    }); // 전역 변수로 map을 선언하여 다른 함수에서도 사용 가능하도록 합니다.
-    var scheduleMarkers = []; // 스케줄 마커를 저장할 배열입니다.
-    var optimalPath; // 최적 경로를 표시할 변수입니다.
-    var drawInfoArr = [];
-    var resultdrawArr = [];
-    var scheduleMarkerCoordinates = [];
-    var scheduleStatus = [];
-    var startX, startY, endX, endY; // 출발지와 도착지 좌표 변수 초기화
-    var markers;
-    var polylines;
-    var profileMarkers = [];
-    var pathCount;
+    // var map = new naver.maps.Map("map", {
+    //     center: new naver.maps.LatLng(<?= $_SESSION['_mt_lat'] ?>, <?= $_SESSION['_mt_long'] ?>),
+    //     zoom: 16,
+    //     mapTypeControl: false
+    // }); // 전역 변수로 map을 선언하여 다른 함수에서도 사용 가능하도록 합니다.
+    // 전역 변수들
+    let map, markers = [], polylines = [], profileMarkers = [], scheduleMarkers = [];
+    let scheduleMarkerCoordinates = [], scheduleStatus = [];
+    let startX, startY, endX, endY;
+    let resultdrawArr = [];
     // 버튼 엘리먼트 찾기
     var showPathButton = document.getElementById('showPathButton');
     var showPathAdButton = document.getElementById('showPathAdButton'); //광고실행버튼
@@ -689,7 +683,7 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
 
     $(document).ready(function() {
         // console.time("forEachLoopExecutionTime");
-        schedule_map(<?= $sgdt_row['sgdt_idx'] ?>);
+        schedule_map(<?= $sgdt_row['sgdt_idx'] ?>, 'N');
         f_get_box_list();
         f_get_box_list2();
         checkAdCount();
@@ -708,11 +702,90 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         ?>
     });
 
-    function loadPedestrianPathData(sgdt_idx) {
-        console.log("Loading pedestrian path data for sgdt_idx:", sgdt_idx);
+
+    // 메모이제이션을 위한 함수
+    const memoize = (fn) => {
+        const cache = new Map();
+        return (...args) => {
+            const key = JSON.stringify(args);
+            if (cache.has(key)) {
+                return cache.get(key);
+            }
+            const result = fn.apply(this, args);
+            cache.set(key, result);
+            return result;
+        };
+    };
+
+    // 거리 계산 함수를 메모이제이션
+    const memoizedGetDistance = memoize(getDistance);
+
+    // // Web Worker를 사용한 복잡한 계산
+    // function initWebWorker() {
+    //     const worker = new Worker('path-calculation-worker.js');
+        
+    //     worker.onmessage = function(e) {
+    //         const { type, data } = e.data;
+    //         switch(type) {
+    //             case 'pathCalculationComplete':
+    //                 drawPathAndMarkers(map, data.path, data.walkingTime, data.labelText);
+    //                 break;
+    //             // 다른 메시지 타입 처리
+    //         }
+    //     };
+
+    //     return worker;
+    // }
+
+    // const pathWorker = initWebWorker();
+
+    // 이미지 스프라이트 사용을 위한 함수
+    function createMarkerIcon(index) {
+        const spriteUrl = 'path/to/marker-sprite.png';
+        const iconSize = 32;
+        const x = (index % 10) * iconSize;
+        const y = Math.floor(index / 10) * iconSize;
+
+        return {
+            url: spriteUrl,
+            size: new naver.maps.Size(iconSize, iconSize),
+            origin: new naver.maps.Point(x, y),
+            anchor: new naver.maps.Point(iconSize/2, iconSize)
+        };
+    }
+
+    // 성능 모니터링
+    function monitorPerformance() {
+        const performanceData = {
+            loadTime: window.performance.timing.loadEventEnd - window.performance.timing.navigationStart,
+            domContentLoadedTime: window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart,
+            // 추가 성능 메트릭
+        };
+
+        // 성능 데이터 서버로 전송 또는 로깅
+        console.log('Performance Data:', performanceData);
+    }
+
+    // 페이지 로드 완료 시 성능 모니터링 실행
+    window.addEventListener('load', monitorPerformance);
+
+    // 보행자 경로 데이터 처리
+    function processPedestrianPathData(sgdtIdx) {
+        const cacheKey = `pedestrianPath_<?= $sgdt_row['sgdt_idx'] ?>`;
+        const cachedData = CacheUtil.get(cacheKey);
+
+        if (cachedData) {
+            console.log('Using cached pedestrian path data');
+            processPathData(cachedData);
+        } else {
+            loadPedestrianPathData(sgdtIdx);
+        }
+    }
+
+    function loadPedestrianPathData(sgdtIdx) {
         var form_data = new FormData();
         form_data.append("act", "pedestrian_path_chk");
-        form_data.append("sgdt_idx", sgdt_idx);
+        form_data.append("sgdt_idx", sgdtIdx);
         form_data.append("event_start_date", '<?= $s_date ?>');
 
         $.ajax({
@@ -727,16 +800,21 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
             timeout: 5000,
             dataType: 'json',
             success: function(data) {
-                console.log("Received data:", data);
-                if (data && data.result == 'Y') {
-                    pedestrianPathData = data;
-                    // processPathData(data);
-                } else {
-                    console.log("No path data available or result is not 'Y'");
+                try {
+                    if (data && data.result == 'Y') {
+                        CacheUtil.set(`pedestrianPath_<?= $sgdt_row['sgdt_idx'] ?>`, data, 30); // 30분 동안 캐시
+                    } else {
+                        console.log("No path data available or result is not 'Y'");
+                    }
+                } catch (error) {
+                    console.error("An error occurred while processing the data: ", error);
+                } finally {
+                    hideLoader();
                 }
             },
             error: function(err) {
                 console.error("AJAX request failed: ", err);
+                hideLoader();
             },
         });
     }
@@ -744,20 +822,11 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     function mem_schedule(sgdt_idx) {
         console.log("mem_schedule called with sgdt_idx:", sgdt_idx);
         document.getElementById('sgdt_idx').value = sgdt_idx;
-        schedule_map(sgdt_idx);
+        schedule_map(sgdt_idx, 'N');
         f_get_box_list();
         
         if (window.FakeLoader && typeof window.FakeLoader.showOverlay === 'function') {
             window.FakeLoader.showOverlay();
-        }
-        
-        // 저장된 데이터를 사용합니다.
-        if (pedestrianPathData.members[sgdt_idx]) {
-            console.log("Using stored data for sgdt_idx:", sgdt_idx);
-            processPathData(pedestrianPathData.members[sgdt_idx]);
-        } else {
-            console.log("No stored data found, loading new data for sgdt_idx:", sgdt_idx);
-            loadPedestrianPathData(sgdt_idx);
         }
         
         setTimeout(() => {
@@ -863,175 +932,348 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         },
     });
 
+    // 캐시 관리를 위한 유틸리티 함수들
+    const CacheUtil = {
+        set: function(key, data, expirationMinutes = 60) {
+            const item = {
+                value: data,
+                expiry: new Date().getTime() + (expirationMinutes * 60 * 1000)
+            };
+            localStorage.setItem(key, JSON.stringify(item));
+        },
+        get: function(key) {
+            const itemStr = localStorage.getItem(key);
+            if (!itemStr) return null;
+
+            const item = JSON.parse(itemStr);
+            const now = new Date().getTime();
+
+            if (now > item.expiry) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            return item.value;
+        }
+    };
+
     function initializeMap(my_profile, st_lat, st_lng, markerData) {
         if (markerData.marker_reload == 'Y') {
-            // profileMarkers 배열에 담겨있는 마커 제거
-            for (var i = 0; i < profileMarkers.length; i++) {
-                profileMarkers[i].setMap(null); // 지도에서 마커 제거
+            // 기존 마커 제거 로직
+            for (let marker of profileMarkers) {
+                marker.setMap(null);
             }
-            // 마커 배열 초기화
             profileMarkers = [];
-            // 기존 프로필 마커 추가
-            var profileMarkerOptions = {
-                position: new naver.maps.LatLng(st_lat, st_lng),
-                map: map,
-                icon: {
-                    content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + my_profile + '" alt="이미지" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
-                    size: new naver.maps.Size(44, 44),
-                    origin: new naver.maps.Point(0, 0),
-                    anchor: new naver.maps.Point(22, 22)
-                },
-                zIndex: 3
-            };
-            var profileMarker = new naver.maps.Marker(profileMarkerOptions);
-            profileMarkers.push(profileMarker);
 
-            for (var i = 1; i <= markerData.profile_count; i++) {
-                var profileMarkerOptions = {
-                    position: new naver.maps.LatLng(markerData['profilemarkerLat_' + i], markerData['profilemarkerLong_' + i]),
-                    map: map,
-                    icon: {
-                        content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + markerData['profilemarkerImg_' + i] + '" alt="이미지" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
-                        size: new naver.maps.Size(44, 44),
-                        origin: new naver.maps.Point(0, 0),
-                        anchor: new naver.maps.Point(22, 22)
-                    },
-                    zIndex: 2
-                };
-                var profileMarker = new naver.maps.Marker(profileMarkerOptions);
-                profileMarkers.push(profileMarker);
+            // 프로필 마커 추가
+            addProfileMarker(st_lat, st_lng, my_profile);
+
+            // 추가 프로필 마커 추가
+            for (let i = 1; i <= markerData.profile_count; i++) {
+                addProfileMarker(
+                    markerData[`profilemarkerLat_${i}`],
+                    markerData[`profilemarkerLong_${i}`],
+                    markerData[`profilemarkerImg_${i}`]
+                );
             }
         } else {
+            // 새 지도 초기화
             map = new naver.maps.Map("map", {
                 center: new naver.maps.LatLng(st_lat, st_lng),
                 zoom: 16,
                 mapTypeControl: false
             });
 
-            var optBottom = document.querySelector('.opt_bottom');
-            if (optBottom) {
-                var transformY = optBottom.style.transform;
-                if (transformY == 'translateY(0px)') {
-                    map.panBy(new naver.maps.Point(0, 180)); // 위로 180 픽셀 이동
-                }
-            }
-            // 마커 배열 초기화
-            markers = [];
-            polylines = [];
-            profileMarkers = [];
-            // 기존 프로필 마커 추가
-            var profileMarkerOptions = {
-                position: new naver.maps.LatLng(st_lat, st_lng),
-                map: map,
-                icon: {
-                    content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + my_profile + '" alt="이미지" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
-                    size: new naver.maps.Size(44, 44),
-                    origin: new naver.maps.Point(0, 0),
-                    anchor: new naver.maps.Point(22, 22)
-                },
-                zIndex: 3
-            };
-            var profileMarker = new naver.maps.Marker(profileMarkerOptions);
-            profileMarkers.push(profileMarker);
-            // markers.push(profileMarker);
+            // 지도 중심 조정
+            adjustMapCenter();
 
-            for (var i = 1; i <= markerData.profile_count; i++) {
-                var profileMarkerOptions = {
-                    position: new naver.maps.LatLng(markerData['profilemarkerLat_' + i], markerData['profilemarkerLong_' + i]),
-                    map: map,
-                    icon: {
-                        content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + markerData['profilemarkerImg_' + i] + '" alt="이미지" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
-                        size: new naver.maps.Size(44, 44),
-                        origin: new naver.maps.Point(0, 0),
-                        anchor: new naver.maps.Point(22, 22)
-                    },
-                    zIndex: 2
-                };
-                var profileMarker = new naver.maps.Marker(profileMarkerOptions);
-                profileMarkers.push(profileMarker);
-                // markers.push(profileMarker);
+            // 배열 초기화
+            // markers = [];
+            // polylines = [];
+            // profileMarkers = [];
+
+            // 프로필 마커 추가
+            addProfileMarker(st_lat, st_lng, my_profile);
+
+            // 추가 프로필 마커 추가
+            for (let i = 1; i <= markerData.profile_count; i++) {
+                addProfileMarker(
+                    markerData[`profilemarkerLat_${i}`],
+                    markerData[`profilemarkerLong_${i}`],
+                    markerData[`profilemarkerImg_${i}`]
+                );
             }
+
             // 스케줄 마커 추가
             if (markerData.schedule_chk === 'Y') {
-                var positions = [];
-                for (var i = 1; i <= markerData.count; i++) {
-                    if (i === 1) {
-                        // 출발지 좌표
-                        startX = markerData['markerLat_' + i];
-                        startY = markerData['markerLong_' + i];
-                    } else if (i === markerData.count) {
-                        // 도착지 좌표
-                        endX = markerData['markerLat_' + i];
-                        endY = markerData['markerLong_' + i];
-                    }
-
-                    var markerLat = markerData['markerLat_' + i];
-                    var markerOptions = {
-                        position: new naver.maps.LatLng(markerData['markerLat_' + i], markerData['markerLong_' + i]),
-                        map: map,
-                        icon: {
-                            content: markerData['markerContent_' + i],
-                            size: new naver.maps.Size(61, 61),
-                            origin: new naver.maps.Point(0, 0),
-                            anchor: new naver.maps.Point(30, 30)
-                        },
-                        zIndex: 1
-                    };
-
-                    var marker = new naver.maps.Marker(markerOptions);
-                    positions.push(marker.getPosition());
-                    scheduleMarkers.push(marker);
-                    markers.push(marker);
-                }
-                // 스케줄 마커의 개수
-                var markerCount = markerData['count'];
-                // 스케줄 마커의 좌표 배열
-                scheduleMarkerCoordinates = [];
-                scheduleStatus = [];
-                for (var i = 1; i <= markerCount; i++) {
-                    var lat = markerData['markerLat_' + i];
-                    var lng = markerData['markerLong_' + i];
-                    var status = markerData['markerStatus_' + i];
-                    scheduleMarkerCoordinates.push(new naver.maps.LatLng(lat, lng));
-                    scheduleStatus.push(status);
-                }
+                addScheduleMarkers(markerData);
             }
+
+            // 지도 이벤트 리스너 추가
+            addMapEventListeners();
         }
-        // 지도 이동 시 이벤트 리스너 추가
+
+        // 보행자 경로 데이터 처리
+        processPedestrianPathData();
+
+        // 지도 커서 설정
+        if (map) {
+            map.setCursor('pointer');
+        }
+
+        // 지연 로딩 설정
+        naver.maps.Event.addListener(map, 'idle', lazyLoadMapElements);
+
+        // 성능 최적화를 위한 디바운싱
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                map.setSize(map.getSize());
+            }, 250);
+        });
+    }
+
+    function addProfileMarker(lat, lng, imgSrc) {
+        const markerOptions = {
+            position: new naver.maps.LatLng(lat, lng),
+            map: map,
+            icon: {
+                content: `<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="${imgSrc}" alt="이미지" onerror="this.src='<?= $ct_no_img_url ?>'"/></div></div></div></div>`,
+                size: new naver.maps.Size(44, 44),
+                origin: new naver.maps.Point(0, 0),
+                anchor: new naver.maps.Point(22, 22)
+            },
+            zIndex: 3
+        };
+        const marker = new naver.maps.Marker(markerOptions);
+        profileMarkers.push(marker);
+    }
+
+    function addScheduleMarkers(markerData) {
+        let positions = [];
+        for (let i = 1; i <= markerData.count; i++) {
+            if (i === 1) {
+                startX = markerData[`markerLat_${i}`];
+                startY = markerData[`markerLong_${i}`];
+            } else if (i === markerData.count) {
+                endX = markerData[`markerLat_${i}`];
+                endY = markerData[`markerLong_${i}`];
+            }
+
+            const markerOptions = {
+                position: new naver.maps.LatLng(markerData[`markerLat_${i}`], markerData[`markerLong_${i}`]),
+                map: map,
+                icon: {
+                    content: markerData[`markerContent_${i}`],
+                    size: new naver.maps.Size(61, 61),
+                    origin: new naver.maps.Point(0, 0),
+                    anchor: new naver.maps.Point(30, 30)
+                },
+                zIndex: 1
+            };
+
+            const marker = new naver.maps.Marker(markerOptions);
+            positions.push(marker.getPosition());
+            scheduleMarkers.push(marker);
+            markers.push(marker);
+
+            scheduleMarkerCoordinates.push(new naver.maps.LatLng(markerData[`markerLat_${i}`], markerData[`markerLong_${i}`]));
+            scheduleStatus.push(markerData[`markerStatus_${i}`]);
+        }
+    }
+
+    function addMapEventListeners() {
         naver.maps.Event.addListener(map, 'idle', function() {
-            var bounds = map.getBounds();
-            markers.forEach(function(marker) {
+            const bounds = map.getBounds();
+            markers.forEach(marker => {
                 if (bounds.hasLatLng(marker.getPosition())) {
                     marker.setMap(map);
                 } else {
                     marker.setMap(null);
                 }
             });
-            polylines.forEach(function(polyline_) {
-                // 폴리라인의 경계를 가져옵니다.
-                var polylineBounds = polyline_.getBounds();
+            polylines.forEach(polyline => {
+                const polylineBounds = polyline.getBounds();
                 if (polylineBounds && bounds.intersects(polylineBounds)) {
-                    polyline_.setMap(map);
+                    polyline.setMap(map);
                 } else {
-                    polyline_.setMap(null);
+                    polyline.setMap(null);
                 }
             });
         });
+    }
 
-        if(pedestrianPathData.members[sgdt_idx.value]){
-            processPathData(pedestrianPathData.members[sgdt_idx.value]);
-        }
+    function processPedestrianPathData() {
+        const cacheKey = `pedestrianPath_<?= $sgdt_row['sgdt_idx'] ?>`;
+        const cachedData = CacheUtil.get(cacheKey);
 
-        // initializeMap 함수 끝에 map 변수의 상태를 체크하고 map이 정상적으로 생성되었을 때에만 setCursor 호출
-        if (map) {
-            map.setCursor('pointer');
+        if(cachedData){
+            processPathData(cachedData.members[sgdt_idx.value]);
         }
     }
 
-    // 최적경로버튼에 클릭 이벤트 핸들러 등록
-    showPathButton.addEventListener('click', function(event) {
-        var pathCount = document.getElementById('path_day_count');
-        // pathCount가 2 이상인 경우에만 특정 동작을 수행
+    function adjustMapCenter() {
+        const optBottom = document.querySelector('.opt_bottom');
+        if (optBottom && optBottom.style.transform == 'translateY(0px)') {
+            map.panBy(new naver.maps.Point(0, 180));
+        }
+    }
+
+    // 최적 경로 표시 함수
+    function showOptimalPath(startX, startY, endX, endY, scheduleMarkerCoordinates, scheduleStatus) {
+        // 캐시 키 생성
+        const cacheKey = `optimalPath_${startX}_${startY}_${endX}_${endY}_${scheduleMarkerCoordinates.map(coord => coord.lat() + '_' + coord.lng()).join('_')}`;
+        
+        // 캐시된 데이터 확인
+        const cachedData = CacheUtil.get(cacheKey);
+        if (cachedData) {
+            console.log('Using cached optimal path data');
+            processOptimalPathData(cachedData);
+            return;
+        }
+
+        // 경유지 설정
+        const viaPoints = scheduleMarkerCoordinates.slice(1, -1).map((coordinate, index) => ({
+            viaPointId: `point_${index + 1}`,
+            viaPointName: `point_${index + 1}`,
+            viaY: coordinate.lat(),
+            viaX: coordinate.lng(),
+            viaTime: 600
+        }));
+
+        const passList = viaPoints.map(point => `${point.viaX},${point.viaY}`).join("_");
+
+        // 직선 거리 계산 및 검증
+        const straightDistance = getDistance(startY, startX, scheduleMarkerCoordinates, 5).toFixed(2);
+        if (straightDistance >= 5) {
+            jalert(`일정과 일정 사이의 거리가 <br>너무 멀어 최적경로 표기가 어렵습니다.(${straightDistance}km)`);
+            return false;
+        }
+
+        // API 요청 데이터 준비
+        const requestData = {
+            reqCoordType: "WGS84GEO",
+            resCoordType: "EPSG3857",
+            startName: "출발",
+            startX: startY,
+            startY: startX,
+            endName: "도착",
+            endX: endY,
+            endY: endX,
+            endID: "goal",
+            passList: passList
+        };
+
+        // API 호출
+        $.ajax({
+            method: "POST",
+            headers: {
+                appKey: "6BGAw3YxGA6tVPu0Olbio7fwXiGjDV7g4VRlF3Pq"
+            },
+            url: "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1&format=json&callback=result",
+            async: false,
+            contentType: "application/json",
+            data: JSON.stringify(requestData),
+            success: function(response) {
+                // 캐시에 저장
+                CacheUtil.set(cacheKey, response, 30); // 30분 동안 캐시 유지
+                processOptimalPathData(response);
+            },
+            error: function(request, status, error) {
+                handleApiError(request, status, error);
+            }
+        });
+    }
+
+    function processOptimalPathData(response) {
+        if (response && response.features && response.features.length > 0) {
+            const resultData = response.features;
+            const totalDistance = ((resultData[0].properties.totalDistance) / 1000).toFixed(1);
+            const totalTime = ((resultData[0].properties.totalTime) / 60).toFixed(0);
+
+            const labelText = $('.optimal_box[aria-label]').attr('aria-label').split('/')[1].trim();
+
+            calculateWalkingTime(startX, startY, endX, endY, scheduleMarkerCoordinates, function(totalWalkingTime) {
+                drawPathAndMarkers(map, resultData, totalWalkingTime, labelText);
+                savePathDataToDB(resultData, totalWalkingTime);
+            });
+
+            // GA 이벤트 전송
+            sendGAEvent('show_optimal_path', {
+                'event_category': 'optimal_path',
+                'event_label': 'show',
+                'user_id': '<?= $_SESSION['_mt_idx'] ?>',
+                'platform': getPlatform()
+            });
+        } else {
+            console.error('유효하지 않은 API 응답 데이터');
+            jalert('경로 데이터를 받아오는데 실패했습니다.');
+        }
+    }
+
+    function handleApiError(request, status, error) {
+        console.log(request.responseJSON.error);
+        let errorMessage;
+        switch(request.responseJSON.error.code) {
+            case '3102':
+                errorMessage = '해당 서비스가 지원되지 않는 구간이라 <br>최적 경로 안내가 어려워요.';
+                break;
+            case '3002':
+                errorMessage = '길안내를 제공하지 않는 부분이 있어서 <br>최적 경로 안내가 어려워요.';
+                break;
+            case '1009':
+                errorMessage = '일부 구간이 너무 멀어서 <br>최적 경로 안내가 힘들어요.';
+                break;
+            case '9401':
+                errorMessage = '최적경로 조회는 <br>두 개 이상의 일정이 입력되었을 때만 <br>이용할 수 있어요.';
+                break;
+            case '1100':
+                errorMessage = '최적경로는 <br>최대 7개까지의 일정의 경로를 표시 가능해요.';
+                break;
+            case '2200':
+                errorMessage = '최적경로 API에서 지원하지는 주소 범위입니다.';
+                break;
+            default:
+                errorMessage = '시스템 오류입니다.';
+        }
+        jalert(errorMessage);
+    }
+
+    function savePathDataToDB(resultData, totalWalkingTime) {
+        const sgdtidx = $('#pedestrian_path_modal_sgdt_idx').val();
+        const form_data = new FormData();
+        form_data.append("act", "loadpath_add");
+        form_data.append("sgdt_idx", sgdtidx);
+        form_data.append("sllt_json_text", JSON.stringify(resultData));
+        form_data.append("sllt_json_walk", JSON.stringify(totalWalkingTime));
+        form_data.append("event_start_date", '<?= $s_date ?>');
+
+        $.ajax({
+            url: "./schedule_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 5000,
+            success: function(data) {
+                if (data != 'Y') {
+                    jalert('잘못된 접근입니다.');
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            },
+        });
+    }
+
+    function getAdData() {
+        return <?= $ad_data ?>;
+    }
+
+    document.getElementById('showPathButton').addEventListener('click', function(event) {
+        const pathCount = document.getElementById('path_day_count').value;
         if (pathCount == 0) {
             jalert('오늘 사용할 최적경로를 모두 사용하였습니다.');
         } else {
@@ -1040,8 +1282,33 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         }
     });
 
-    function getAdData() {
-        return <?= $ad_data ?>;
+    // 지연 로딩을 위한 함수
+    function lazyLoadMapElements() {
+        const mapBounds = map.getBounds();
+        markers.forEach(marker => {
+            if (mapBounds.hasLatLng(marker.getPosition())) {
+                if (!marker.getMap()) {
+                    marker.setMap(map);
+                }
+            } else {
+                if (marker.getMap()) {
+                    marker.setMap(null);
+                }
+            }
+        });
+
+        polylines.forEach(polyline => {
+            const polylineBounds = polyline.getBounds();
+            if (polylineBounds && mapBounds.intersects(polylineBounds)) {
+                if (!polyline.getMap()) {
+                    polyline.setMap(map);
+                }
+            } else {
+                if (polyline.getMap()) {
+                    polyline.setMap(null);
+                }
+            }
+        });
     }
 
     // Ensure this function is attached to a button correctly
@@ -1138,11 +1405,11 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
                     });
 
                     // 성공 시 ajax로 DB에 log json 추가
-                    var sgdt_idx = $('#pedestrian_path_modal_sgdt_idx').val();
+                    var sgdtidx = $('#pedestrian_path_modal_sgdt_idx').val();
 
                     var form_data = new FormData();
                     form_data.append("act", "loadpath_add");
-                    form_data.append("sgdt_idx", sgdt_idx);
+                    form_data.append("sgdt_idx", sgdtidx);
                     // form_data.append("sllt_json_text", resultData);
                     form_data.append("sllt_json_text", JSON.stringify(response));
                     form_data.append("sllt_json_walk", JSON.stringify(totalWalkingTimeJson));
@@ -1207,46 +1474,46 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     }
     
     // 최경경로 사용 여부 확인
-    function pedestrian_path_check(sgdt_idx) {
-        var form_data = new FormData();
-        form_data.append("act", "pedestrian_path_chk");
-        form_data.append("sgdt_idx", sgdt_idx);
-        form_data.append("event_start_date", '<?= $s_date ?>');
+    // function pedestrian_path_check(sgdtidx) {
+    //     var form_data = new FormData();
+    //     form_data.append("act", "pedestrian_path_chk");
+    //     form_data.append("sgdt_idx", sgdtidx);
+    //     form_data.append("event_start_date", '<?= $s_date ?>');
 
-        $.ajax({
-            url: "./schedule_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 5000,
-            dataType: 'json',
-            success: function(data) {
-                try {
-                    if (data && data.result == 'Y') {
-                        processPathData(data);
-                    } else {
-                        console.log("No path data available or result is not 'Y'");
-                    }
-                } catch (error) {
-                    console.error("An error occurred while processing the data: ", error);
-                } finally {
-                    hideLoader();
-                }
-            },
-            error: function(err) {
-                console.error("AJAX request failed: ", err);
-                hideLoader();
-            },
-        });
-    }
+    //     $.ajax({
+    //         url: "./schedule_update",
+    //         enctype: "multipart/form-data",
+    //         data: form_data,
+    //         type: "POST",
+    //         async: true,
+    //         contentType: false,
+    //         processData: false,
+    //         cache: true,
+    //         timeout: 5000,
+    //         dataType: 'json',
+    //         success: function(data) {
+    //             try {
+    //                 if (data && data.result == 'Y') {
+    //                     processPathData(data);
+    //                 } else {
+    //                     console.log("No path data available or result is not 'Y'");
+    //                 }
+    //             } catch (error) {
+    //                 console.error("An error occurred while processing the data: ", error);
+    //             } finally {
+    //                 hideLoader();
+    //             }
+    //         },
+    //         error: function(err) {
+    //             console.error("AJAX request failed: ", err);
+    //             hideLoader();
+    //         },
+    //     });
+    // }
 
     function processPathData(data) {
         if (!data) {
-            console.error("Invalid data structure");
+            // console.error("Invalid data structure");
             return;
         }
 
@@ -1622,10 +1889,10 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     }
 
     function my_location_update() {
-        var sgdt_idx = $('#sgdt_idx').val();
+        var sgdtidx = $('#sgdt_idx').val();
         var form_data = new FormData();
         form_data.append("act", "member_location_reload");
-        form_data.append("sgdt_idx", sgdt_idx);
+        form_data.append("sgdt_idx", sgdtidx);
         $.ajax({
             url: "./schedule_update",
             enctype: "multipart/form-data",
@@ -1650,11 +1917,11 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         });
     }
 
-    function schedule_map(sgdt_idx) {
+    function schedule_map(sgdtidx, init_yn) {
         // $('#splinner_modal').modal('toggle');
         var form_data = new FormData();
         form_data.append("act", "schedule_map_list");
-        form_data.append("sgdt_idx", sgdt_idx);
+        form_data.append("sgdt_idx", sgdtidx);
         form_data.append("event_start_date", '<?= $s_date ?>');
 
         $.ajax({
@@ -1670,6 +1937,12 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
             dataType: 'json',
             success: function(data) {
                 if (data) {
+                    // 원하는 키와 값을 추가합니다.
+                    if (init_yn == 'Y'){
+                        data.marker_reload = 'Y';
+                    } else {
+                        data.marker_reload = 'N';
+                    }
                     var my_profile = data.my_profile;
                     var st_lat = data.my_lat;
                     var st_lng = data.mt_long;
@@ -1708,8 +1981,8 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     function f_my_location_btn(mt_idx) {
         console.log("f_my_location_btn called with mt_idx:", mt_idx);
         var form_data = new FormData();
-        var sgdt_idx = $('#sgdt_idx').val();
-        schedule_map(sgdt_idx);
+        var sgdtidx = $('#sgdt_idx').val();
+        schedule_map(sgdtidx, 'N');
         form_data.append("act", "my_location_search");
         form_data.append("mt_idx", mt_idx);
 
@@ -1739,14 +2012,6 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
                             map.panBy(new naver.maps.Point(0, 180));
                         }
                     }
-                    
-                    if (pedestrianPathData.members[sgdt_idx]) {
-                        console.log("Using stored path data for sgdt_idx:", sgdt_idx);
-                        processPathData(pedestrianPathData.members[sgdt_idx]);
-                    } else {
-                        console.log("No stored path data, loading new data for sgdt_idx:", sgdt_idx);
-                        loadPedestrianPathData(sgdt_idx);
-                    }
                 } else {
                     console.log("No location data received");
                 }
@@ -1758,10 +2023,10 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         console.timeEnd("forEachLoopExecutionTime");
     }
     // 실시간 마커 이동
-    function marker_reload(sgdt_idx) {
+    function marker_reload(sgdtidx) {
         var form_data = new FormData();
         form_data.append("act", "marker_reload");
-        form_data.append("sgdt_idx", sgdt_idx);
+        form_data.append("sgdt_idx", sgdtidx);
         form_data.append("event_start_date", '<?= $s_date ?>');
 
         $.ajax({
@@ -1962,11 +2227,11 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         return /iPhone|iPad|iPod/i.test(navigator.userAgent) && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.smapIos;
     }
 
-    setInterval(() => {
-        var sgdt_idx = $('#sgdt_idx').val();
+    // setInterval(() => {
+    //     var sgdt_idx = $('#sgdt_idx').val();
         // marker_reload(sgdt_idx);
         // console.log(sgdt_idx);
-    }, 30000);
+    // }, 30000);
 </script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";

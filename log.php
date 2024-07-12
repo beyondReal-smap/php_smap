@@ -5,6 +5,7 @@ $h_menu = '5';
 $_SUB_HEAD_TITLE = "로그";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
+require_once 'group_log_cache.php';
 
 if ($_SESSION['_mt_idx'] == '') {
     alert('로그인이 필요합니다.', './login', '');

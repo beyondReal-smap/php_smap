@@ -34,6 +34,7 @@ include $_SERVER['DOCUMENT_ROOT']."/config.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/config_arr.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/mail.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/MobileDetect.inc.php";
+require_once 'redis_cache_util.php';
 
 $detect_mobile = new \Detection\MobileDetect();
 if ($detect_mobile->isMobile()) {
@@ -2248,6 +2249,25 @@ function get_sgdt_member_list($sgt_idx)
 {
     global $DB, $_SESSION;
 
+    // 캐시 키 생성
+    $cache_key = "sgdt_member_list_{$sgt_idx}_{$_SESSION['_mt_idx']}";
+
+    // 캐시된 데이터 확인
+    $cached_data = CacheUtil::get($cache_key);
+    
+    // 캐시된 데이터가 있을 경우, 유효성 검사
+    if ($cached_data) {
+        $DB->where('sgt_idx', $sgt_idx);
+        $DB->where('sgdt_udate', $cached_data['last_update'], '>');
+        $updated = $DB->getOne('smap_group_detail_t', 'COUNT(*) as count');
+        
+        // DB에 변경이 없으면 캐시된 데이터 반환
+        if ($updated['count'] == 0) {
+            return $cached_data;
+        }
+    }
+
+    // 기존 로직
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $DB->where('sgt_idx', $sgt_idx);
     $row_sgpt = $DB->getone('smap_group_personal_t');
@@ -2376,6 +2396,11 @@ function get_sgdt_member_list($sgt_idx)
 
     $rtn['chk_leader'] = $chk_leader;
     $rtn['member_cnt'] = $member_cnt;
+    $rtn['last_update'] = date('Y-m-d H:i:s');
+
+    // 결과를 캐시에 저장 (예: 10분 동안)
+    CacheUtil::set($cache_key, $rtn, 600);
+
 
     return $rtn;
 }
@@ -2628,47 +2653,39 @@ function get_gps_distance_k($mt_idx, $sdate)
 {
     global $DB, $slt_mlt_accuacy, $slt_mlt_speed;
 
-    unset($list);
+    // SQL 쿼리 준비
     $DB->where('mt_idx', $mt_idx);
-    $DB->where("mlt_accuacy < ".$slt_mlt_accuacy);
-    $DB->where("mlt_speed >= ".$slt_mlt_speed);
-    $DB->where("mlt_wdate BETWEEN '".$sdate." 00:00:00' AND '".$sdate." 23:59:59'");
-    $list = $DB->get('member_location_log_t');
-
-    $temp_gps = array();
-    $temp_gps_time = array();
-
-    if($list) {
-        foreach($list as $row) {
-            $temp_gps[] = array($row['mlt_lat'], $row['mlt_long']);
-            $temp_gps_time[] = get_date2unixtime($row['mlt_wdate']);
-            $temp_gps_health_work[] = $row['mt_health_work'];
-        }
-    }
+    $DB->where('mlt_accuacy <', $slt_mlt_accuacy);
+    $DB->where('mlt_speed >=', $slt_mlt_speed);
+    $DB->where('mlt_wdate >=', $sdate . ' 00:00:00');
+    $DB->where('mlt_wdate <=', $sdate . ' 23:59:59');
+    $DB->orderby('mlt_wdate', 'asc');
+    $list = $DB->get('member_location_log_t', null, 'mlt_lat, mlt_long, mlt_wdate, mt_health_work');
 
     $gsp_km = 0;
     $gps_time = 0;
     $gps_health_work = 0;
+    $prev_gps_time = null;
 
-    if($temp_gps) {
-        foreach($temp_gps as $key => $val) {
-            if($temp_gps[$key][0] && $temp_gps[($key + 1)][0]) {
-                $gsp_km += gps_distance($temp_gps[$key][0], $temp_gps[$key][1], $temp_gps[($key + 1)][0], $temp_gps[($key + 1)][1]);
-                $gps_time += ($temp_gps_time[($key + 1)] - $temp_gps_time[$key]);
-                // $gps_health_work += ($temp_gps_health_work[($key + 1)] - $temp_gps_health_work[$key]);
+    if ($list) {
+        foreach ($list as $key => $row) {
+            // 거리 계산
+            if ($key > 0) {
+                $gsp_km += gps_distance($list[$key - 1]['mlt_lat'], $list[$key - 1]['mlt_long'], $row['mlt_lat'], $row['mlt_long']);
             }
+
+            // 시간 계산
+            if ($prev_gps_time !== null) {
+                $gps_time += (strtotime($row['mlt_wdate']) - strtotime($prev_gps_time));
+            }
+            
+            // 걸음수 계산
+            $gps_health_work = $row['mt_health_work'];
+
+            // 이전 시간 업데이트
+            $prev_gps_time = $row['mlt_wdate'];
         }
     }
-
-    unset($row);
-    $DB->where('mt_idx', $mt_idx);
-    $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
-    $DB->where("mlt_speed >= " . $slt_mlt_speed);
-    $DB->where("mlt_wdate BETWEEN '" . $sdate . " 00:00:00' AND '" . $sdate . " 23:59:59'");
-    $DB->orderby('mlt_gps_time', 'desc');
-    $row = $DB->getone('member_location_log_t');
-    // 현재날짜의 마지막 걸음수 들고오기
-    $gps_health_work = $row['mt_health_work'];
 
     $rtn = array($gsp_km, $gps_time, $gps_health_work);
 
