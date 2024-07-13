@@ -717,6 +717,7 @@ $expt_cnt = $row['cnt'];
             dataType: 'json',
             success: function(data) {
                 if (data) {
+                    console.log(JSON.stringify(data));
                     loadMapData(data);
                     highlightSelectedDate();
                 } else {

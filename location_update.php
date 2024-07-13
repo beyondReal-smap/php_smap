@@ -364,10 +364,10 @@ if ($_POST['act'] == "recom_list") {
     }
 
     // 캐시 키 생성
-    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    // $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
 
     // 캐시에서 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
+    // $cached_data = CacheUtil::get($cache_key);
     
     if ($cached_data === null) {
         // 캐시에 데이터가 없으면 계산 수행
@@ -573,236 +573,76 @@ if ($_POST['act'] == "recom_list") {
         $stay_count = 1;
         // 마커 배열에 담은 후 재배치 필요
         $location_data = array();
+        // 마커2
+        $loc_new = [];
+
         // 전체 이동로그 구하기
         unset($list_move);
         $move_query = "
-            WITH initial_data AS (
-                SELECT
-                    mlt_idx,
-                    mt_idx,
-                    mlt_gps_time,
-                    mlt_speed,
-                    mlt_lat,
-                    mlt_long,
-                    mt_health_work,
-                    mlt_accuacy,
-                    LAG(mt_health_work) OVER (
-                    ORDER BY mlt_gps_time) AS prev_mt_health_work,
-                    LAG(mlt_lat) OVER (
-                    ORDER BY mlt_gps_time) AS prev_lat,
-                    LAG(mlt_long) OVER (
-                    ORDER BY mlt_gps_time) AS prev_long,
-                    CASE
-                        WHEN mlt_speed > 1 AND mt_health_work > LAG(mt_health_work) OVER (ORDER BY mlt_gps_time) THEN 'move'
-                        WHEN mlt_speed > 1 AND mlt_accuacy < 35 THEN 'move'
-                        ELSE 'stay'
-                    END AS label
-                FROM (
-                    SELECT 
-                        *,
-                        (@row_num := @row_num + 1) AS row_num
-                    FROM (
-                        SELECT *
-                        FROM member_location_log_t
-                        WHERE 
-                            mt_idx = '" . $_POST['sgdt_mt_idx'] . "'
-                            AND mlt_accuacy  < " . $slt_mlt_accuacy . "
-                            AND mlt_gps_time BETWEEN '" . $_POST['event_start_date'] . " 00:00:00' AND '" . $_POST['event_start_date'] . " 23:59:59'
-                        ORDER BY mlt_gps_time
-                    ) t, (SELECT @row_num := 0) r
-                ) s
-                WHERE MOD(row_num, 8) = 1
-                ),
-                labeled_data AS (
-                SELECT
-                    *,
-                    (CASE 
-                        WHEN LAG(mlt_lat) OVER (ORDER BY mlt_gps_time) IS NULL THEN @distance := 0
-                        ELSE @distance := (6371 * ACOS(COS(RADIANS(LAG(mlt_lat) OVER (ORDER BY mlt_gps_time))) * COS(RADIANS(mlt_lat)) * COS(RADIANS(mlt_long) - RADIANS(LAG(mlt_long) OVER (ORDER BY mlt_gps_time))) + SIN(RADIANS(LAG(mlt_lat) OVER (ORDER BY mlt_gps_time))) * SIN(RADIANS(mlt_lat))))
-                    END) AS distance
-                    FROM
-                        initial_data
-                ),
-                window_function_data AS (
-                SELECT
-                    *,
-                    SUM(CASE
-                WHEN mlt_speed >= 1 AND mt_health_work > prev_mt_health_work THEN 1
-                WHEN mlt_speed >= 1 AND mlt_accuacy < 35 THEN 1
-                ELSE 0
-                END) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN 100 PRECEDING AND CURRENT ROW) AS mp_cnt,
-                    AVG(mlt_speed) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN 10 PRECEDING AND CURRENT ROW) AS avg_speed_last_10,
-                    AVG(mlt_speed) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) AS avg_speed_last_5,
-                    AVG(mlt_speed) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN CURRENT ROW AND 5 FOLLOWING) AS avg_speed_next_5,
-                    AVG(mlt_speed) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING) AS avg_speed_next_10
-                FROM
-                    labeled_data
-                ),
-                final_data AS (
-                SELECT
-                    *,
-                    AVG(mp_cnt) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN 10 PRECEDING AND CURRENT ROW) AS avg_ap_cnt_last_10,
-                    AVG(mp_cnt) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) AS avg_ap_cnt_last_5,
-                    AVG(mp_cnt) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN CURRENT ROW AND 5 FOLLOWING) AS avg_ap_cnt_next_5,
-                    AVG(mp_cnt) OVER (
-                    ORDER BY mlt_gps_time ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING) AS avg_ap_cnt_next_10
-                FROM
-                    window_function_data
-                ),
-                move_stay_logic AS (
-                SELECT
-                    *,
-                    CASE
-                        WHEN mp_cnt > avg_ap_cnt_last_10 - 1
-                        AND avg_speed_last_10 > 1 THEN 'move'
-                        WHEN mp_cnt > avg_ap_cnt_last_5 - 1
-                        AND avg_speed_last_5 > 1 THEN 'move'
-                        WHEN mp_cnt > 0
-                        AND mp_cnt < avg_ap_cnt_next_10
-                        AND avg_speed_next_10 > 0.7 THEN 'move'
-                        WHEN mp_cnt > 0
-                        AND mp_cnt < avg_ap_cnt_next_5
-                        AND avg_speed_next_5 > 0.7 THEN 'move'
-                        WHEN mp_cnt >= avg_ap_cnt_next_5
-                        AND avg_speed_next_5 < 1 THEN 'stay'
-                        WHEN mp_cnt >= avg_ap_cnt_next_10
-                        AND avg_speed_next_10 < 1 THEN 'stay'
-                        ELSE label
-                    END AS move_stay
-                    FROM
-                        final_data
-                ),
-                labeled_data_with_lag AS (
-                SELECT
-                    *,
-                    LAG(move_stay) OVER (
-                    ORDER BY mlt_gps_time) AS prev_label
-                    -- 이전위치 라벨
-                FROM
-                    move_stay_logic
-                ),
-                labeled_data_with_grp AS ( -- 연속된 로그 항목을 그룹화
-                    SELECT
-                        *,
-                        SUM(CASE WHEN move_stay <> prev_label THEN 1 ELSE 0 END) OVER (ORDER BY mlt_gps_time) AS grp -- stay, move 사이의 변경점마다 새로운 그룹을 할당
-                    FROM
-                        labeled_data_with_lag
-                ),
-                labeled_data_with_grp_status AS ( -- 그룹의 시작 및 종료를 식별하고, 각 그룹의 첫 번째 및 마지막 로그를 확인
-                    SELECT
-                        *,
-                        CASE
-                            WHEN ROW_NUMBER() OVER (PARTITION BY grp ORDER BY mlt_gps_time) = 1 THEN 'S' 
-                            WHEN ROW_NUMBER() OVER (PARTITION BY grp ORDER BY mlt_gps_time DESC) = 1 THEN 'E' 
-                            WHEN mlt_gps_time = (SELECT MAX(mlt_gps_time) FROM labeled_data_with_grp) THEN 'E'
-                            ELSE NULL
-                        END AS grp_status
-                    FROM
-                        labeled_data_with_grp
-                ),
-                filtered_data AS ( -- 움직임의 시작과 끝이 모두 포함된 그룹만 선택
-                    SELECT
-                        *
-                    FROM
-                        labeled_data_with_grp_status
-                    WHERE
-                        grp IN (
-                            SELECT
-                                grp
-                            FROM
-                                labeled_data_with_grp_status
-                            GROUP BY
-                                grp
-                            HAVING
-                                COUNT(CASE WHEN grp_status = 'S' THEN 1 END) = 1
-                                AND COUNT(CASE WHEN grp_status = 'E' THEN 1 END) >= 1
-                        )
-                ),
-                error_detection AS (
-                    SELECT
-                        *,
-                        LAG(mlt_speed) OVER (ORDER BY mlt_gps_time) AS prev_speed,
-                        LAG(mlt_gps_time) OVER (ORDER BY mlt_gps_time) AS prev_time,
-                        CASE
-                            WHEN LAG(mlt_speed) OVER (ORDER BY mlt_gps_time) IS NOT NULL THEN
-                                ABS(mlt_speed - LAG(mlt_speed) OVER (ORDER BY mlt_gps_time)) / 
-                                TIMESTAMPDIFF(SECOND, LAG(mlt_gps_time) OVER (ORDER BY mlt_gps_time), mlt_gps_time)
-                            ELSE NULL
-                        END AS speed_change_rate,
-                        CASE
-                            WHEN LAG(distance) OVER (ORDER BY mlt_gps_time) IS NOT NULL THEN
-                                ABS(distance - LAG(distance) OVER (ORDER BY mlt_gps_time)) / 
-                                TIMESTAMPDIFF(SECOND, LAG(mlt_gps_time) OVER (ORDER BY mlt_gps_time), mlt_gps_time)
-                            ELSE NULL
-                        END AS distance_change_rate
-                    FROM filtered_data
-                ),
-                reliable_movement AS (
-                    SELECT
-                        *,
-                        CASE
-                            WHEN speed_change_rate > 22.22 OR  -- 초속 22.22m/s (약 80km/h)
-                                (distance_change_rate > 0.0222 AND mlt_speed > 22.22) OR  -- 초속 22.22m/s (약 80km/h) 이상일 때 거리 변화 체크
-                                mlt_speed > 33.33  -- 초속 33.33m/s (약 120km/h) 이상일 때
-                            THEN FALSE
-                            ELSE TRUE
-                        END AS is_reliable
-                    FROM error_detection
-                ),
-                acceleration_data AS (
-                    SELECT 
-                        *,
-                        (mlt_speed - LAG(mlt_speed) OVER (ORDER BY mlt_gps_time)) / 
-                        TIMESTAMPDIFF(SECOND, LAG(mlt_gps_time) OVER (ORDER BY mlt_gps_time), mlt_gps_time) AS acceleration
-                    FROM reliable_movement
-                    WHERE is_reliable = TRUE
-                ),
-                direction_data AS (
-                    SELECT 
-                        *,
-                        DEGREES(ATAN2(
-                            mlt_lat - LAG(mlt_lat, 2) OVER (ORDER BY mlt_gps_time),
-                            mlt_long - LAG(mlt_long, 2) OVER (ORDER BY mlt_gps_time)
-                        )) AS direction_change
-                    FROM acceleration_data
-                    WHERE ABS(acceleration) < 10 -- 10 m/s^2를 초과하는 가속도는 제외
-                ),
-                speed_consistency AS (
-                    SELECT 
-                        *,
-                        ABS(mlt_speed - AVG(mlt_speed) OVER (ORDER BY mlt_gps_time ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING)) AS speed_deviation
-                    FROM direction_data
-                    WHERE ABS(direction_change) < 90 -- 90도 이상의 급격한 방향 변화 제외
-                ),
-                moving_average AS (
-                    SELECT 
-                        *,
-                        AVG(mlt_lat) OVER (ORDER BY mlt_gps_time ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS avg_lat,
-                        AVG(mlt_long) OVER (ORDER BY mlt_gps_time ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS avg_long
-                    FROM speed_consistency
-                    WHERE speed_deviation < 5 -- 5 m/s 이상의 속도 편차를 보이는 데이터 제외
-                )
-                SELECT
-                    mlt_gps_time, 
-                    mlt_lat, 
-                    mlt_long, 
-                    mlt_speed, 
-                    mt_health_work, 
-                    mlt_accuacy,
-                    move_stay as label,
-                    distance
-                FROM moving_average
-                WHERE (move_stay = 'move' AND distance > 0.1) OR prev_lat IS NULL
-                ORDER BY mlt_gps_time;
-                ";    
+               WITH filtered_data AS (
+                SELECT *,
+                    LAG(mlt_lat, 1) OVER (ORDER BY mlt_gps_time) AS prev_lat,
+                    LAG(mlt_long, 1) OVER (ORDER BY mlt_gps_time) AS prev_lon,
+                    LAG(mlt_gps_time, 1) OVER (ORDER BY mlt_gps_time) AS prev_time,
+                    LAG(mlt_speed, 1) OVER (ORDER BY mlt_gps_time) AS prev_speed,
+                    LEAD(mlt_lat, 1) OVER (ORDER BY mlt_gps_time) AS next_lat,
+                    LEAD(mlt_long, 1) OVER (ORDER BY mlt_gps_time) AS next_long
+                FROM member_location_log_t
+                WHERE mt_idx = '" . $_POST['sgdt_mt_idx'] . "'
+                AND mlt_accuacy < 20  -- 정확도 조건을 더 엄격하게 설정
+                AND (mlt_lat BETWEEN 33 AND 38) AND (mlt_long BETWEEN 124 AND 132)  -- 한국의 대략적인 위경도 범위
+                AND mlt_gps_time BETWEEN '" . $_POST['event_start_date'] . " 00:00:00' AND '" . $_POST['event_start_date'] . " 23:59:59'
+            ),
+            calculated_data AS (
+                SELECT *,
+                    6371 * 2 * ASIN(SQRT(
+                        POWER(SIN((mlt_lat - prev_lat) * pi()/180 / 2), 2) +
+                        COS(prev_lat * pi()/180) * COS(mlt_lat * pi()/180) *
+                        POWER(SIN((mlt_long - prev_lon) * pi()/180 / 2), 2)
+                    )) * 1000 AS distance_from_prev,
+                    6371 * 2 * ASIN(SQRT(
+                        POWER(SIN((next_lat - mlt_lat) * pi()/180 / 2), 2) +
+                        COS(mlt_lat * pi()/180) * COS(next_lat * pi()/180) *
+                        POWER(SIN((next_long - mlt_long) * pi()/180 / 2), 2)
+                    )) * 1000 AS distance_to_next,
+                    6371 * 2 * ASIN(SQRT(
+                        POWER(SIN((mlt_lat - prev_lat) * pi()/180 / 2), 2) +
+                        COS(prev_lat * pi()/180) * COS(mlt_lat * pi()/180) *
+                        POWER(SIN((mlt_long - prev_lon) * pi()/180 / 2), 2)
+                    )) * 1000 / NULLIF(TIMESTAMPDIFF(SECOND, prev_time, mlt_gps_time), 0) AS calculated_speed,
+                    (mlt_speed - prev_speed) / NULLIF(TIMESTAMPDIFF(SECOND, prev_time, mlt_gps_time), 0) AS acceleration,
+                    DEGREES(ATAN2(
+                        SIN(mlt_long - prev_lon) * COS(mlt_lat),
+                        COS(prev_lat) * SIN(mlt_lat) - SIN(prev_lat) * COS(mlt_lat) * COS(mlt_long - prev_lon)
+                    )) AS bearing_change
+                FROM filtered_data
+            ),
+            stationary_check AS (
+                SELECT *,
+                    SUM(CASE WHEN calculated_speed < 1.4 THEN 1 ELSE 0 END) 
+                        OVER (ORDER BY mlt_gps_time ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS slow_count,
+                    AVG(distance_from_prev) 
+                        OVER (ORDER BY mlt_gps_time ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS avg_distance
+                FROM calculated_data
+            )
+            SELECT mlt_gps_time AS start_time
+                ,mlt_gps_time AS end_time
+                ,mlt_lat AS start_lat
+                ,mlt_long AS start_long
+                ,row_num
+            FROM (
+                SELECT *, 
+                    ROW_NUMBER() OVER (ORDER BY mlt_gps_time ASC) AS row_num
+                FROM stationary_check
+                WHERE mlt_speed < 33.3333  -- 120 km/h in m/s (최대 속도 상향 조정)
+                AND calculated_speed < 33.3333  -- 120 km/h in m/s
+                AND ABS(acceleration) < 5  -- 가속도 제한 더 엄격하게 (약 0.5G)
+                AND (prev_lat IS NULL OR ABS(bearing_change) < 120)  -- 120도 이상의 급격한 방향 변화 제외
+                AND (distance_from_prev < 1000 OR distance_to_next < 1000)  -- 앞뒤 포인트와의 거리가 1km 이상인 경우 제외
+            ) AS numbered_data
+            WHERE row_num % 5 = 1  -- 데이터 포인트 간격 조정
+            ORDER BY mlt_gps_time ASC;
+                "   ;  
         $list_move = $DB->Query($move_query);
         // 오늘 자 이동로그가 있을 때
         if ($list_move) {
@@ -857,6 +697,17 @@ if ($_POST['act'] == "recom_list") {
                             $location_data['logmarkerLong_' . $total_log_count] = $first_location['mlt_long'];
                             $location_data['logmarkerContent_' . $total_log_count] = $content;
                             $location_data['logStatus_' . $total_log_count] = 'stay';
+
+                            $loc_new[] = [
+                                'start_time' => $first_location['mlt_gps_time'],
+                                'end_time' => $first_location['mlt_gps_time'],
+                                'stay_time_formatted' => $stay_time_formatted,
+                                'address' => $address,
+                                'mlt_lat' => $first_location['mlt_lat'],
+                                'mlt_long' => $first_location['mlt_long'],
+                                'stay_move_flg' => 'stay'
+                            ];
+
                             $stay_count++;
                             $total_log_count++;
                         }
@@ -865,15 +716,26 @@ if ($_POST['act'] == "recom_list") {
                 
                 $content = '<div class="point_wrap point2 d-none log_marker"  data-rangeindex="' . $total_log_count . '">
                                 <div class="infobox infobox_2 rounded-sm px_08 py_08" style="background-color: #413F4A; color: #E6F3FF;">
-                                    <p class="fs_12 fw_800 text_dynamic">' . datetype($row_mlt['mlt_gps_time'], 7) . '</p>
+                                    <p class="fs_12 fw_800 text_dynamic">' . datetype($row_mlt['start_time'], 7) . '</p>
                                 </div>
                             </div>';
-                $location_data['startTime_' . $total_log_count] = $row_mlt['mlt_gps_time'];
-                $location_data['endTime_' . $total_log_count] = $row_mlt['mlt_gps_time'];
-                $location_data['logmarkerLat_' . $total_log_count] = $row_mlt['mlt_lat'];
-                $location_data['logmarkerLong_' . $total_log_count] = $row_mlt['mlt_long'];
+                $location_data['startTime_' . $total_log_count] = $row_mlt['start_time'];
+                $location_data['endTime_' . $total_log_count] = $row_mlt['end_time'];
+                $location_data['logmarkerLat_' . $total_log_count] = $row_mlt['start_lat'];
+                $location_data['logmarkerLong_' . $total_log_count] = $row_mlt['start_long'];
                 $location_data['logmarkerContent_' . $total_log_count] = $content;
                 $location_data['logStatus_' . $total_log_count] = 'move';
+
+                $loc_new[] = [
+                    'start_time' => $row_mlt['start_time'],
+                    'end_time' => $row_mlt['end_time'],
+                    'stay_time_formatted' => $stay_time_formatted,
+                    'address' => $address,
+                    'mlt_lat' => $row_mlt['start_lat'],
+                    'mlt_long' => $row_mlt['start_long'],
+                    'stay_move_flg' => 'move'
+                ];
+
                 $move_log_count++;
                 $total_log_count++;
             }
@@ -1074,7 +936,7 @@ if ($_POST['act'] == "recom_list") {
                 ";
         $list_stay = $DB->Query($stay_query);
         // Function to calculate distance between two coordinates using Haversine formula
-        function haversineDistance($lat1, $lon1, $lat2, $lon2) {
+        function haversineDistance2($lat1, $lon1, $lat2, $lon2) {
             $earthRadius = 6371000; // Earth radius in meters
 
             $dLat = deg2rad($lat2 - $lat1);
@@ -1104,7 +966,7 @@ if ($_POST['act'] == "recom_list") {
                 $current_stay = $list_stay[$i];
             
                 // Calculate the distance between the previous stay and the current stay
-                $distance = haversineDistance($prev_stay['start_lat'], $prev_stay['start_long'], $current_stay['start_lat'], $current_stay['start_long']);
+                $distance = haversineDistance2($prev_stay['start_lat'], $prev_stay['start_long'], $current_stay['start_lat'], $current_stay['start_long']);
             
                 // Check if both labels are the same
                 if ($prev_stay['label'] === $current_stay['label']) {
@@ -1168,6 +1030,18 @@ if ($_POST['act'] == "recom_list") {
                     $location_data['logmarkerLong_' . $total_log_count] = $row_mlt['start_long'];
                     $location_data['logmarkerContent_' . $total_log_count] = $content;
                     $location_data['logStatus_' . $total_log_count] = 'stay';
+
+                    $loc_new[] = [
+                        'start_time' => $start_time->format('H:i'),
+                        'end_time' => $end_time->format('H:i'),
+                        'stay_time_formatted' => $stay_time_formatted,
+                        'address' => $address,
+                        'mlt_lat' => $row_mlt['start_lat'],
+                        'mlt_long' => $row_mlt['start_long'],
+                        'stay_move_flg' => 'stay'
+                    ];
+            
+
                     $log_count++;
                     $total_log_count++;
                 }
@@ -1193,42 +1067,109 @@ if ($_POST['act'] == "recom_list") {
         //     exit;
         // }
 
-        if ($arr_data['log_count'] > 0) {
-            // $location_data 배열의 키를 재정렬
-            $location_data = array_values($location_data);
-            $event_count = count($location_data) / 6; // 각 이벤트당 6개의 항목이 있으므로, 전체 항목을 6으로 나눠서 이벤트 개수를 계산합니다.
-            $events = array();
+        // if ($arr_data['log_count'] > 0) {
+        //     // $location_data 배열의 키를 재정렬
+        //     $location_data = array_values($location_data);
+        //     $event_count = count($location_data) / 6; // 각 이벤트당 6개의 항목이 있으므로, 전체 항목을 6으로 나눠서 이벤트 개수를 계산합니다.
+        //     $events = array();
 
-            for ($i = 0; $i < $event_count; $i++) {
-                $start_index = $i * 6;
-                $content = $location_data[$start_index + 4];
-                $log_status = $location_data[$start_index + 5];
-                preg_match('/data-rangeindex="(\d+)"/', $content, $matches); // content에서 data-rangeindex 값을 추출합니다.
-                $range_index = $matches[1]; // 추출된 data-rangeindex 값을 저장합니다.
-                // 시작 시간과 종료 시간 비교하여 더 빠른 값을 선택합니다.
-                $start_time = strtotime($location_data[$start_index]);
-                $end_time = strtotime($location_data[$start_index + 1]);
-                if ($start_time <= $end_time) {
-                    $time_key = 'startTime';
-                    $time_value = $location_data[$start_index];
-                } else {
-                    $time_key = 'startTime';
-                    $time_value = $location_data[$start_index + 1];
-                }            
+        //     for ($i = 0; $i < $event_count; $i++) {
+        //         $start_index = $i * 6;
+        //         $content = $location_data[$start_index + 4];
+        //         $log_status = $location_data[$start_index + 5];
+        //         preg_match('/data-rangeindex="(\d+)"/', $content, $matches); // content에서 data-rangeindex 값을 추출합니다.
+        //         $range_index = $matches[1]; // 추출된 data-rangeindex 값을 저장합니다.
+        //         // 시작 시간과 종료 시간 비교하여 더 빠른 값을 선택합니다.
+        //         $start_time = strtotime($location_data[$start_index]);
+        //         $end_time = strtotime($location_data[$start_index + 1]);
+        //         if ($start_time <= $end_time) {
+        //             $time_key = 'startTime';
+        //             $time_value = $location_data[$start_index];
+        //         } else {
+        //             $time_key = 'startTime';
+        //             $time_value = $location_data[$start_index + 1];
+        //         }            
 
-                $event = array(
-                    $time_key => $time_value,
-                    'latitude' => $location_data[$start_index + 2],
-                    'longitude' => $location_data[$start_index + 3],
-                    'content' => $content,
-                    'rangeIndex' => $range_index, // data-rangeindex 값을 저장합니다.
-                    'logStatus' => $log_status // stay 또는 move 여부를 저장합니다.
-                );
-                if ($log_status === 'stay') {
-                    array_unshift($events, $event); // stay인 경우 배열의 앞에 추가
-                } else {
-                    $events[] = $event; // move인 경우 배열의 뒤에 추가
-                }
+        //         $event = array(
+        //             $time_key => $time_value,
+        //             'latitude' => $location_data[$start_index + 2],
+        //             'longitude' => $location_data[$start_index + 3],
+        //             'content' => $content,
+        //             'rangeIndex' => $range_index, // data-rangeindex 값을 저장합니다.
+        //             'logStatus' => $log_status // stay 또는 move 여부를 저장합니다.
+        //         );
+        //         if ($log_status === 'stay') {
+        //             array_unshift($events, $event); // stay인 경우 배열의 앞에 추가
+        //         } else {
+        //             $events[] = $event; // move인 경우 배열의 뒤에 추가
+        //         }
+        //     }
+
+        //     // 시작 시간을 기준으로 정렬
+        //     usort($events, function ($a, $b) {
+        //         return strtotime($a['startTime']) - strtotime($b['startTime']);
+        //     });
+
+        //     // $arr_data 배열에 각 이벤트의 정보를 담습니다.
+        //     foreach ($events as $index => $event) {
+        //         $arr_data['logmarkerLat_' . ($index + 1)] = $event['latitude'];
+        //         $arr_data['logmarkerLong_' . ($index + 1)] = $event['longitude'];
+        //         // content 내용도 수정하여 저장합니다.
+        //         $arr_data['logmarkerContent_' . ($index + 1)] = str_replace('data-rangeindex="' . $event['rangeIndex'] . '"', 'data-rangeindex="' . ($index + 1) . '"', $event['content']);
+        //     }
+
+        //     // 이벤트 데이터를 JSON 형식으로 인코딩
+        //     $json_data = json_encode($events, JSON_PRETTY_PRINT);
+
+        //     // 파일에 JSON 데이터 저장
+        //     // if (file_put_contents('./log_data_240610.json', $json_data) === false) {
+        //     //     echo json_encode(array("error" => "Failed to write to log file"));
+        //     //     exit;
+        //     // }
+        // }
+
+        // 거리 계산 함수
+        function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+            // Haversine 공식을 사용하여 두 지점 사이의 거리를 계산하는 함수입니다.
+            $earthRadius = 6371; // 지구 반지름 (단위: km)
+
+            $lat1 = deg2rad($lat1);
+            $lon1 = deg2rad($lon1);
+            $lat2 = deg2rad($lat2);
+            $lon2 = deg2rad($lon2);
+
+            $deltaLat = $lat2 - $lat1;
+            $deltaLon = $lon2 - $lon1;
+
+            $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
+                cos($lat1) * cos($lat2) *
+                sin($deltaLon / 2) * sin($deltaLon / 2);
+            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+            $distance = $earthRadius * $c;
+
+            return $distance;
+        }
+        
+        if (!empty($loc_new)) {
+            $events = [];
+
+            $filteredEvents = [];
+            $maxDistance = 5; // 최대 허용 거리 (km)
+            $maxSpeed = 80; // 최대 허용 속도 (km/h)
+            $minSpeed = 0.1; // 최소 허용 속도 (km/h), 정지 상태와 구분하기 위함
+
+            foreach ($loc_new as $log) {
+                $events[] = [
+                    'startTime' => $log['start_time'],
+                    'endTime' => $log['end_time'],
+                    'latitude' => $log['mlt_lat'],
+                    'longitude' => $log['mlt_long'],
+                    'address' => $log['address'],
+                    'stayTime' => $log['stay_time_formatted'],
+                    'logStatus' => $log['stay_move_flg'],
+                    'totalLogCount' => $log['total_log_count']
+                ];
             }
 
             // 시작 시간을 기준으로 정렬
@@ -1236,22 +1177,76 @@ if ($_POST['act'] == "recom_list") {
                 return strtotime($a['startTime']) - strtotime($b['startTime']);
             });
 
+            // 이상치 제거
+            // for ($i = 0; $i < count($events); $i++) {
+            //     if ($i == 0) {
+            //         $filteredEvents[] = $events[$i];
+            //         continue;
+            //     }
+
+            //     $prevEvent = end($filteredEvents);
+            //     $currentEvent = $events[$i];
+
+            //     $distance = haversineDistance(
+            //         $prevEvent['latitude'], $prevEvent['longitude'],
+            //         $currentEvent['latitude'], $currentEvent['longitude']
+            //     );
+
+            //     $timeDiff = (strtotime($currentEvent['startTime']) - strtotime($prevEvent['startTime'])) / 3600; // in hours
+                
+            //     if ($timeDiff > 0) {
+            //         $speed = $distance / $timeDiff;
+
+            //         if ($distance <= $maxDistance && $speed <= $maxSpeed && $speed >= $minSpeed) {
+            //             $filteredEvents[] = $currentEvent;
+            //         } else if ($distance < 0.01) {  // 10m 이내의 움직임은 동일 위치로 간주
+            //             $filteredEvents[] = $currentEvent;
+            //         }
+            //     } else {
+            //         // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
+            //         $filteredEvents[] = $currentEvent;
+            //     }
+            // }
+
+            // $events = $filteredEvents;
+
+            $stay_count = 1;
+            $move_count = 1;
+
+            foreach ($events as $index => &$event) {
+                $event['totalLogCount'] = $index + 1;
+                
+                if ($event['logStatus'] == 'stay') {
+                    $event['stay_move_count'] = $stay_count++;
+                    $content = '<div class="point_wrap point2" data-rangeindex="' . $event['totalLogCount'] . '">
+                                    <button type="button" class="btn log_point point_stay">
+                                        <span class="point_inner">
+                                            <span class="point_txt">' . $event['stay_move_count'] . '</span>
+                                        </span>
+                                    </button>
+                                    <div class="infobox rounded-sm bg-white px_08 py_08">
+                                        <p class="fs_12 fw_800 text_dynamic">' . $event['startTime'] . ' ~ ' . $event['endTime'] . '</p>
+                                        <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $event['stayTime'] . '</p>
+                                        <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $event['address'] . '</p>
+                                    </div>
+                                </div>';
+                } else {
+                    $event['stay_move_count'] = $move_count++;
+                    $content = '<div class="point_wrap point2 d-none log_marker" data-rangeindex="' . $event['totalLogCount'] . '">
+                                    <div class="infobox infobox_2 rounded-sm px_08 py_08" style="background-color: #413F4A; color: #E6F3FF;">
+                                        <p class="fs_12 fw_800 text_dynamic">' . datetype($event['startTime'], 7) . '</p>
+                                    </div>
+                                </div>';
+                }
+                $event['content'] = $content;
+            }
+
             // $arr_data 배열에 각 이벤트의 정보를 담습니다.
             foreach ($events as $index => $event) {
                 $arr_data['logmarkerLat_' . ($index + 1)] = $event['latitude'];
                 $arr_data['logmarkerLong_' . ($index + 1)] = $event['longitude'];
-                // content 내용도 수정하여 저장합니다.
-                $arr_data['logmarkerContent_' . ($index + 1)] = str_replace('data-rangeindex="' . $event['rangeIndex'] . '"', 'data-rangeindex="' . ($index + 1) . '"', $event['content']);
+                $arr_data['logmarkerContent_' . ($index + 1)] = $event['content'];
             }
-
-            // 이벤트 데이터를 JSON 형식으로 인코딩
-            $json_data = json_encode($events, JSON_PRETTY_PRINT);
-
-            // 파일에 JSON 데이터 저장
-            // if (file_put_contents('./log_data_240610.json', $json_data) === false) {
-            //     echo json_encode(array("error" => "Failed to write to log file"));
-            //     exit;
-            // }
         }
 
         // 결과 데이터를 캐시에 저장 (30분 동안)
@@ -1261,7 +1256,7 @@ if ($_POST['act'] == "recom_list") {
         $arr_data = $cached_data;
     }
     // $arr_data 배열 출력
-    echo json_encode($arr_data);
+    echo json_encode($arr_data, JSON_PRETTY_PRINT);
     exit;
 } elseif ($_POST['act'] == "input_location") {
     if ($_SESSION['_mt_idx'] == '') {

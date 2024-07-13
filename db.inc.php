@@ -9,4 +9,4 @@ $DB = new MysqliDb(array(
     'db' => 'smap2_db',
     'port' => 3306,
     'prefix' => '',
-    'charset' => 'utf8mb4'));
+    'charset' => 'utf8mb4')); 

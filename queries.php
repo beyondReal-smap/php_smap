@@ -192,7 +192,7 @@ function get_move_query($mt_idx, $slt_mlt_accuacy, $event_start_date) {
                 ORDER BY mlt_gps_time
             ) t, (SELECT @row_num := 0) r
         ) s
-        WHERE MOD(row_num, 8) = 1
+        WHERE MOD(row_num, 5) = 1
         ),
         labeled_data AS (
         SELECT
