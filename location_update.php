@@ -1032,15 +1032,14 @@ if ($_POST['act'] == "recom_list") {
                     $location_data['logStatus_' . $total_log_count] = 'stay';
 
                     $loc_new[] = [
-                        'start_time' => $start_time->format('H:i'),
-                        'end_time' => $end_time->format('H:i'),
+                        'start_time' => $row_mlt['start_time'],
+                        'end_time' => $row_mlt['end_time'],
                         'stay_time_formatted' => $stay_time_formatted,
                         'address' => $address,
                         'mlt_lat' => $row_mlt['start_lat'],
                         'mlt_long' => $row_mlt['start_long'],
                         'stay_move_flg' => 'stay'
                     ];
-            
 
                     $log_count++;
                     $total_log_count++;
@@ -1060,73 +1059,6 @@ if ($_POST['act'] == "recom_list") {
                 $arr_data['log_count'] = 0;
             }
         }
-
-        // 파일에 JSON 데이터 저장
-        // if (file_put_contents('./log_240610.txt', array_values($location_data)) === false) {
-        //     echo json_encode(array("error" => "Failed to write to log file"));
-        //     exit;
-        // }
-
-        // if ($arr_data['log_count'] > 0) {
-        //     // $location_data 배열의 키를 재정렬
-        //     $location_data = array_values($location_data);
-        //     $event_count = count($location_data) / 6; // 각 이벤트당 6개의 항목이 있으므로, 전체 항목을 6으로 나눠서 이벤트 개수를 계산합니다.
-        //     $events = array();
-
-        //     for ($i = 0; $i < $event_count; $i++) {
-        //         $start_index = $i * 6;
-        //         $content = $location_data[$start_index + 4];
-        //         $log_status = $location_data[$start_index + 5];
-        //         preg_match('/data-rangeindex="(\d+)"/', $content, $matches); // content에서 data-rangeindex 값을 추출합니다.
-        //         $range_index = $matches[1]; // 추출된 data-rangeindex 값을 저장합니다.
-        //         // 시작 시간과 종료 시간 비교하여 더 빠른 값을 선택합니다.
-        //         $start_time = strtotime($location_data[$start_index]);
-        //         $end_time = strtotime($location_data[$start_index + 1]);
-        //         if ($start_time <= $end_time) {
-        //             $time_key = 'startTime';
-        //             $time_value = $location_data[$start_index];
-        //         } else {
-        //             $time_key = 'startTime';
-        //             $time_value = $location_data[$start_index + 1];
-        //         }            
-
-        //         $event = array(
-        //             $time_key => $time_value,
-        //             'latitude' => $location_data[$start_index + 2],
-        //             'longitude' => $location_data[$start_index + 3],
-        //             'content' => $content,
-        //             'rangeIndex' => $range_index, // data-rangeindex 값을 저장합니다.
-        //             'logStatus' => $log_status // stay 또는 move 여부를 저장합니다.
-        //         );
-        //         if ($log_status === 'stay') {
-        //             array_unshift($events, $event); // stay인 경우 배열의 앞에 추가
-        //         } else {
-        //             $events[] = $event; // move인 경우 배열의 뒤에 추가
-        //         }
-        //     }
-
-        //     // 시작 시간을 기준으로 정렬
-        //     usort($events, function ($a, $b) {
-        //         return strtotime($a['startTime']) - strtotime($b['startTime']);
-        //     });
-
-        //     // $arr_data 배열에 각 이벤트의 정보를 담습니다.
-        //     foreach ($events as $index => $event) {
-        //         $arr_data['logmarkerLat_' . ($index + 1)] = $event['latitude'];
-        //         $arr_data['logmarkerLong_' . ($index + 1)] = $event['longitude'];
-        //         // content 내용도 수정하여 저장합니다.
-        //         $arr_data['logmarkerContent_' . ($index + 1)] = str_replace('data-rangeindex="' . $event['rangeIndex'] . '"', 'data-rangeindex="' . ($index + 1) . '"', $event['content']);
-        //     }
-
-        //     // 이벤트 데이터를 JSON 형식으로 인코딩
-        //     $json_data = json_encode($events, JSON_PRETTY_PRINT);
-
-        //     // 파일에 JSON 데이터 저장
-        //     // if (file_put_contents('./log_data_240610.json', $json_data) === false) {
-        //     //     echo json_encode(array("error" => "Failed to write to log file"));
-        //     //     exit;
-        //     // }
-        // }
 
         // 거리 계산 함수
         function calculateDistance($lat1, $lon1, $lat2, $lon2) {
@@ -1149,6 +1081,28 @@ if ($_POST['act'] == "recom_list") {
             $distance = $earthRadius * $c;
 
             return $distance;
+        }
+
+        function isOutlier($prev, $current, $next) {
+            $distancePrevCurrent = calculateDistance(
+                $prev['latitude'], $prev['longitude'],
+                $current['latitude'], $current['longitude']
+            );
+            $distanceCurrentNext = calculateDistance(
+                $current['latitude'], $current['longitude'],
+                $next['latitude'], $next['longitude']
+            );
+            $distancePrevNext = calculateDistance(
+                $prev['latitude'], $prev['longitude'],
+                $next['latitude'], $next['longitude']
+            );
+        
+            // 현재 위치가 이전과 다음 위치 사이에서 너무 벗어나 있는지 확인
+            $threshold = 2; // 이 값은 상황에 따라 조정 가능
+            if ($distancePrevCurrent + $distanceCurrentNext > $distancePrevNext * $threshold) {
+                return true;
+            }
+            return false;
         }
         
         if (!empty($loc_new)) {
@@ -1178,45 +1132,53 @@ if ($_POST['act'] == "recom_list") {
             });
 
             // 이상치 제거
-            // for ($i = 0; $i < count($events); $i++) {
-            //     if ($i == 0) {
-            //         $filteredEvents[] = $events[$i];
-            //         continue;
-            //     }
+            for ($i = 0; $i < count($events); $i++) {
+                if ($i == 0 || $i == count($events) - 1) {
+                    $filteredEvents[] = $events[$i];
+                    continue;
+                }
 
-            //     $prevEvent = end($filteredEvents);
-            //     $currentEvent = $events[$i];
+                $prev = $events[$i - 1];
+                $current = $events[$i];
+                $next = $events[$i + 1];
 
-            //     $distance = haversineDistance(
-            //         $prevEvent['latitude'], $prevEvent['longitude'],
-            //         $currentEvent['latitude'], $currentEvent['longitude']
-            //     );
+                $distance = calculateDistance(
+                    $prev['latitude'], $prev['longitude'],
+                    $current['latitude'], $current['longitude']
+                );
 
-            //     $timeDiff = (strtotime($currentEvent['startTime']) - strtotime($prevEvent['startTime'])) / 3600; // in hours
+                $timeDiff = (strtotime($current['startTime']) - strtotime($prev['startTime'])) / 3600; // in hours
                 
-            //     if ($timeDiff > 0) {
-            //         $speed = $distance / $timeDiff;
+                if ($timeDiff > 0) {
+                    $speed = $distance / $timeDiff;
 
-            //         if ($distance <= $maxDistance && $speed <= $maxSpeed && $speed >= $minSpeed) {
-            //             $filteredEvents[] = $currentEvent;
-            //         } else if ($distance < 0.01) {  // 10m 이내의 움직임은 동일 위치로 간주
-            //             $filteredEvents[] = $currentEvent;
-            //         }
-            //     } else {
-            //         // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
-            //         $filteredEvents[] = $currentEvent;
-            //     }
-            // }
+                    if ($distance <= $maxDistance && $speed <= $maxSpeed && $speed >= $minSpeed) {
+                        if (!isOutlier($prev, $current, $next)) {
+                            $filteredEvents[] = $current;
+                        }
+                    } else if ($distance < 0.01) {  // 10m 이내의 움직임은 동일 위치로 간주
+                        $filteredEvents[] = $current;
+                    }
+                } else {
+                    // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
+                    $filteredEvents[] = $current;
+                }
+            }
 
-            // $events = $filteredEvents;
+            $events = $filteredEvents;
 
             $stay_count = 1;
             $move_count = 1;
+            $log_count = 1;
 
             foreach ($events as $index => &$event) {
                 $event['totalLogCount'] = $index + 1;
+                $log_count = $index + 1;
                 
                 if ($event['logStatus'] == 'stay') {
+                    $start_time = new DateTime($event['startTime']);
+                    $end_time = new DateTime($event['endTime']);
+
                     $event['stay_move_count'] = $stay_count++;
                     $content = '<div class="point_wrap point2" data-rangeindex="' . $event['totalLogCount'] . '">
                                     <button type="button" class="btn log_point point_stay">
@@ -1225,7 +1187,7 @@ if ($_POST['act'] == "recom_list") {
                                         </span>
                                     </button>
                                     <div class="infobox rounded-sm bg-white px_08 py_08">
-                                        <p class="fs_12 fw_800 text_dynamic">' . $event['startTime'] . ' ~ ' . $event['endTime'] . '</p>
+                                        <p class="fs_12 fw_800 text_dynamic">' . $start_time -> format('H:i') . ' ~ ' . $end_time -> format('H:i') . '</p>
                                         <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $event['stayTime'] . '</p>
                                         <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $event['address'] . '</p>
                                     </div>
@@ -1248,6 +1210,9 @@ if ($_POST['act'] == "recom_list") {
                 $arr_data['logmarkerContent_' . ($index + 1)] = $event['content'];
             }
         }
+
+        // $log_count 에 필터링된 이벤트의 갯수를 저장합니다.
+        $arr_data['log_count'] = $log_count;
 
         // 결과 데이터를 캐시에 저장 (30분 동안)
         CacheUtil::set($cache_key, $arr_data, 1800);
