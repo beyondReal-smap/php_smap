@@ -364,10 +364,10 @@ if ($_POST['act'] == "recom_list") {
     }
 
     // 캐시 키 생성
-    // $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
 
     // 캐시에서 데이터 확인
-    // $cached_data = CacheUtil::get($cache_key);
+    $cached_data = CacheUtil::get($cache_key);
     
     if ($cached_data === null) {
         // 캐시에 데이터가 없으면 계산 수행
@@ -679,24 +679,6 @@ if ($_POST['act'] == "recom_list") {
 
                             $addr = get_search_coordinate2address($first_location['mlt_lat'], $first_location['mlt_long']);
                             $address =  $addr['area2'] . ' ' . $addr['area3'];
-                            $content = '<div class="point_wrap point2"  data-rangeindex="' . $total_log_count . '">
-                                                    <button type="button" class="btn log_point point_stay">
-                                                        <span class="point_inner">
-                                                            <span class="point_txt">' . $stay_count . '</span>
-                                                        </span>
-                                                    </button>
-                                                    <div class="infobox rounded-sm bg-white px_08 py_08">
-                                                        <p class="fs_12 fw_800 text_dynamic"> 00:00 ~ ' . datetype($first_location['mlt_gps_time'], 7) . '</p>
-                                                        <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
-                                                        <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $address . '</p>
-                                                    </div>
-                                                </div>';
-                            $location_data['startTime_' . $total_log_count] = $first_location['mlt_gps_time'];
-                            $location_data['endTime_' . $total_log_count] = $first_location['mlt_gps_time'];
-                            $location_data['logmarkerLat_' . $total_log_count] = $first_location['mlt_lat'];
-                            $location_data['logmarkerLong_' . $total_log_count] = $first_location['mlt_long'];
-                            $location_data['logmarkerContent_' . $total_log_count] = $content;
-                            $location_data['logStatus_' . $total_log_count] = 'stay';
 
                             $loc_new[] = [
                                 'start_time' => $first_location['mlt_gps_time'],
@@ -707,24 +689,9 @@ if ($_POST['act'] == "recom_list") {
                                 'mlt_long' => $first_location['mlt_long'],
                                 'stay_move_flg' => 'stay'
                             ];
-
-                            $stay_count++;
-                            $total_log_count++;
                         }
                     }
                 }
-                
-                $content = '<div class="point_wrap point2 d-none log_marker"  data-rangeindex="' . $total_log_count . '">
-                                <div class="infobox infobox_2 rounded-sm px_08 py_08" style="background-color: #413F4A; color: #E6F3FF;">
-                                    <p class="fs_12 fw_800 text_dynamic">' . datetype($row_mlt['start_time'], 7) . '</p>
-                                </div>
-                            </div>';
-                $location_data['startTime_' . $total_log_count] = $row_mlt['start_time'];
-                $location_data['endTime_' . $total_log_count] = $row_mlt['end_time'];
-                $location_data['logmarkerLat_' . $total_log_count] = $row_mlt['start_lat'];
-                $location_data['logmarkerLong_' . $total_log_count] = $row_mlt['start_long'];
-                $location_data['logmarkerContent_' . $total_log_count] = $content;
-                $location_data['logStatus_' . $total_log_count] = 'move';
 
                 $loc_new[] = [
                     'start_time' => $row_mlt['start_time'],
@@ -735,17 +702,7 @@ if ($_POST['act'] == "recom_list") {
                     'mlt_long' => $row_mlt['start_long'],
                     'stay_move_flg' => 'move'
                 ];
-
-                $move_log_count++;
-                $total_log_count++;
             }
-            // JSON으로 변환하여 출력
-            $arr_data['log_chk'] = 'Y';
-            $arr_data['log_count'] = $total_log_count - 1;
-        } else {
-            // JSON으로 변환하여 출력
-            $arr_data['log_chk'] = 'N';
-            $arr_data['log_count'] = 0;
         }
         //체류시간구하기
         unset($list_stay);
@@ -1008,29 +965,6 @@ if ($_POST['act'] == "recom_list") {
                     $addr = get_search_coordinate2address($row_mlt['start_lat'], $row_mlt['start_long']);
                     $address =  $addr['area2'] . ' ' . $addr['area3'];
 
-                    // Content formatting
-                    $content = '<div class="point_wrap point2" data-rangeindex="' . $total_log_count . '">
-                                                <button type="button" class="btn log_point point_stay">
-                                                    <span class="point_inner">
-                                                        <span class="point_txt">' . $stay_count . '</span>
-                                                    </span>
-                                                </button>
-                                                <div class="infobox rounded-sm bg-white px_08 py_08">
-                                                    <p class="fs_12 fw_800 text_dynamic">' . $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i') . '</p>
-                                                    <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $stay_time_formatted . '</p>
-                                                    <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $address . '</p>
-                                                </div>
-                                            </div>';
-                    $stay_count++;
-
-                    // Location data storage
-                    $location_data['startTime_' . $total_log_count] = $row_mlt['start_time'];
-                    $location_data['endTime_' . $total_log_count] = $row_mlt['end_time'];
-                    $location_data['logmarkerLat_' . $total_log_count] = $row_mlt['start_lat'];
-                    $location_data['logmarkerLong_' . $total_log_count] = $row_mlt['start_long'];
-                    $location_data['logmarkerContent_' . $total_log_count] = $content;
-                    $location_data['logStatus_' . $total_log_count] = 'stay';
-
                     $loc_new[] = [
                         'start_time' => $row_mlt['start_time'],
                         'end_time' => $row_mlt['end_time'],
@@ -1040,23 +974,7 @@ if ($_POST['act'] == "recom_list") {
                         'mlt_long' => $row_mlt['start_long'],
                         'stay_move_flg' => 'stay'
                     ];
-
-                    $log_count++;
-                    $total_log_count++;
                 }
-            }
-
-            // JSON output
-            $arr_data['log_chk'] = 'Y';
-            $arr_data['log_count'] = $total_log_count - 1;
-
-        } else {
-            if ($list_move) {
-                // Handle move data if necessary
-            } else {
-                // JSON output for no logs
-                $arr_data['log_chk'] = 'N';
-                $arr_data['log_count'] = 0;
             }
         }
 
@@ -1209,11 +1127,13 @@ if ($_POST['act'] == "recom_list") {
                 $arr_data['logmarkerLong_' . ($index + 1)] = $event['longitude'];
                 $arr_data['logmarkerContent_' . ($index + 1)] = $event['content'];
             }
+            // $log_count 에 필터링된 이벤트의 갯수를 저장합니다.
+            $arr_data['log_count'] = $log_count;
+            $arr_data['log_chk'] = 'Y';
+        } else {
+            $arr_data['log_count'] = 0;
+            $arr_data['log_chk'] = 'N';
         }
-
-        // $log_count 에 필터링된 이벤트의 갯수를 저장합니다.
-        $arr_data['log_count'] = $log_count;
-
         // 결과 데이터를 캐시에 저장 (30분 동안)
         CacheUtil::set($cache_key, $arr_data, 1800);
     } else {
