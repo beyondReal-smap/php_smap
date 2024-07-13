@@ -5,7 +5,6 @@ $h_menu = '5';
 $_SUB_HEAD_TITLE = "로그";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
-require_once 'group_log_cache.php';
 
 if ($_SESSION['_mt_idx'] == '') {
     alert('로그인이 필요합니다.', './login', '');
@@ -454,17 +453,8 @@ $expt_cnt = $row['cnt'];
             updateMemberLocationInfo(); // 지도
         }, 300);
         currentSelectedDate = '<?= $_GET['sdate'] ?>' || new Date().toISOString().split('T')[0];
-        initializePage();
     });
 
-    function initializePage() {
-        f_calendar_log_init('today');
-        f_get_log_location('<?= $row_slmt['sgdt_mt_idx'] ?>');
-        setTimeout(() => {
-            highlightSelectedDate();
-            updateMemberLocationInfo();
-        }, 300);
-    }
 
     function highlightSelectedDate() {
         $('.c_id').removeClass('active');

@@ -1926,11 +1926,11 @@ if ($_POST['act'] == "event_source") {
 <?php 
     }
 } elseif ($_POST['act'] == "schedule_map_list") {
+    define('CACHE_EXPIRE_TIME', 120); // 2분
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
     }
 
-    // 캐싱 활용
     $cache_key = "schedule_map_list_" . $_POST['sgdt_idx'] . "_" . $_SESSION['_mt_idx'];
     $cached_data = CacheUtil::get($cache_key);
     if ($cached_data) {
@@ -1938,99 +1938,93 @@ if ($_POST['act'] == "event_source") {
         exit;
     }
 
-    $DB->where('sgdt_idx', $_POST['sgdt_idx']);
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $DB->where('sgdt_show', 'Y');
-    $sgdt_row = $DB->getone('smap_group_detail_t');
+    // 함수 정의: 그룹 상세 정보 조회
+    function get_group_detail($sgdt_idx) {
+        global $DB;
+        $DB->where('sgdt_idx', $sgdt_idx);
+        $DB->where('sgdt_discharge', 'N');
+        $DB->where('sgdt_exit', 'N');
+        $DB->where('sgdt_show', 'Y');
+        return $DB->getone('smap_group_detail_t');
+    }
 
-    // sgt_idx로 그룹원들을 찾는다.
-    $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $sgdt_list = $DB->get('smap_group_detail_t');
+    // 함수 정의: 그룹원 리스트 조회
+    function get_group_members($sgt_idx) {
+        global $DB;
+        $DB->where('sgt_idx', $sgt_idx);
+        $DB->where('sgdt_show', 'Y');
+        $DB->where('sgdt_discharge', 'N');
+        $DB->where('sgdt_exit', 'N');
+        return $DB->get('smap_group_detail_t');
+    }
 
-    $result_data = [];
-    
-    // 그룹원 데이터 조회 및 캐싱 함수
+    // 함수 정의: 회원 데이터 조회 및 캐싱
     function get_member_data($mt_idx) {
         global $DB, $ct_no_img_url;
-        
         $cache_key = "member_data_" . $mt_idx;
         $cached_data = CacheUtil::get($cache_key);
-        
-        // 캐시된 데이터가 있을 경우, 유효성 검사
+
         if ($cached_data) {
             $DB->where('mt_idx', $mt_idx);
             $DB->where('mt_update_dt', $cached_data['last_update'], '>');
             $updated = $DB->getOne('member_t', 'COUNT(*) as count');
-            
-            // DB에 변경이 없으면 캐시된 데이터 반환
             if ($updated['count'] == 0) {
                 return $cached_data;
             }
         }
-        
-        // 새로운 데이터 조회
+
         $DB->where('mt_idx', $mt_idx);
         $mem_row = $DB->getone('member_t');
-    
         $DB->where('mt_idx', $mt_idx);
         $DB->orderby('mlt_gps_time', 'desc');
         $mt_location_info = $DB->getone('member_location_log_t');
-    
+
         $current_time = date('Y-m-d H:i:s');
-    
         $member_data = [
             "lat" => $mt_location_info['mlt_lat'] ?? $mem_row['mt_lat'],
             "long" => $mt_location_info['mlt_long'] ?? $mem_row['mt_long'],
             "profile" => $mem_row['mt_file1'] ? get_image_url($mem_row['mt_file1']) : $ct_no_img_url,
             "last_update" => $current_time
         ];
-    
-        // mt_update_dt 업데이트
+
         $DB->where('mt_idx', $mt_idx);
         $DB->update('member_t', ['mt_update_dt' => $current_time]);
-    
-        // 새로운 데이터를 캐시에 저장
         CacheUtil::set($cache_key, $member_data, 60); // 1분 캐시
         return $member_data;
     }
 
+    $sgdt_row = get_group_detail($_POST['sgdt_idx']);
+    $result_data = [];
+
     if ($sgdt_row) {
         $my_data = get_member_data($sgdt_row['mt_idx']);
-        $result_data = [
-            "my_lat" => $my_data['lat'],
-            "mt_long" => $my_data['long'],
-            "my_profile" => $my_data['profile'],
-        ];
     } else {
         $my_data = get_member_data($_SESSION['_mt_idx']);
-        $result_data = [
-            "my_lat" => $my_data['lat'],
-            "mt_long" => $my_data['long'],
-            "my_profile" => $my_data['profile'],
-        ];
     }
+
+    $result_data = [
+        "my_lat" => $my_data['lat'],
+        "mt_long" => $my_data['long'],
+        "my_profile" => $my_data['profile'],
+    ];
 
     $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']);
     $sgdt_leader_cnt = f_get_leader_cnt($_SESSION['_mt_idx']);
     if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) {
+        $sgdt_list = get_group_members($sgdt_row['sgt_idx']);
         if ($sgdt_list) {
             $profile_count = 1;
             foreach ($sgdt_list as $sgdtg_row) {
                 if ($sgdtg_row['sgdt_idx'] == $sgdt_row['sgdt_idx']) continue;
-                
-                $member_data = get_member_data($sgdtg_row['mt_idx']);
 
+                $member_data = get_member_data($sgdtg_row['mt_idx']);
                 $result_data["profilemarkerLat_$profile_count"] = $member_data['lat'];
                 $result_data["profilemarkerLong_$profile_count"] = $member_data['long'];
                 $result_data["profilemarkerImg_$profile_count"] = $member_data['profile'];
                 $profile_count++;
             }
+            $result_data['profile_count'] = $profile_count - 1;
         }
-        $result_data['profile_count'] = $profile_count - 1;
     }
 
     $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
@@ -2147,10 +2141,10 @@ if ($_POST['act'] == "event_source") {
         }
         $result_data['schedule_chk'] = 'Y';
         $result_data['count'] = $count - 1;
+        $result_data['sgdt_idx'] = $_POST['sgdt_idx'];
     }
 
-    // 결과 캐시 저장
-    CacheUtil::set($cache_key, $result_data, 120); // 1분 캐시
+    CacheUtil::set($cache_key, $result_data, CACHE_EXPIRE_TIME);
     echo json_encode($result_data);
     exit;
 } elseif ($_POST['act'] == "load_path_chk") {

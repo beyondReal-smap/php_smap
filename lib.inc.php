@@ -34,7 +34,42 @@ include $_SERVER['DOCUMENT_ROOT']."/config.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/config_arr.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/mail.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/MobileDetect.inc.php";
-require_once 'redis_cache_util.php';
+require_once $_SERVER['DOCUMENT_ROOT']."/redis_cache_util.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
+
+class Logger {
+    private $logFile;
+    private $maxSize;
+    private $backupCount;
+
+    public function __construct($logFile = 'application.log', $maxSize = 5242880, $backupCount = 5) {
+        $this->logFile = __DIR__ . '/' . $logFile;
+        $this->maxSize = $maxSize;  // 5MB
+        $this->backupCount = $backupCount;
+    }
+
+    public function write($message) {
+        $this->rotateIfNeeded();
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[{$timestamp}] {$message}" . PHP_EOL;
+        file_put_contents($this->logFile, $logMessage, FILE_APPEND);
+    }
+
+    private function rotateIfNeeded() {
+        if (file_exists($this->logFile) && filesize($this->logFile) > $this->maxSize) {
+            for ($i = $this->backupCount; $i > 0; $i--) {
+                $oldFile = $this->logFile . '.' . $i;
+                $newFile = $this->logFile . '.' . ($i + 1);
+                if (file_exists($oldFile)) {
+                    rename($oldFile, $newFile);
+                }
+            }
+            rename($this->logFile, $this->logFile . '.1');
+        }
+    }
+}
+
+$logger = new Logger();
 
 $detect_mobile = new \Detection\MobileDetect();
 if ($detect_mobile->isMobile()) {
@@ -65,7 +100,6 @@ ini_set('display_errors', '1');
 
 
 //캐시서버 사용시 리셋
-
 if($chk_admin) {
     opcache_reset();
 
