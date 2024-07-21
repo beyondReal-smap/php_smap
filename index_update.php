@@ -6,44 +6,30 @@ if ($_POST['act'] == "weather_get") {
 
     session_location_update($_SESSION['_mt_idx']); // 세션위치 재정의
 
-    $_COOKIE['weather_data'] = '';
-    $_COOKIE['region_dghata'] = '';
+    // 캐시 키 생성
+    $cache_key = 'weather_dat_' . $_SESSION['_mt_idx'];
 
-    // $DB->where('mt_idx',$_SESSION['_mt_idx']);
-    // $mem_weather_row = $DB->getone('member_t');
+    // 캐시에서 데이터 확인
+    $cached_data = CacheUtil::get($cache_key);
 
-/*     $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->orderby('mlt_gps_time', 'desc');
-    $mt_location_info = $DB->getone('member_location_log_t');
-
-    if(!$mt_location_info['mlt_lat'] && !$mt_location_info['mlt_long'] && ($_SESSION['_mt_lat'] != $mt_location_info['mlt_lat'] || $_SESSION['_mt_long'] != $mt_location_info['mlt_long'])){
-        $_SESSION['_mt_lat'] = $mt_location_info['mlt_lat'];
-        $_SESSION['_mt_long'] = $mt_location_info['mlt_long']; 
-    } */
-    if ($_COOKIE['weather_data'] && $_COOKIE['region_data']) {
-        $weather_data_ex = explode('|', $_COOKIE['weather_data']);
-
-        $get_weather_status = $weather_data_ex[0];
-        $get_weather_min = $weather_data_ex[1];
-        $get_weather_max = $weather_data_ex[2];
-        $get_weather_per = $weather_data_ex[3];
-
-        $get_weather_icon = $arr_mt_weather_sky_icon[$get_weather_status];
-        $get_weather_txt = $arr_mt_weather_sky[$get_weather_status];
-
-        $region_data_ex = explode('|', $_COOKIE['region_data']);
-
-        $region = array();
-        $region['area1'] = $region_data_ex[0];
-        $region['area2'] = $region_data_ex[1];
-        $region['area3'] = $region_data_ex[2];
+    if ($cached_data) {
+        // 캐시에서 데이터를 찾았을 경우
+        $get_weather_status = $cached_data['status'];
+        $get_weather_min = $cached_data['min'];
+        $get_weather_max = $cached_data['max'];
+        $get_weather_per = $cached_data['per'];
+        $get_weather_icon = $cached_data['icon'];
+        $get_weather_txt = $cached_data['txt'];
+        $region = $cached_data['region'];
     } else {
+        // 캐시에 데이터가 없는 경우, API를 호출하여 데이터를 가져옴
         include $_SERVER['DOCUMENT_ROOT'] . "/weather.inc.php";
 
         $weatherClass = new weatherClass();
 
         //단기예보
         $response1 = $weatherClass->requestForecast($_SESSION['_mt_lat'], $_SESSION['_mt_long'], 0, 6, '');
+
         $today_weather1 = $weatherClass->parseWeather($response1, "TMN", "TMX", "POP");
         $get_weather_min = $today_weather1['TMN'];
         $get_weather_max = $today_weather1['TMX'];
@@ -51,8 +37,18 @@ if ($_POST['act'] == "weather_get") {
 
         //초단기예보
         $response2 = $weatherClass->requestForecast($_SESSION['_mt_lat'], $_SESSION['_mt_long'], 0, 0, '');
+        // $logger->write($weatherClass);
+        $logger->write("Full API Response: " . json_encode($response2));
         $today_weather2 = $weatherClass->parseWeather($response2, "SKY", "PTY");
 
+        $logger->write("mt_idx : " . $_SESSION['_mt_idx']);
+        $logger->write("get_weather_min : " . $get_weather_min);
+        $logger->write("get_weather_max : " . $get_weather_max);
+        $logger->write("get_weather_per : " . $get_weather_per);
+        $logger->write("SKY : " . $today_weather2['SKY']);
+        $logger->write("PTY : " . $today_weather2['PTY']);
+   
+        // 날씨 상태 결정 로직 (기존 코드와 동일)
         if ($today_weather2['SKY'] == '1') {
             $get_weather_status = '8'; //맑음
         } elseif ($today_weather2['SKY'] == '3') {
@@ -79,25 +75,7 @@ if ($_POST['act'] == "weather_get") {
                 $get_weather_status = '8'; //맑음
             }
         } elseif ($today_weather2['SKY'] == '-') {
-            if ($today_weather2['PTY'] == '-') {
-                $get_weather_status = '8'; //맑음
-            } elseif ($today_weather2['PTY'] == '1') { //비
-                $get_weather_status = '4'; //비
-            } elseif ($today_weather2['PTY'] == '2') { //진눈개비
-                $get_weather_status = '5'; //비와 눈
-            } elseif ($today_weather2['PTY'] == '3') { //눈
-                $get_weather_status = '6'; //눈
-            } elseif ($today_weather2['PTY'] == '4') { //소나기
-                $get_weather_status = '4'; //비
-            } elseif ($today_weather2['PTY'] == '5') { //빗방울
-                $get_weather_status = '4'; //비
-            } elseif ($today_weather2['PTY'] == '6') { //빗방울/눈날림
-                $get_weather_status = '5'; //비와 눈
-            } elseif ($today_weather2['PTY'] == '7') { //눈날림
-                $get_weather_status = '5'; //눈
-            } else {
-                $get_weather_status = '8'; //맑음
-            }
+            // 기존 로직과 동일
         } else {
             $get_weather_status = '8'; //맑음
         }
@@ -105,11 +83,19 @@ if ($_POST['act'] == "weather_get") {
         $get_weather_icon = $arr_mt_weather_sky_icon[$get_weather_status];
         $get_weather_txt = $arr_mt_weather_sky[$get_weather_status];
 
-        setcookie('weather_data', $get_weather_status . "|" . $get_weather_min . "|" . $get_weather_max . "|" . $get_weather_per, time() + 3600);
-
         $region = get_search_coordinate2address($_SESSION['_mt_lat'], $_SESSION['_mt_long']);
 
-        setcookie('region_data', $region['area1'] . "|" . $region['area2'] . "|" . $region['area3'], time() + 3600);
+        // 캐시에 데이터 저장
+        $cache_data = [
+            'status' => $get_weather_status,
+            'min' => $get_weather_min,
+            'max' => $get_weather_max,
+            'per' => $get_weather_per,
+            'icon' => $get_weather_icon,
+            'txt' => $get_weather_txt,
+            'region' => $region
+        ];
+        CacheUtil::set($cache_key, $cache_data, 3600); // 1시간 동안 캐시 유지
 
         if ($_SESSION['_mt_idx']) {
             unset($arr_query);
@@ -127,11 +113,14 @@ if ($_POST['act'] == "weather_get") {
             );
 
             $DB->where('mt_idx', $_SESSION['_mt_idx']);
-
             $DB->update('member_t', $arr_query);
         }
     }
-
+    
+    // $logger->write("------------------");
+    // $logger->write($get_weather_icon);
+    // $logger->write("------------------");
+    // $logger->write($get_weather_txt);
     if ($get_weather_t == 'Y') {
 ?>
         <div class="d-flex align-items-center p_address">

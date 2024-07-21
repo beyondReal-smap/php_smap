@@ -35,6 +35,7 @@ include $_SERVER['DOCUMENT_ROOT']."/config_arr.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/mail.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/MobileDetect.inc.php";
 require_once $_SERVER['DOCUMENT_ROOT']."/redis_cache_util.php";
+// require_once $_SERVER['DOCUMENT_ROOT']."/group_log_cache.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
 
 class Logger {
@@ -77,6 +78,11 @@ if ($detect_mobile->isMobile()) {
 } else {
     $chk_mobile = false;
 }
+
+if (!isset($cron_chk)) {
+    $cron_chk = false; // 또는 적절한 기본값
+}
+
 if(!$cron_chk) {
     if ($_SERVER['REMOTE_ADDR'] == '115.93.39.5') {
         error_reporting(E_ERROR);

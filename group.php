@@ -5,7 +5,7 @@ $h_menu = '8';
 $_SUB_HEAD_TITLE = "그룹";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
-include $_SERVER['DOCUMENT_ROOT'] . "/anthropic.php";
+// include $_SERVER['DOCUMENT_ROOT'] . "/anthropic.php";
 
 if ($_SESSION['_mt_idx'] == '') {
     alert('로그인이 필요합니다.', './login', '');
@@ -345,14 +345,14 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                     height: 200px;
                 }
             </style>
-            <div class="container mx-auto p-4">
+            <!-- <div class="container mx-auto p-4">
                 <h1 class="text-2xl font-bold mb-4">Anthropic API Chat Interface</h1>
                 <div id="chatBox" class="bg-white p-4 rounded-lg shadow-md mb-4 overflow-y-auto chat-container"></div>
                 <form id="chatForm" class="flex">
                     <input type="text" id="userInput" class="flex-grow p-2 border rounded-l-lg" placeholder="Type your message here...">
                     <button type="submit" class="bg-blue-500 text-white p-2 rounded-r-lg">Send</button>
                 </form>
-            </div>
+            </div> -->
     </div>
     <!-- <button type="button" class="btn w-100 floating_btn rounded" onclick="location.href='./group_create'"><i class="xi-plus-min mr-3"></i> 그룹 추가하기</button> -->
 <?php
