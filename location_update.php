@@ -364,10 +364,10 @@ if ($_POST['act'] == "recom_list") {
     }
 
     // 캐시 키 생성
-    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    // $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
 
     // 캐시에서 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
+    // $cached_data = CacheUtil::get($cache_key);
     
     if ($cached_data === null) {
         // 캐시에 데이터가 없으면 계산 수행
@@ -764,15 +764,23 @@ if ($_POST['act'] == "recom_list") {
             }
             return false;
         }
+
+        function formatStayTime($seconds) {
+            $hours = floor($seconds / 3600);
+            $minutes = floor(($seconds % 3600) / 60);
+            return sprintf("%02d:%02d", $hours, $minutes);
+        }
         
         if (!empty($loc_new)) {
             $events = [];
-
             $filteredEvents = [];
+            $filteredEventsMove = [];
             $maxDistance = 5; // 최대 허용 거리 (km)
             $maxSpeed = 80; // 최대 허용 속도 (km/h)
-            $minSpeed = 0.0 ; // 최소 허용 속도 (km/h), 정지 상태와 구분하기 위함
+            $minSpeed = 0.0; // 최소 허용 속도 (km/h), 정지 상태와 구분하기 위함
+            $stayThreshold = 0.1; // stay 상태에서 허용되는 최대 이동 거리 (km)
 
+            // 기존 데이터 배열로부터 이벤트를 생성
             foreach ($loc_new as $log) {
                 $events[] = [
                     'startTime' => $log['start_time'],
@@ -791,41 +799,157 @@ if ($_POST['act'] == "recom_list") {
                 return strtotime($a['startTime']) - strtotime($b['startTime']);
             });
 
-            // 이상치 제거
+            $currentStatus = null;
+            $stayStartTime = null;
+            $stayEndTime = null;
+            $lastValidLocation = null;
+            $tempMoveEvents = [];
+
             for ($i = 0; $i < count($events); $i++) {
-                if ($i == 0 || $i == count($events) - 1) {
-                    $filteredEvents[] = $events[$i];
+                $current = $events[$i];
+                
+                if ($i == 0) {
+                    $filteredEvents[] = $current;
+                    $currentStatus = $current['logStatus'];
+                    $stayStartTime = $current['startTime'];
+                    $stayEndTime = $current['endTime'];
+                    $lastValidLocation = $current;
                     continue;
                 }
 
-                $prev = $events[$i - 1];
-                $current = $events[$i];
-                $next = $events[$i + 1];
-
                 $distance = calculateDistance(
-                    $prev['latitude'], $prev['longitude'],
+                    $lastValidLocation['latitude'], $lastValidLocation['longitude'],
                     $current['latitude'], $current['longitude']
                 );
 
-                $timeDiff = (strtotime($current['startTime']) - strtotime($prev['startTime'])) / 3600; // in hours
+                $timeDiff = (strtotime($current['startTime']) - strtotime($lastValidLocation['startTime'])) / 3600; // in hours
                 
                 if ($timeDiff > 0) {
                     $speed = $distance / $timeDiff;
 
-                    if ($distance <= $maxDistance && $speed <= $maxSpeed && $speed >= $minSpeed) {
-                        if (!isOutlier($prev, $current, $next)) {
-                            $filteredEvents[] = $current;
+                    if ($currentStatus == 'stay') {
+                        if ($distance > $stayThreshold) {
+                            // Move detected
+                            $lastValidLocation['endTime'] = $current['startTime'];
+                            $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
+                            $filteredEvents[] = $lastValidLocation;
+
+                            $current['logStatus'] = 'move';
+                            $currentStatus = 'move';
+                            $tempMoveEvents = [$current];
+                            $lastValidLocation = $current;
+                        } else {
+                            // Still in stay status, update end time
+                            $lastValidLocation['endTime'] = $current['endTime'];
                         }
-                    } else if ($distance < 0.01) {  // 10m 이내의 움직임은 동일 위치로 간주
-                        $filteredEvents[] = $current;
+                    } else { // move status
+                        if ($distance <= $stayThreshold && $speed < $minSpeed) {
+                            // Stay detected
+                            $current['logStatus'] = 'stay';
+                            $currentStatus = 'stay';
+                            $stayStartTime = $current['startTime'];
+                            $stayEndTime = $current['endTime'];
+                            
+                            // Clear temporary move events
+                            $tempMoveEvents = [];
+                            
+                            $filteredEvents[] = $current;
+                            $lastValidLocation = $current;
+                        } else if ($distance <= $maxDistance && $speed <= $maxSpeed) {
+                            // Valid move
+                            $tempMoveEvents[] = $current;
+                            $lastValidLocation = $current;
+                        }
+                        // If it's an invalid move (too fast or too far), we ignore it
                     }
                 } else {
                     // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
-                    $filteredEvents[] = $current;
+                    if ($currentStatus == 'move') {
+                        $tempMoveEvents[] = $current;
+                    } else {
+                        $filteredEvents[] = $current;
+                    }
                 }
             }
 
-            $events = $filteredEvents;
+            // 마지막 이벤트 처리
+            if ($currentStatus == 'stay') {
+                $lastValidLocation['endTime'] = end($events)['endTime'];
+                $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
+                $filteredEvents[count($filteredEvents) - 1] = $lastValidLocation;
+            } else if ($currentStatus == 'move') {
+                // Add remaining move events
+                $filteredEvents = array_merge($filteredEvents, $tempMoveEvents);
+            }
+
+            // stay 상태의 시간 범위에 있는 move 데이터를 삭제
+            $filteredEventsFinal = [];
+            $stayPeriods = [];
+
+            foreach ($filteredEvents as $event) {
+                if ($event['logStatus'] == 'stay') {
+                    $stayPeriods[] = [
+                        'startTime' => strtotime($event['startTime']),
+                        'endTime' => strtotime($event['endTime'])
+                    ];
+                    $filteredEventsFinal[] = $event;
+                } else {
+                    $isWithinStayPeriod = false;
+                    $eventStartTime = strtotime($event['startTime']);
+                    $eventEndTime = strtotime($event['endTime']);
+
+                    foreach ($stayPeriods as $period) {
+                        if ($eventStartTime > $period['startTime'] && $eventEndTime < $period['endTime']) {
+                            $isWithinStayPeriod = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isWithinStayPeriod) {
+                        $filteredEventsFinal[] = $event;
+                    }
+                }
+            }
+
+            // 최종 필터링된 이벤트 목록
+            // $filteredEvents = $filteredEventsFinal;
+
+            // // stay 기간 생성
+            // $stayPeriods = [];
+            // foreach ($filteredEvents as $event) {
+            //     if ($event['logStatus'] == 'stay') {
+            //         $stayPeriods[] = [
+            //             'startTime' => strtotime($event['startTime']),
+            //             'endTime' => strtotime($event['endTime'])
+            //         ];
+            //     }
+            // }
+
+            // // stay 기간 내의 move 데이터 필터링
+            // foreach ($filteredEvents as $event) {
+            //     $eventStartTime = strtotime($event['startTime']);
+            //     $eventEndTime = strtotime($event['endTime']);
+            //     $shouldKeep = true;
+
+            //     if ($event['logStatus'] == 'move') {
+            //         foreach ($stayPeriods as $stay) {
+            //             // 이벤트가 stay 기간과 겹치는지 확인
+            //             if (($eventStartTime >= $stay['startTime'] && $eventStartTime < $stay['endTime']) ||
+            //                 ($eventEndTime > $stay['startTime'] && $eventEndTime <= $stay['endTime']) ||
+            //                 ($eventStartTime <= $stay['startTime'] && $eventEndTime >= $stay['endTime'])) {
+            //                 $shouldKeep = false;
+            //                 break;
+            //             }
+            //         }
+            //     }
+
+            //     if ($shouldKeep) {
+            //         $filteredEventsMove[] = $event;
+            //     }
+            // }
+
+            $events = $filteredEventsFinal;
+
 
             $stay_count = 1;
             $move_count = 1;
@@ -847,7 +971,7 @@ if ($_POST['act'] == "recom_list") {
                                         </span>
                                     </button>
                                     <div class="infobox rounded-sm bg-white px_08 py_08">
-                                        <p class="fs_12 fw_800 text_dynamic">' . $start_time -> format('H:i') . ' ~ ' . $end_time -> format('H:i') . '</p>
+                                        <p class="fs_12 fw_800 text_dynamic">' . $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i') . '</p>
                                         <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $event['stayTime'] . '</p>
                                         <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $event['address'] . '</p>
                                     </div>
@@ -877,7 +1001,7 @@ if ($_POST['act'] == "recom_list") {
             $arr_data['log_chk'] = 'N';
         }
         // 결과 데이터를 캐시에 저장 (30분 동안)
-        CacheUtil::set($cache_key, $arr_data, 1800);
+        // CacheUtil::set($cache_key, $arr_data, 1800);
     } else {
         // 캐시에서 데이터를 가져옴
         $arr_data = $cached_data;

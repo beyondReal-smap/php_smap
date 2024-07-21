@@ -5,6 +5,7 @@ $h_menu = '8';
 $_SUB_HEAD_TITLE = "그룹";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/anthropic.php";
 
 if ($_SESSION['_mt_idx'] == '') {
     alert('로그인이 필요합니다.', './login', '');
@@ -16,6 +17,54 @@ if ($_SESSION['_mt_idx'] == '') {
         alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
     }
 }
+
+// //오너인 그룹수
+// $DB->where('mt_idx', $_SESSION['_mt_idx']);
+// $DB->where('sgt_show', 'Y');
+// $row = $DB->getone('smap_group_t', 'count(*) as cnt');
+// $sgt_cnt = $row['cnt'];
+
+// //리더인 그룹수
+// $DB->where('mt_idx', $_SESSION['_mt_idx']);
+// $DB->where('sgdt_owner_chk', 'N');
+// $DB->where('sgdt_leader_chk', 'Y');
+// $DB->where('sgdt_show', 'Y');
+// $DB->where('sgdt_discharge', 'N');
+// $DB->where('sgdt_exit', 'N');
+// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
+// $sgdt_leader_cnt = $row['cnt'];
+
+// //초대된 그룹수
+// $DB->where('mt_idx', $_SESSION['_mt_idx']);
+// $DB->where('sgdt_owner_chk', 'N');
+// $DB->where('sgdt_show', 'Y');
+// $DB->where('sgdt_discharge', 'N');
+// $DB->where('sgdt_exit', 'N');
+// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
+// $sgdt_cnt = $row['cnt'];
+
+// //그룹활동기한 설정여부
+// $DB->where('mt_idx', $_SESSION['_mt_idx']);
+// $DB->where('sgdt_owner_chk', 'N');
+// $DB->where('sgdt_discharge', 'N');
+// $DB->where('sgdt_show', 'Y');
+// $DB->where('sgdt_exit', 'N');
+// $DB->where('sgdt_group_chk', 'D');
+// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
+// $gapt_cnt = $row['cnt'];
+
+// //오너제외한 그룹원 수
+// $DB->where('mt_idx', $_SESSION['_mt_idx']);
+// $DB->where('sgt_show', 'Y');
+// $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
+
+// $DB->where('sgt_idx', $row_sgt['sgt_idx']);
+// $DB->where('sgdt_owner_chk', 'N');
+// $DB->where('sgdt_show', 'Y');
+// $DB->where('sgdt_discharge', 'N');
+// $DB->where('sgdt_exit', 'N');
+// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
+// $expt_cnt = $row['cnt'];
 
 $mt_idx = $_SESSION['_mt_idx'];
 
@@ -290,6 +339,20 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                 });
             </script>
             <div id="group_list_box"></div>
+            <!-- 새로 추가되는 채팅 인터페이스 -->
+            <style>
+                .chat-container {
+                    height: 200px;
+                }
+            </style>
+            <div class="container mx-auto p-4">
+                <h1 class="text-2xl font-bold mb-4">Anthropic API Chat Interface</h1>
+                <div id="chatBox" class="bg-white p-4 rounded-lg shadow-md mb-4 overflow-y-auto chat-container"></div>
+                <form id="chatForm" class="flex">
+                    <input type="text" id="userInput" class="flex-grow p-2 border rounded-l-lg" placeholder="Type your message here...">
+                    <button type="submit" class="bg-blue-500 text-white p-2 rounded-r-lg">Send</button>
+                </form>
+            </div>
     </div>
     <!-- <button type="button" class="btn w-100 floating_btn rounded" onclick="location.href='./group_create'"><i class="xi-plus-min mr-3"></i> 그룹 추가하기</button> -->
 <?php
@@ -311,6 +374,14 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         });
     </script>
     <div id="invite_group_list_box"></div>
+</div>
+<div class="container sub_pg bg_main">
+    <div class="mt_20">
+        <div class="fixed_top bg_main">
+            <div class="py_20 px_16">
+            </div>
+        </div>
+    </div>
 </div>
 <?php
         }
@@ -463,6 +534,56 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         }
     });
 
+    const chatBox = document.getElementById('chatBox');
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        // Display user message
+        appendMessage('User', userMessage);
+        userInput.value = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userMessage }),
+            });
+
+            if (!response.ok) {
+                throw new Error('API request failed');
+            }
+
+            const data = await response.json();
+            appendMessage('Assistant', data.response);
+        } catch (error) {
+            console.error('Error:', error);
+            appendMessage('System', 'An error occurred while processing your request.');
+        }
+    });
+
+    function appendMessage(sender, message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'mb-2';
+        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendMessage(sender, message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'mb-2';
+        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
     function f_modal_out_group(i) {
         if (i) {
             $('#group_out_modal_sgdt_idx').val(i);
@@ -530,6 +651,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         return false;
     }
 </script>
+<script src="https://cdn.tailwindcss.com"></script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
