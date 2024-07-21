@@ -364,10 +364,10 @@ if ($_POST['act'] == "recom_list") {
     }
 
     // 캐시 키 생성
-    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    // $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
 
     // 캐시에서 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
+    // $cached_data = CacheUtil::get($cache_key);
     
     if ($cached_data === null) {
         // 캐시에 데이터가 없으면 계산 수행
@@ -768,7 +768,14 @@ if ($_POST['act'] == "recom_list") {
         function formatStayTime($seconds) {
             $hours = floor($seconds / 3600);
             $minutes = floor(($seconds % 3600) / 60);
-            return sprintf("%02d:%02d", $hours, $minutes);
+            $stay_time_formatted = "";
+            
+            if ($hours > 0) {
+                $stay_time_formatted .= $hours . "시간 ";
+            }
+            
+            $stay_time_formatted .= $minutes . "분 체류";
+            return $stay_time_formatted;
         }
         
         if (!empty($loc_new)) {
@@ -911,45 +918,53 @@ if ($_POST['act'] == "recom_list") {
                 }
             }
 
-            // 최종 필터링된 이벤트 목록
-            // $filteredEvents = $filteredEventsFinal;
+            // stay 이벤트 병합 및 체류 시간 계산
+            $mergedStayEvents = [];
+            $currentStay = null;
 
-            // // stay 기간 생성
-            // $stayPeriods = [];
-            // foreach ($filteredEvents as $event) {
-            //     if ($event['logStatus'] == 'stay') {
-            //         $stayPeriods[] = [
-            //             'startTime' => strtotime($event['startTime']),
-            //             'endTime' => strtotime($event['endTime'])
-            //         ];
-            //     }
-            // }
+            foreach ($filteredEventsFinal as $event) {
+                if ($event['logStatus'] == 'stay') {
+                    if ($currentStay === null) {
+                        $currentStay = $event;
+                    } else {
+                        $currentEndTime = strtotime($currentStay['endTime']);
+                        $nextStartTime = strtotime($event['startTime']);
+                        
+                        if ($nextStartTime <= $currentEndTime) {
+                            // 겹치는 경우, 시작 시간은 더 이른 것으로, 종료 시간은 더 늦은 것으로 업데이트
+                            $currentStay['startTime'] = min($currentStay['startTime'], $event['startTime']);
+                            $currentStay['endTime'] = max($currentStay['endTime'], $event['endTime']);
+                        } else {
+                            // 겹치지 않는 경우, 현재 stay를 저장하고 새로운 stay 시작
+                            $mergedStayEvents[] = $currentStay;
+                            $currentStay = $event;
+                        }
+                    }
+                } else {
+                    if ($currentStay !== null) {
+                        $mergedStayEvents[] = $currentStay;
+                        $currentStay = null;
+                    }
+                    $mergedStayEvents[] = $event;
+                }
+            }
 
-            // // stay 기간 내의 move 데이터 필터링
-            // foreach ($filteredEvents as $event) {
-            //     $eventStartTime = strtotime($event['startTime']);
-            //     $eventEndTime = strtotime($event['endTime']);
-            //     $shouldKeep = true;
+            // 마지막 stay 이벤트 처리
+            if ($currentStay !== null) {
+                $mergedStayEvents[] = $currentStay;
+            }
 
-            //     if ($event['logStatus'] == 'move') {
-            //         foreach ($stayPeriods as $stay) {
-            //             // 이벤트가 stay 기간과 겹치는지 확인
-            //             if (($eventStartTime >= $stay['startTime'] && $eventStartTime < $stay['endTime']) ||
-            //                 ($eventEndTime > $stay['startTime'] && $eventEndTime <= $stay['endTime']) ||
-            //                 ($eventStartTime <= $stay['startTime'] && $eventEndTime >= $stay['endTime'])) {
-            //                 $shouldKeep = false;
-            //                 break;
-            //             }
-            //         }
-            //     }
+            // 체류 시간 계산 및 포맷팅
+            foreach ($mergedStayEvents as &$event) {
+                if ($event['logStatus'] == 'stay') {
+                    $stayDuration = strtotime($event['endTime']) - strtotime($event['startTime']);
+                    $hours = floor($stayDuration / 3600);
+                    $minutes = floor(($stayDuration % 3600) / 60);
+                    $event['stayTime'] = sprintf("%d시간 %d분 체류", $hours, $minutes);
+                }
+            }
 
-            //     if ($shouldKeep) {
-            //         $filteredEventsMove[] = $event;
-            //     }
-            // }
-
-            $events = $filteredEventsFinal;
-
+            $events = $mergedStayEvents;
 
             $stay_count = 1;
             $move_count = 1;
