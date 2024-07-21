@@ -364,10 +364,10 @@ if ($_POST['act'] == "recom_list") {
     }
 
     // 캐시 키 생성
-    // $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
 
     // 캐시에서 데이터 확인
-    // $cached_data = CacheUtil::get($cache_key);
+    $cached_data = CacheUtil::get($cache_key);
     
     if ($cached_data === null) {
         // 캐시에 데이터가 없으면 계산 수행
