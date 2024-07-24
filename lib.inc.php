@@ -2597,17 +2597,20 @@ function get_date_ttime($sst_sdate)
         $sst_sdate_ex2 = explode(':', $sst_sdate_ex1[1]);
     }
 
-    if($sst_sdate_ex2[0] < 12) {
-        $ss_sdate_r = '오전 '.$sst_sdate_ex2[0];
-    } else {
-        $ss_sdate_r = '오후 '.($sst_sdate_ex2[0] - 12);
-    }
-    if($ss_sdate_r == '오후 0') {
+    $hour = intval($sst_sdate_ex2[0]);
+    $minute = intval($sst_sdate_ex2[1]);
+
+    if($hour == 12 && $minute == 0) {
         $ss_sdate_r = '정오 12';
-    } elseif($ss_sdate_r == '오전 0') {
+    } elseif($hour == 0 && $minute == 0) {
         $ss_sdate_r = '자정 12';
+    } elseif($hour < 12) {
+        $ss_sdate_r = sprintf('오전 %02d', $hour);
+    } else {
+        $ss_sdate_r = sprintf('오후 %02d', $hour == 12 ? 12 : $hour - 12);
     }
-    $ss_sdate_r .= ':'.$sst_sdate_ex2[1];
+
+    $ss_sdate_r .= sprintf(':%02d', $minute);
 
     return $ss_sdate_r;
 }
