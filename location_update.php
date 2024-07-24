@@ -921,29 +921,45 @@ if ($_POST['act'] == "recom_list") {
             // stay 이벤트 병합 및 체류 시간 계산
             $mergedStayEvents = [];
             $currentStay = null;
+            $sameTimeEvents = [];
 
             foreach ($filteredEventsFinal as $event) {
                 if ($event['logStatus'] == 'stay') {
                     if ($currentStay === null) {
                         $currentStay = $event;
+                        $sameTimeEvents = [$event];
                     } else {
                         $currentEndTime = strtotime($currentStay['endTime']);
                         $nextStartTime = strtotime($event['startTime']);
                         
-                        if ($nextStartTime <= $currentEndTime) {
+                        if ($nextStartTime == $currentEndTime) {
+                            // 시작 시간과 종료 시간이 같은 경우
+                            $sameTimeEvents[] = $event;
+                        } elseif ($nextStartTime < $currentEndTime) {
                             // 겹치는 경우, 시작 시간은 더 이른 것으로, 종료 시간은 더 늦은 것으로 업데이트
                             $currentStay['startTime'] = min($currentStay['startTime'], $event['startTime']);
                             $currentStay['endTime'] = max($currentStay['endTime'], $event['endTime']);
+                            $sameTimeEvents = [$currentStay];
                         } else {
                             // 겹치지 않는 경우, 현재 stay를 저장하고 새로운 stay 시작
-                            $mergedStayEvents[] = $currentStay;
+                            if (!empty($sameTimeEvents)) {
+                                $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
+                            } else {
+                                $mergedStayEvents[] = $currentStay;
+                            }
                             $currentStay = $event;
+                            $sameTimeEvents = [$event];
                         }
                     }
                 } else {
                     if ($currentStay !== null) {
-                        $mergedStayEvents[] = $currentStay;
+                        if (!empty($sameTimeEvents)) {
+                            $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
+                        } else {
+                            $mergedStayEvents[] = $currentStay;
+                        }
                         $currentStay = null;
+                        $sameTimeEvents = [];
                     }
                     $mergedStayEvents[] = $event;
                 }
@@ -951,7 +967,11 @@ if ($_POST['act'] == "recom_list") {
 
             // 마지막 stay 이벤트 처리
             if ($currentStay !== null) {
-                $mergedStayEvents[] = $currentStay;
+                if (!empty($sameTimeEvents)) {
+                    $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
+                } else {
+                    $mergedStayEvents[] = $currentStay;
+                }
             }
 
             // 체류 시간 계산 및 포맷팅
