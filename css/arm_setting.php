@@ -403,7 +403,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 }
             </script>
             <div class="b_botton px-0">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

@@ -392,7 +392,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block">입력했어요!</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?= translate('입력했어요!', $userLang) ?></button>
                 <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_agree.php'">입력했어요!</button> -->
             </div>
         </form>

@@ -20,12 +20,12 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                 </div>
                 <div class="cld_head fs_12">
                     <ul>
-                        <li class="sun">일</li>
-                        <li>월</li>
-                        <li>화</li>
-                        <li>수</li>
-                        <li>목</li>
-                        <li>금</li>
+                        <li class="sun"><? translate('일', $userLang) ?></li>
+                        <li><? translate('월', $userLang) ?><</li>
+                        <li><? translate('화', $userLang) ?><</li>
+                        <li><? translate('수', $userLang) ?><</li>
+                        <li><? translate('목', $userLang) ?><</li>
+                        <li><? translate('금', $userLang) ?><</li>
                         <li class="sat">토</li>
                     </ul>
                 </div>

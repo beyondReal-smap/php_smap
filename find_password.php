@@ -29,7 +29,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                 </div>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='form_add_info'">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='form_add_info'"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

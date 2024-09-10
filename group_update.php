@@ -55,13 +55,13 @@ if ($_POST['act'] == "list") {
                                                     <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
                                                     <div class="d-flex align-items-center flex-wrap ">
                                                         <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= $val['sgdt_owner_leader_chk_t'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
                                                         <? } ?>
                                                         <? if ($val['sgdt_adate']) { ?>
                                                             <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                                                 <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                                             <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
                                                         <? } ?>
                                                     </div>
                                                 </div>
@@ -113,7 +113,7 @@ if ($_POST['act'] == "list") {
                 <div class="border bg-white rounded-lg mb-3">
                     <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer">
                         <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3"><?= $row_sgt['sgt_title'] ?><span class="ml-2">(<?= $member_cnt_t ?>)</span></p>
-                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');">그룹나가기</button>
+                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');"><?= translate('그룹나가기', $userLang)?></button>
                     </div>
                     <?php
                     unset($list_sgdt);
@@ -124,7 +124,7 @@ if ($_POST['act'] == "list") {
                             <? if ($invite_cnt) {
                             ?>
                                 <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-                                    <?= number_format($invite_cnt) ?>명 초대중
+                                    <?= number_format($invite_cnt) ?><?= translate('명 초대중', $userLang) ?>
                                 </p>
                                 <?php
                             }
@@ -144,13 +144,13 @@ if ($_POST['act'] == "list") {
                                                     <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
                                                     <div class="d-flex align-items-center flex-wrap ">
                                                         <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= $val['sgdt_owner_leader_chk_t'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
                                                         <? } ?>
                                                         <? if ($val['sgdt_adate']) { ?>
                                                             <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                                                 <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                                             <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
                                                         <? } ?>
                                                     </div>
                                                 </div>
@@ -197,13 +197,13 @@ if ($_POST['act'] == "list") {
                             <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
                             <div class="d-flex align-items-center flex-wrap ">
                                 <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                    <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= $val['sgdt_owner_leader_chk_t'] ?></p>
+                                    <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
                                 <? } ?>
                                 <? if ($val['sgdt_adate']) { ?>
                                     <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <? } ?>
-                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
                                 <? } ?>
                             </div>
                         </div>
@@ -316,7 +316,7 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_id'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  "[SMAP] 리더 해제알림 🚫";
+    $plt_title =  "리더 해제알림 🚫";
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더에서 해제되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content); 
@@ -332,7 +332,7 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_idx'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  "[SMAP] 리더 해제알림 🚫";
+    $plt_title =  "리더 해제알림 🚫";
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더에서 해제되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content); */
@@ -384,7 +384,7 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_id'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  '[SMAP] 리더 등록알림 👑';
+    $plt_title =  '리더 등록알림 👑';
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더로 등록되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
@@ -401,7 +401,7 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_idx'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  "[SMAP] 리더 등록알림 👑";
+    $plt_title =  "리더 등록알림 👑";
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더로 등록되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content); */
@@ -557,7 +557,7 @@ if ($_POST['act'] == "list") {
             $mt_id = $member_row['mt_id'];
             $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
             $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-            $plt_title = '[SMAP] 그룹원이 탈퇴했어요 🚪';
+            $plt_title = '그룹원이 탈퇴했어요 🚪';
             $plt_content = $mem_nickname . '님이 탈퇴했습니다.';
 
             $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
@@ -843,7 +843,7 @@ if ($_POST['act'] == "list") {
                             $mt_id = $member_row['mt_id'];
                             $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
                             $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-                            $plt_title = '[SMAP] 새로운 멤버가 합류했어요 🎉';
+                            $plt_title = '새로운 멤버가 합류했어요 🎉';
                             $plt_content = $mem_nickname . '님이 합류했습니다.';
 
                             $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);

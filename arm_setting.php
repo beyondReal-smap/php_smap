@@ -110,14 +110,14 @@ if ($_SESSION['_mt_idx'] == '') {
             <!-- 일정알림 -->
             <div>
                 <div class="d-flex align-items-center sc_arm_wrap">
-                    <p class="tit_h1 wh_pre line_h1_3">일정알림</p>
+                    <p class="tit_h1 wh_pre line_h1_3"><?= translate("일정알림", $userLang) ?></p>
                     <div class="btn-group tooltip_wrap pl-2">
                         <button type="button" class="btn tooltip_btn w-auto h-auto p-1" data-toggle="dropdown" data-display="static" aria-expanded="true">
                             <i class="xi-info-o fc_gray_500 fs_13"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-left">
-                            <p class=""><i class="xi-info-o"></i> 일정알림</p>
-                            <p class="line_h1_3 text_dynamic pl-3 pt-2">사용자가 설정한 1분~60분, 1시간~24시간, 1일~30일 사이의 시간에 따라 일정 시작 전에 전송되는 알림입니다.</p>
+                            <p class=""><i class="xi-info-o"></i><?= translate("일정알림", $userLang) ?></p>
+                            <p class="line_h1_3 text_dynamic pl-3 pt-2"><?= translate("사용자가 설정한 1분~60분, 1시간~24시간, 1일~30일 사이의 시간에 따라 일정 시작 전에 전송되는 알림입니다.", $userLang) ?></p>
                         </div>
                     </div>
                 </div>
@@ -135,12 +135,12 @@ if ($_SESSION['_mt_idx'] == '') {
                             </div>
                             <div class="swiper-container select_type">
                                 <div class="swiper-wrapper">
-                                    <div class="swiper-slide" data-mm="day">일</div>
-                                    <div class="swiper-slide" data-mm="minute">분</div>
-                                    <div class="swiper-slide" data-mm="hour">시간</div>
-                                    <div class="swiper-slide" data-mm="other_day">일</div>
-                                    <div class="swiper-slide" data-mm="other_minute">분</div>
-                                    <div class="swiper-slide" data-mm="other_hour">시간</div>
+                                    <div class="swiper-slide" data-mm="day"><?= translate('일', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="minute"><?= translate('분', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="hour"><?= translate('시간', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="other_day"><?= translate('일', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="other_minute"><?= translate('분', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="other_hour"><?= translate('시간', $userLang) ?></div>
                                 </div>
                                 <div class=""></div>
                             </div>
@@ -156,7 +156,7 @@ if ($_SESSION['_mt_idx'] == '') {
                                                                                                                         } ?> onchange="toggleSpinner()">
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p">
-                                    <p class="text_dynamic text_gray">일정알림 안함</p>
+                                    <p class="text_dynamic text_gray"><?= translate('일정알림 안함', $userLang) ?></p>
                                 </div>
                             </label>
                         </div>
@@ -386,13 +386,13 @@ if ($_SESSION['_mt_idx'] == '') {
                 function get_hh_mm_txt(hh_data, mm_data) {
                     var stype;
                     if (mm_data == 'day' || mm_data == 'other_day') {
-                        stype = '일';
+                        stype = "<?= translate('일', $userLang) ?>";
                         group_type = "day";
                     } else if (mm_data == 'minute' || mm_data == 'other_minute') {
-                        stype = '분';
+                        stype = "<?= translate('분', $userLang) ?>";
                         group_type = "minute";
                     } else {
-                        stype = '시간';
+                        stype = "<?= translate('시간', $userLang) ?>";
                         group_type = "hour";
                     }
                     if (typeof hh_data === 'undefined') {} else {
@@ -403,7 +403,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 }
             </script>
             <div class="b_botton px-0">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

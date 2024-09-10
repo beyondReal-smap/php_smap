@@ -39,14 +39,14 @@ $phoneNumber = $_GET['phoneNumber'];
                     <div class="ip_tit">
                         <h5 class="">입력하신 휴대전화번호로 인증번호가 발송됩니다.</h5>
                     </div>
-                    <input type="tel" class="form-control" placeholder="010-0000-0000" id="mt_hp" name="mt_hp" value="<?= $_GET['phoneNumber'] ?>" readonly>
+                    <input type="tel" class="form-control" placeholder="<?= translate('010-0000-0000', $userLang) ?>" id="mt_hp" name="mt_hp" value="<?= $_GET['phoneNumber'] ?>" readonly>
                     <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
                     <div class="form-text ip_invalid"><i class="xi-error-o"></i> 아이디를 다시 확인해주세요</div>
                     <button type="button" class="btn fs_12 fc_primary rounded-pill bg_secondary text-center px_12 py_07 text_dynamic w_fit h_fit_im d-flex align-items-center mt-3">인증번호가 안와요! <i class="xi-arrow-right ml-2"></i></button>
                 </div>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');"><?= translate('입력했어요!', $userLang) ?></button>
                 <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()">휴대폰 인증을 완료했어요!</button>
 
             </div>

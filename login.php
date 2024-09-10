@@ -26,42 +26,42 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 test_dynamic">어서오세요!
-            로그인하고
-            SMAP의 모든 기능을 사용하세요.</p>
+        <p class="tit_h1 wh_pre line_h1_3 test_dynamic" style="line-height: 0.7;">
+            <?= translate('어서오세요!', $userLang) ?><br>
+            <?= translate('로그인하고', $userLang) ?><br>
+            <?= translate('SMAP의 모든 기능을 사용하세요.', $userLang) ?>
+        </p>
         <form method="post" name="frm_login" id="frm_login" action="./login_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="act" id="act" value="login" />
             <div class="mt-5">
                 <div class="ip_wr mt-5" id="mt_hp_text">
                     <div class="ip_tit">
-                        <h5 class="">휴대전화번호</h5>
+                        <h5 class=""><?= translate('휴대전화번호', $userLang) ?></h5>
                     </div>
                     <input type="tel" class="form-control" placeholder="010-0000-0000" name="mt_hp" id="mt_hp" maxlength="13" oninput="restrictInput(this);formatPhoneNumber(this);" value="<?= $_GET['phoneNumber'] ?>">
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 휴대전화번호를 다시 확인해주세요</div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate('확인되었습니다.', $userLang) ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate('휴대전화번호를 다시 확인해주세요', $userLang) ?></div>
                 </div>
                 <div class="ip_wr mt_25">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= translate('비밀번호', $userLang) ?></h5>
                     </div>
-                    <!-- <input type="password" class="form-control" placeholder="비밀번호를 입력해주세요." name="mt_pass" id="mt_pass" maxlength="20"> -->
                     <div class="ip_password">
-                        <input type="password" class="form-control" placeholder="비밀번호를 입력해주세요." id="mt_pass" name="mt_pass" maxlength="20">
+                        <input type="password" class="form-control" placeholder="<?= translate('비밀번호를 입력해주세요.', $userLang) ?>" id="mt_pass" name="mt_pass" maxlength="20">
                         <div class="btn btn_password_eye" id="password_show"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic">비밀번호는 최소 9글자 이상 공백 없이
-                        문자, 숫자, 특수문자 조합입니다.</div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 비밀번호가 일치하지 않습니다.</div>
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic"><?= translate('비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자, 특수문자 조합입니다.', $userLang) ?></div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate('확인되었습니다.', $userLang) ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate('비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.', $userLang) ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate('비밀번호가 일치하지 않습니다.', $userLang) ?></div>
                 </div>
             </div>
             <div class="mt-5">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block">로그인하기</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?= translate('로그인하기', $userLang) ?></button>
             </div>
-            <button type="button" class="btn fs_14 text_gray" onclick="javascript:location.href='./join_entry'">아직 회원가입을 하지 않으셨나요?</button>
-            <button type="button" class="btn fs_14 text_gray" onclick="find_password()">비밀번호가 기억나지 않나요?</button>
+            <button type="button" class="btn fs_14 text_gray" onclick="javascript:location.href='./join_entry'"><?= translate('아직 회원가입을 하지 않으셨나요?', $userLang) ?></button>
+            <button type="button" class="btn fs_14 text_gray" onclick="find_password()"><?= translate('비밀번호가 기억나지 않나요?', $userLang) ?></button>
         </form>
         <script>
             //휴대전화번호 입력 확인
@@ -110,7 +110,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                             if (d.result == "login") {
                                 window.location.href = './form_verify?phoneNumber=' + mt_hp;
                             } else {
-                                jalert('해당 휴대폰번호로 가입된 정보가 없습니다.');
+                                jalert('<?= translate('해당 휴대폰번호로 가입된 정보가 없습니다.', $userLang) ?>');
                                 return;
                             }
                         },

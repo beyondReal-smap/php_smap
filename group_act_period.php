@@ -367,7 +367,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 }
             </script>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="group_period_chk()">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="group_period_chk()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

@@ -91,8 +91,8 @@ if ($_GET['mt_idx']) {
                 </div>
             </div>
             <div class="b_botton">
-                <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='join_add.php'">입력했어요!</button> -->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="password_chk" onclick="check_pwd()">입력했어요!</button>
+                <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='join_add.php'"><?= translate('입력했어요!', $userLang) ?></button> -->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="password_chk" onclick="check_pwd()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
             <div id="layoutViewport"></div>
         </form>

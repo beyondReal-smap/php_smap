@@ -3,18 +3,18 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '4';
 $h_menu = '5';
 $$location_page = '1';
-$_SUB_HEAD_TITLE = "내장소";
+$_SUB_HEAD_TITLE = translate("내장소", $userLang);
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
+        alert(translate('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', $userLang), './logout');
     }
 }
 
@@ -147,32 +147,32 @@ $expt_cnt = $row['cnt'];
                         <ul>
                             <li>
                                 <div class="address_btn" onclick="f_modal_map_search();">
-                                    <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span> 지번, 도로명, 건물명으로 검색</p>
+                                    <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span><?= translate('지번, 도로명, 건물명으로 검색', $userLang) ?></p>
                                 </div>
                             </li>
                             <li class="d-flex">
                                 <div class="name flex-fill">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <span class="fs_12 fw_600 text-primary">선택한 위치</span>
+                                        <span class="fs_12 fw_600 text-primary"><?= translate('선택한 위치', $userLang) ?></span>
                                         <!-- <a class="fc_gray_900 fs_12 fw_500" href="javascript:f_modal_map_search();">주소검색하기 <i class="xi-angle-right-min"></i></a> -->
                                     </div>
-                                    <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add" name="location_add">위치를 선택해주세요</div>
+                                    <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add" name="location_add"><?= translate('위치를 선택해주세요', $userLang) ?></div>
                                 </div>
                             </li>
                             <!-- .loc_nickname_wp에 .on추가하면 나타탑니다. -->
                             <li class="mt-3 loc_nickname_wp">
                                 <div class="name d-flex flex-fill flex-column">
-                                    <labe class="fs_12 fw_600 text-primary">별칭</labe>
-                                    <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="별칭을 입력해주세요" style="word-break: break-all;">
+                                    <label class="fs_12 fw_600 text-primary"><?= translate('별칭', $userLang) ?></label>
+                                    <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="<?= translate('별칭을 입력해주세요', $userLang) ?>" style="word-break: break-all;">
                                 </div>
                             </li>
                         </ul>
                     </div>
                     <!-- .myplace_btn에 .on추가하면 버튼이 나타납니다. -->
                     <div class="d-flex align-items-center myplace_btn_wr w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 myplace_btn flt_close">닫기</button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 myplace_btn flt_close"><?= translate('닫기', $userLang) ?></button>
                         <!-- <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn">내장소 저장 횟수 초과</button> -->
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn" onclick="location_add()">내장소 등록</button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn" onclick="location_add()"><?= translate('내장소 등록', $userLang) ?></button>
                     </div>
                 </div>
             </div>
@@ -182,7 +182,7 @@ $expt_cnt = $row['cnt'];
     <?php
     if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) {
         // $translateY = 0;
-        $translateY = 24;
+        $translateY = 82;
     } else {
         $translateY = 0;
     }
@@ -207,10 +207,60 @@ $expt_cnt = $row['cnt'];
                 <input type="hidden" name="sgdt_idx" id="sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
                 <input type="hidden" name="mt_idx" id="mt_idx" value="<?= $sgdt_row['mt_idx'] ?>" />
             </form>
+            <!-- 프로필 tab_scroll scroll_bar_x -->
+            <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
+                <div class="grp_wrap">
+                    <div class="border bg-white rounded-lg px_16 py_16">
+                        <p class="fs_16 fw_600 mb-3"><?= translate('그룹원', $userLang) ?></p>
+                        <form method="post" name="frm_group_list" id="frm_group_list" onsubmit="return false;">
+                            <input type="hidden" name="act" id="act" value="group_member_list" />
+                            <input type="hidden" name="obj_list2" id="obj_list2" value="group_member_list_box" />
+                            <input type="hidden" name="obj_frm2" id="obj_frm2" value="frm_group_list" />
+                            <input type="hidden" name="obj_uri2" id="obj_uri2" value="./location_update" />
+                            <input type="hidden" name="obj_pg2" id="obj_pg2" value="1" />
+                            <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
+                            <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
+                            <input type="hidden" name="group_sgt_idx" id="group_sgt_idx" value="<?= $sgdt_row['sgt_idx'] ?>" />
+                            <input type="hidden" name="group_sgdt_idx" id="group_sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
+                        </form>
+                        <style>
+                            @keyframes loading {
+                                0% {
+                                    transform: rotate(0deg);
+                                }
+
+                                100% {
+                                    transform: rotate(360deg);
+                                }
+                            }
+
+                            .loading-animation {
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                border: 4px solid #f3f3f3;
+                                border-top: 4px solid #3498db;
+                                animation: loading 1s infinite linear;
+                            }
+                        </style>
+
+                        <div id="group_member_list_box">
+                            <div class="mem_wrap mem_swiper">
+                                <div class="swiper-wrapper d-flex">
+                                    <!-- 로딩 애니메이션 추가 -->
+                                    <div id="loading-placeholder" class="d-flex align-items-center justify-content-center" style="width: 100%; height: 81px;">
+                                        <div class="loading-animation"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
             <div id="location_map_list_box">
                 <div class="px_16" style="margin-bottom: 12px;">
                     <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mb-3">리스트</p>
+                        <p class="fs_16 fw_600 mb-3"><?= translate('리스트', $userLang) ?></p>
                         <div class="swiper locSwiper location_point_list_wrap pb-0">
                             <div class="swiper-wrapper lo_grid_wrap">
                                 <div class="trace_box trace_add_place swiper-slide mr-3" style="height: 135px;">
@@ -245,51 +295,6 @@ $expt_cnt = $row['cnt'];
                     </div>
                 </div>
             </div>
-            <!-- 프로필 tab_scroll scroll_bar_x -->
-            <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
-                <div class="grp_wrap">
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mb-3">그룹원</p>
-                        <form method="post" name="frm_group_list" id="frm_group_list" onsubmit="return false;">
-                            <input type="hidden" name="act" id="act" value="group_member_list" />
-                            <input type="hidden" name="obj_list2" id="obj_list2" value="group_member_list_box" />
-                            <input type="hidden" name="obj_frm2" id="obj_frm2" value="frm_group_list" />
-                            <input type="hidden" name="obj_uri2" id="obj_uri2" value="./location_update" />
-                            <input type="hidden" name="obj_pg2" id="obj_pg2" value="1" />
-                            <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-                            <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-                            <input type="hidden" name="group_sgt_idx" id="group_sgt_idx" value="<?= $sgdt_row['sgt_idx'] ?>" />
-                            <input type="hidden" name="group_sgdt_idx" id="group_sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
-                        </form>
-                        <style>
-                            @keyframes loading {
-                                0% { transform: rotate(0deg); }
-                                100% { transform: rotate(360deg); }
-                            }
-
-                            .loading-animation {
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                border: 4px solid #f3f3f3;
-                                border-top: 4px solid #3498db;
-                                animation: loading 1s infinite linear;
-                            }
-                        </style>
-
-                        <div id="group_member_list_box">
-                            <div class="mem_wrap mem_swiper">
-                                <div class="swiper-wrapper d-flex">
-                                    <!-- 로딩 애니메이션 추가 -->
-                                    <div id="loading-placeholder" class="d-flex align-items-center justify-content-center" style="width: 100%; height: 81px;">
-                                        <div class="loading-animation"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php } ?>
         </div>
     </section>
 
@@ -348,9 +353,9 @@ $expt_cnt = $row['cnt'];
                 <div>
                     <p class="text_dynamic line_h1_3 fs_17 fw_700 mt-3"><span class="text-primary">'내 장소'</span>는 여러분만의
                         맞춤 지도입니다.</p>
-                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-3 fw_500">장소를 추가하면 그룹원이 해당 장소에 
-                        도착하거나 떠날 때 실시간 알림으로 알려드립니다. 
-                        지금 바로 그룹을 만들고 이 기능을 사용해 볼까요? 
+                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-3 fw_500">장소를 추가하면 그룹원이 해당 장소에
+                        도착하거나 떠날 때 실시간 알림으로 알려드립니다.
+                        지금 바로 그룹을 만들고 이 기능을 사용해 볼까요?
                     </p>
                 </div>
             </div>
@@ -367,12 +372,12 @@ $expt_cnt = $row['cnt'];
                 <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹원 초대하기</span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><span class="text-primary">그룹원</span>들의 안전을 지키는 
-                스마트한 방법!
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><span class="text-primary">그룹원</span>들의 안전을 지키는
+                    스마트한 방법!
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">SMAP-내장소에서는 그룹원들이 
-                    자주 가는 장소를 등록할 수 있어요. 
-                    그룹원이 해당 장소에 들어가거나 나갈 때 
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">SMAP-내장소에서는 그룹원들이
+                    자주 가는 장소를 등록할 수 있어요.
+                    그룹원이 해당 장소에 들어가거나 나갈 때
                     그룹 오너에게 푸시알림을 보내드려요.</p>
             </div>
             <div class="flt_footer">
@@ -445,7 +450,7 @@ $expt_cnt = $row['cnt'];
         <div class="modal-content" id="map_search_content">
             <form method="post" name="frm_map_search" id="frm_map_search">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700">주소 검색</p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('주소검색', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
@@ -463,31 +468,31 @@ $expt_cnt = $row['cnt'];
             <input type="hidden" name="path_day_count" id="path_day_count" value="" />
             <div class="modal-body text-center pb-4">
                 <img src="./img/location_pin.png" width="48px" class="pt-3" alt="내장소 등록 제한" />
-                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4">무료 회원은 4곳까지만 등록 가능합니다. 
+                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4">무료 회원은 4곳까지만 등록 가능합니다.
                     Plus 구독하면 무제한 등록 가능해요.
                 </p>
             </div>
             <style>
                 .btn-text-large {
-                font-size: 18px;
-                font-weight: bold;
-                display: block;
+                    font-size: 18px;
+                    font-weight: bold;
+                    display: block;
                 }
 
                 .btn-text-small {
-                font-size: 12px;
-                display: block;
+                    font-size: 12px;
+                    display: block;
                 }
             </style>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
                     <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="location.href='./location'">
-                    <span class="btn-text-large">괜찮아요</span>
-                    <!-- <span class="btn-text-small">구독하지 않습니다</span> -->
+                        <span class="btn-text-large">괜찮아요</span>
+                        <!-- <span class="btn-text-small">구독하지 않습니다</span> -->
                     </button>
                     <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./plan_information'">
-                    <span class="btn-text-large">구독하기</span>
-                    <!-- <span class="btn-text-small">구독합니다</span> -->
+                        <span class="btn-text-large">구독하기</span>
+                        <!-- <span class="btn-text-small">구독합니다</span> -->
                     </button>
                 </div>
             </div>
@@ -495,13 +500,199 @@ $expt_cnt = $row['cnt'];
     </div>
 </div>
 <script>
-    var map = new naver.maps.Map("map", {
-        center: new naver.maps.LatLng(<?= $_SESSION['_mt_lat'] ?>, <?= $_SESSION['_mt_long'] ?>),
-        zoom: 16,
-        mapTypeControl: false
+    let map;
+    let selectMarker;
+    let markers = []; // 마커들을 저장할 배열
+    var profileMarkers = [];
+    // 그룹원별 슬라이드 컨테이너를 저장할 객체
+    const groupMemberSlides = {};
+    let googleMapsLoaded = false;
+    let googleMapsLoadPromise = null;
+    let geocoder;
+    let optBottomSelect;
+    let bottomSheetHeight;
+    let mapContainer = document.getElementById("map");
+    let mapHeight = mapContainer.getBoundingClientRect().height;
+    let verticalCenterOffset;
+    let currentLat;
+    let currentLng;
+    let optBottom = document.querySelector(".opt_bottom");
+</script>
+<?php
+// 한국어 사용자를 위한 네이버 지도 API 스크립트
+if ($userLang == 'ko') {
+?>
+    <script>
+        map = new naver.maps.Map("map", {
+            center: new naver.maps.LatLng(<?= $_SESSION['_mt_lat'] ?>, <?= $_SESSION['_mt_long'] ?>),
+            zoom: 16,
+            mapTypeControl: false
+        });
+    </script>
+<?php
+    // 한국어 이외의 사용자를 위한 구글 지도 API 스크립트
+} else {
+?>
+    <script>
+        // Google Maps API 로드 함수
+        function loadGoogleMapsScript() {
+            if (googleMapsLoadPromise) {
+                return googleMapsLoadPromise;
+            }
+
+            googleMapsLoadPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly`;
+                script.async = true;
+                script.defer = true;
+                script.onload = () => {
+                    googleMapsLoaded = true;
+                    resolve();
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+
+            return googleMapsLoadPromise;
+        }
+
+        // 지도 초기화 함수
+        async function initMap(st_lat = 35.12806700000000, st_lng = 136.90676000000000) {
+            if (!googleMapsLoaded) {
+                console.log("Waiting for Google Maps API to load...");
+                await loadGoogleMapsScript();
+            }
+
+            if (map) {
+                map.setCenter({
+                    lat: parseFloat(st_lat),
+                    lng: parseFloat(st_lng)
+                });
+                return map;
+
+                // 커서 설정
+                map.setOptions({
+                    cursor: "pointer"
+                });
+            }
+
+            const mapOptions = {
+                center: {
+                    lat: parseFloat(st_lat),
+                    lng: parseFloat(st_lng)
+                },
+                zoom: 15,
+                mapTypeControl: false,
+                mapId: "4afcc0d726ad31e5",
+                fullscreenControl: false,
+                disableDoubleClickZoom: true,
+                clickableIcons: false, // 장소 아이콘 클릭 비활성화
+                language: '<?= $userLang ?>'
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            geocoder = new google.maps.Geocoder();
+
+            map.addListener("click", function(e) {
+                if (selectMarker) {
+                    selectMarker.setMap(null);
+                }
+                searchGoogleCoordinateToAddress(e.latLng);
+            });
+
+
+            // 지도를 50픽셀 위로 이동
+            map.panBy(0, -50);
+
+            console.log("Map initialized successfully");
+            return map;
+        }
+
+        function searchGoogleCoordinateToAddress(latLng) {
+            geocoder.geocode({
+                location: latLng
+            }, (results, status) => {
+                if (status === "OK") {
+                    if (results.length > 0) {
+                        // 마지막 배열의 formatted_address에서 제거할 문자열 추출
+                        const stringToRemove = results[results.length - 1].formatted_address;
+
+                        // 각 배열의 formatted_address에서 문자열 제거
+                        const updatedResults = results.map(result => {
+                            result.formatted_address = result.formatted_address.replace(stringToRemove, '').trim();
+                            return result;
+                        });
+
+                        // 업데이트된 results 배열 사용
+                        console.log(updatedResults);
+
+                        if (results[0]) {
+                            const address = results[0].formatted_address;
+
+                            $(".flt_map_pin_wrap").addClass("on");
+                            $(".loc_nickname_wp").addClass("on");
+                            $('#location_add').html(address);
+                            $('#sst_location_add').val(address);
+                            $('#sst_location_lat').val(latLng.lat());
+                            $('#sst_location_long').val(latLng.lng());
+                            $('#slt_title').val('');
+
+                            $('#map_info_box').removeClass('d-none-temp');
+
+                            if (selectMarker) {
+                                selectMarker.setMap(null);
+                            }
+                            selectMarker = new google.maps.Marker({
+                                position: latLng,
+                                map: map
+                            });
+
+                            // Display additional address information
+                            let htmlAddresses = [];
+                            results.forEach((result, i) => {
+                                htmlAddresses.push(`${i + 1}. ${result.formatted_address}`);
+                            });
+                            htmlAddresses.push(`[GPS] 위도: ${latLng.lat()}, 경도: ${latLng.lng()}`);
+
+                            // You can use htmlAddresses to display the information as needed
+                            console.log(htmlAddresses.join('\n'));
+                        } else {
+                            window.alert("No results found");
+                        }
+                    } else {
+                        window.alert("No results found");
+                    }
+                } else {
+                    window.alert("Geocoder failed due to: " + status);
+                }
+            });
+        }
+
+        // 페이지 로드 시 Google Maps 초기화
+        window.addEventListener('load', () => {
+            loadGoogleMapsScript().then(() => {
+                initMap().catch(error => console.error("Error initializing map:", error));
+            }).catch(error => console.error("Error loading Google Maps API:", error));
+        });
+
+        window.addEventListener('resize', function() {
+            if (map) {
+                google.maps.event.trigger(map, 'resize');
+            }
+        });
+    </script>
+<?php } ?>
+<script>
+    $(document).ready(function() {
+        f_get_box_list2();
+        f_get_box_list();
+        setTimeout(() => {
+            location_map(<?= $sgdt_row['sgdt_idx'] ?>);
+            calcScreenOffset();
+        }, 100);
+
     });
-    var selectmarker;
-    var markers = []; // 마커들을 저장할 배열
 
     function f_modal_map_search() {
         // location.href='./schedule_loc';
@@ -530,14 +721,6 @@ $expt_cnt = $row['cnt'];
 
         closelocationSearchModal();
     }
-    $(document).ready(function() {
-        f_get_box_list2();
-        f_get_box_list();
-        setTimeout(() => {
-            location_map(<?= $sgdt_row['sgdt_idx'] ?>);
-        }, 100);
-
-    });
 
     var message = {
         "type": "pagetype",
@@ -565,20 +748,17 @@ $expt_cnt = $row['cnt'];
         $('#map_info_box').removeClass('d-none-temp');
     }
 
-    function initializeMap(my_profile, st_lat, st_lng, markerData) {
+    function initNaverMap(my_profile, st_lat, st_lng, markerData) {
         var mapContainer = document.getElementById("map");
         var optBottom = document.querySelector('.opt_bottom');
-
-        map = new naver.maps.Map(mapContainer, {
-            center: new naver.maps.LatLng(st_lat, st_lng),
-            zoom: 16,
-            mapTypeControl: false
-        });
-
         var bottomSheetHeight = optBottom ? optBottom.getBoundingClientRect().height : 0;
         var mapHeight = mapContainer.getBoundingClientRect().height;
         var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
 
+        clearAllMapElements();
+
+        currentLat = parseFloat(st_lat);
+        currentLng = parseFloat(st_lng);
         // 본인 프로필 마커 추가
         var profileMarkerOptions = {
             position: new naver.maps.LatLng(st_lat, st_lng),
@@ -595,31 +775,94 @@ $expt_cnt = $row['cnt'];
         var profileMarker = new naver.maps.Marker(profileMarkerOptions);
         map.setCenter(new naver.maps.LatLng(st_lat, st_lng));
         map.panBy(new naver.maps.Point(0, verticalCenterOffset));
+        profileMarkers.push(profileMarker);
 
-        // 스케줄 마커 추가
-        if (markerData.schedule_chk === 'Y') {
-            var positions = [];
-            for (var i = 1; i <= markerData.count; i++) {
-                var markerOptions = {
-                    position: new naver.maps.LatLng(markerData['markerLat_' + i], markerData['markerLong_' + i]),
-                    map: map,
-                    icon: {
-                        content: markerData['markerContent_' + i],
-                        size: new naver.maps.Size(61, 61),
-                        origin: new naver.maps.Point(0, 0),
-                        anchor: new naver.maps.Point(30, 30)
-                    }
-                };
+        map.setZoom(16); // 줌 레벨을 16으로 초기화
 
-                var marker = new naver.maps.Marker(markerOptions);
-                markers.push(marker); // markers 배열에 마커 추가
-                positions.push(marker.getPosition());
-            }
+        // 내장소 마커 추가
+        for (let i = 1; i <= markerData.count; i++) {
+            const locationLat = parseFloat(markerData['markerLat_' + i]);
+            const locationLng = parseFloat(markerData['markerLong_' + i]);
+            const locationTitle = markerData['markerTitle_' + i];
+
+            // 랜덤 색상 생성
+            const randomColor = generateRandomColor();
+
+            // DOM 노드 생성
+            const pointWrapDiv = document.createElement('div');
+            pointWrapDiv.className = 'point_wrap point1';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn point point_myplc';
+
+            const spanInner = document.createElement('span');
+            spanInner.className = 'point_inner';
+
+            const image = document.createElement('img');
+            image.src = './img/loc_alarm.png';
+            image.alt = 'Desired Image';
+            image.className = 'btn point point_ing';
+            image.style.width = '24px';
+            image.style.height = '24px';
+
+            const infoboxDiv = document.createElement('div');
+            infoboxDiv.className = 'infobox2 rounded_04 px_08 py_03 on';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'fs_12 fw_800 text_dynamic line_h1_2 mt-2';
+            titleSpan.textContent = locationTitle;
+
+            // 스타일 DOM 노드 생성
+            const style = document.createElement('style');
+            style.textContent = `
+                        .infobox2 {
+                            position: absolute;
+                            left: 50%; 
+                            top: 100%; 
+                            transform: translate(-50%, -15px); 
+                            background-color: #413F4A;
+                            padding: 0.3rem 0.8rem; 
+                            border-radius: 0.4rem;
+                            z-index: 1;
+                            white-space: nowrap; 
+                        }
+
+                        .infobox2 span {
+                            color: ${randomColor}; 
+                            font-size: 14px !important;
+                            white-space: nowrap !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                        }
+                        `;
+
+            // DOM 노드 연결
+            spanInner.appendChild(image);
+            button.appendChild(spanInner);
+            infoboxDiv.appendChild(titleSpan);
+            pointWrapDiv.appendChild(style); // 스타일 노드 추가
+            pointWrapDiv.appendChild(button);
+            pointWrapDiv.appendChild(infoboxDiv);
+
+            var markerOptions = {
+                position: new naver.maps.LatLng(locationLat, locationLng),
+                map: map,
+                icon: {
+                    content: pointWrapDiv,
+                    size: new naver.maps.Size(61, 61),
+                    origin: new naver.maps.Point(0, 0),
+                    anchor: new naver.maps.Point(30, 30)
+                }
+            };
+
+            var marker = new naver.maps.Marker(markerOptions);
+            markers.push(marker); // markers 배열에 마커 추가
         }
 
         naver.maps.Event.addListener(map, 'click', function(e) {
-            if (selectmarker) {
-                selectmarker.setMap(null);
+            if (selectMarker) {
+                selectMarker.setMap(null);
             }
             searchCoordinateToAddress(e.coord);
         });
@@ -665,10 +908,11 @@ $expt_cnt = $row['cnt'];
                     $('#slt_title').val('');
 
                     $('#map_info_box').removeClass('d-none-temp');
-                    if (selectmarker) {
-                        selectmarker.setMap(null);
+                    if (selectMarker) {
+                        selectMarker.setMap(null);
                     }
-                    selectmarker = new naver.maps.Marker({
+                    console.log(htmlAddresses.join('\n'));
+                    selectMarker = new naver.maps.Marker({
                         position: new naver.maps.LatLng(latlng._lat, latlng._lng),
                         map: map
                     });
@@ -728,9 +972,241 @@ $expt_cnt = $row['cnt'];
             $('.point_wrap').not(this).find('.infobox').removeClass('on');
         });
 
-        map.setCursor('pointer');
+        // map.setCursor('pointer');
     }
 
+    async function initGoogleMap(my_profile, st_lat, st_lng, markerData) {
+        await loadGoogleMapsScript();
+
+        // sgdt_idx에 해당하는 멤버의 위치 정보를 사용하여 지도 중심 설정
+        if (!map) {
+            await initMap(st_lat, st_lng);
+        } else {
+            map.setCenter({
+                lat: parseFloat(st_lat),
+                lng: parseFloat(st_lng)
+            });
+        }
+        console.log("Google Map initialized with custom data");
+
+        currentLat = parseFloat(st_lat);
+        currentLng = parseFloat(st_lng);
+
+        clearAllMapElements();
+
+        // 옵션 바 높이 고려하여 지도 중심 조정 (필요한 경우)
+        // var bottomSheetHeight = optBottom ? optBottom.getBoundingClientRect().height : 0;
+        // var mapHeight = mapContainer.getBoundingClientRect().height;
+        // var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
+
+        // 본인 프로필 마커 추가 (AdvancedMarkerElement 사용)
+        addGoogleProfileMarker(st_lat, st_lng, my_profile);
+
+        map.setZoom(15); // 줌 레벨 16으로 초기화
+
+        // 내 장소 마커 추가
+        for (let i = 1; i <= markerData.count; i++) {
+            const locationLat = parseFloat(markerData['markerLat_' + i]);
+            const locationLng = parseFloat(markerData['markerLong_' + i]);
+            const locationTitle = markerData['markerTitle_' + i];
+
+            // 랜덤 색상 생성
+            const randomColor = generateRandomColor();
+
+            // DOM 노드 생성
+            const pointWrapDiv = document.createElement('div');
+            pointWrapDiv.className = 'point_wrap point1';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn point point_myplc';
+
+            const spanInner = document.createElement('span');
+            spanInner.className = 'point_inner';
+
+            const image = document.createElement('img');
+            image.src = './img/loc_alarm.png';
+            image.alt = 'Desired Image';
+            image.className = 'btn point point_ing';
+            image.style.width = '24px';
+            image.style.height = '24px';
+
+            const infoboxDiv = document.createElement('div');
+            infoboxDiv.className = 'infobox2 rounded_04 px_08 py_03 on';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'fs_12 fw_800 text_dynamic line_h1_2 mt-2';
+            titleSpan.textContent = locationTitle;
+
+            // 스타일 DOM 노드 생성
+            const style = document.createElement('style');
+            style.textContent = `
+                        .infobox2 {
+                            position: absolute;
+                            left: 50%; 
+                            top: 100%; 
+                            transform: translate(-50%, -15px); 
+                            background-color: #413F4A;
+                            padding: 0.3rem 0.8rem; 
+                            border-radius: 0.4rem;
+                            z-index: 1;
+                            white-space: nowrap; 
+                        }
+
+                        .infobox2 span {
+                            color: ${randomColor}; 
+                            font-size: 14px !important;
+                            white-space: nowrap !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                        }
+                        `;
+
+            // DOM 노드 연결
+            spanInner.appendChild(image);
+            button.appendChild(spanInner);
+            infoboxDiv.appendChild(titleSpan);
+            pointWrapDiv.appendChild(style); // 스타일 노드 추가
+            pointWrapDiv.appendChild(button);
+            pointWrapDiv.appendChild(infoboxDiv);
+
+            // Google Maps 마커 생성 (AdvancedMarkerElement 사용)
+            const {
+                AdvancedMarkerElement
+            } = google.maps.marker;
+            const locationMarker = new AdvancedMarkerElement({
+                map: map,
+                position: {
+                    lat: locationLat,
+                    lng: locationLng
+                },
+                content: pointWrapDiv,
+                zIndex: 1
+            });
+
+            markers.push(locationMarker);
+        }
+    }
+
+    function generateRandomColor() {
+        const colorSets = [
+            '#E6F2FF', // 연한 파란색
+            '#D6E6FF', // 연한 라벤더
+            '#E5F1FF', // 연한 하늘색
+            '#F0F8FF', // 연한 앨리스 블루
+            '#E0FFFF', // 연한 민트색
+            '#E0F0FF', // 밝은 연한 파란색
+            '#E0E6FF', // 밝은 연한 라벤더
+            '#E0F0FF', // 밝은 연한 하늘색
+            '#E6F0FF', // 밝은 연한 앨리스 블루
+            '#E6FFFF' // 밝은 연한 민트색
+        ];
+
+        const randomIndex = Math.floor(Math.random() * colorSets.length);
+        return colorSets[randomIndex];
+    }
+
+    function addGoogleProfileMarker(lat, lng, imageUrl) {
+        // Check if AdvancedMarkerElement is available
+        if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+            const {
+                AdvancedMarkerElement
+            } = google.maps.marker;
+
+            // Rest of your code remains the same
+            const content = document.createElement('div');
+            content.className = 'point_wrap';
+            const mapUserDiv = document.createElement('div');
+            mapUserDiv.className = 'map_user';
+            content.appendChild(mapUserDiv);
+            const mapRtImgDiv = document.createElement('div');
+            mapRtImgDiv.className = 'map_rt_img rounded_14';
+            mapUserDiv.appendChild(mapRtImgDiv);
+            const rectSquareDiv = document.createElement('div');
+            rectSquareDiv.className = 'rect_square';
+            mapRtImgDiv.appendChild(rectSquareDiv);
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = '이미지';
+            img.onerror = function() {
+                this.src = 'https://app.smap.site/img/no_image.png';
+            };
+            rectSquareDiv.appendChild(img);
+
+            const profileMarker = new AdvancedMarkerElement({
+                map: map,
+                position: {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                },
+                content: content,
+                zIndex: 2,
+            });
+            profileMarkers.push(profileMarker);
+        } else {
+            // Fallback to standard Marker if AdvancedMarkerElement is not available
+            const profileMarker = new google.maps.Marker({
+                map: map,
+                position: {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                },
+                icon: {
+                    url: imageUrl,
+                    scaledSize: new google.maps.Size(40, 40),
+                },
+                zIndex: 2,
+            });
+            profileMarkers.push(profileMarker);
+        }
+    }
+
+    function clearAllMapElements() {
+        clearMapElements(profileMarkers);
+        clearMapElements(markers);
+    }
+
+    function clearMapElements(elements) {
+        if (elements && elements.length > 0) {
+            elements.forEach(element => {
+                if (element.setMap) {
+                    element.setMap(null); // 지도에서 요소 제거
+                }
+            });
+            elements.splice(0, elements.length); // 배열 요소 완전히 제거
+        }
+    }
+
+    // 주소 검색 함수 (Geocoding API 사용)
+    function searchCoordinateToAddress(latlng) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+            location: latlng
+        }, (results, status) => {
+            if (status === "OK" && results[0]) {
+                const address = results[0].formatted_address;
+
+                $(".flt_map_pin_wrap").addClass("on");
+                $(".loc_nickname_wp").addClass("on");
+                $('#location_add').html(address);
+                $('#sst_location_add').val(address);
+                $('#sst_location_lat').val(latlng.lat());
+                $('#sst_location_long').val(latlng.lng());
+                $('#slt_title').val('');
+
+                $('#map_info_box').removeClass('d-none-temp');
+                if (selectMarker) {
+                    selectMarker.setMap(null);
+                }
+                selectMarker = new google.maps.Marker({
+                    position: latlng,
+                    map: map
+                });
+            } else {
+                alert("Geocode was not successful for the following reason: " + status);
+            }
+        });
+    }
 
     function location_map(sgdt_idx) {
         var form_data = new FormData();
@@ -756,13 +1232,18 @@ $expt_cnt = $row['cnt'];
                     var st_lng = data.mt_long;
 
                     // 이미지가 들어있는 부모 요소를 찾습니다.
-                    var parentElement = document.getElementById('map');
+                    // var parentElement = document.getElementById('map');
 
-                    // 부모 요소의 자식 요소로 있는 모든 이미지를 제거합니다.
-                    while (parentElement.firstChild) {
-                        parentElement.removeChild(parentElement.firstChild);
+                    // // 부모 요소의 자식 요소로 있는 모든 이미지를 제거합니다.
+                    // while (parentElement.firstChild) {
+                    //     parentElement.removeChild(parentElement.firstChild);
+                    // }
+                    if ('ko' === '<?= $userLang ?>') {
+                        initNaverMap(my_profile, st_lat, st_lng, data);
+                    } else if ('ko' !== '<?= $userLang ?>') {
+                        initGoogleMap(my_profile, st_lat, st_lng, data);
                     }
-                    initializeMap(my_profile, st_lat, st_lng, data);
+
                     map_panto(st_lat, st_lng)
                 } else {
                     console.log(err);
@@ -982,6 +1463,13 @@ $expt_cnt = $row['cnt'];
             prevEl: ".banSwiper .swiper-button-prev",
         },
     });
+
+    // 마커 클릭 이벤트 (infoBox 표시)
+    $('.point_wrap').click(function() {
+        $(this).find('.infobox').addClass('on');
+        $('.point_wrap').not(this).find('.infobox').removeClass('on');
+    });
+
     // 지도 마커클릭시 상세내역 보여짐
     $('.point_wrap').click(function() {
         $('.point_wrap').click(function() {
@@ -1004,33 +1492,76 @@ $expt_cnt = $row['cnt'];
         var mapHeight = mapContainer.getBoundingClientRect().height;
         var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
 
-        map.setCenter(new naver.maps.LatLng(lat, lng));
+        if ('ko' === '<?= $userLang ?>') { // 네이버 지도
+            map.setCenter(new naver.maps.LatLng(lat, lng));
 
-        var optBottom = document.querySelector('.opt_bottom');
-        if (optBottom) {
-            var transformY = optBottom.style.transform;
-            if (transformY == 'translateY(0px)') {
-                map.panBy(new naver.maps.Point(0, verticalCenterOffset + 40)); // 위로 180 픽셀 이동
+            if (optBottom) {
+                var transformY = optBottom.style.transform;
+                if (transformY == 'translateY(0px)') {
+                    map.panBy(new naver.maps.Point(0, verticalCenterOffset));
+                }
+                map.panBy(new naver.maps.Point(0, verticalCenterOffset));
             }
-            map.panBy(new naver.maps.Point(0, verticalCenterOffset)); 
+
+            // 해당 좌표에 있는 마커를 찾습니다.
+            var clickedMarker = findMarkerByPosition(lat, lng);
+
+            // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
+            if (clickedMarker) {
+                naver.maps.Event.trigger(clickedMarker, 'click');
+            }
+
+            if (selectMarker) {
+                selectMarker.setMap(null);
+            }
+
+            selectMarker = new naver.maps.Marker({
+                position: new naver.maps.LatLng(lat, lng),
+                map: map
+            });
+
+        } else if (typeof google !== 'undefined') { // 구글 지도
+            map.setCenter({
+                lat: parseFloat(lat),
+                lng: parseFloat(lng)
+            });
+
+            google.maps.event.addListenerOnce(map, 'idle', function() {
+                if (optBottom) {
+                    var transformY = optBottom.style.transform;
+                    if (transformY == 'translateY(0px)') {
+                        map.panBy(0, 180);
+                    }
+                }
+            });
+
+            // 구글 지도 마커 클릭 시뮬레이션
+            const clickedMarker = findMarkerByPosition(lat, lng);
+            if (clickedMarker) {
+                google.maps.event.trigger(clickedMarker, 'click');
+            }
+
+            // 기존 마커 제거
+            if (selectMarker) {
+                selectMarker.setMap(null);
+            }
+
+            // 새로운 마커 생성
+            const {
+                AdvancedMarkerElement
+            } = google.maps.marker;
+            selectMarker = new AdvancedMarkerElement({
+                position: {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                },
+                map: map,
+                // content 속성에 마커에 표시할 내용을 추가해야 합니다. 
+                // 예시: content: '<div>마커 내용</div>'
+            });
         }
 
-        // 해당 좌표에 있는 마커를 찾습니다.
-        var clickedMarker = findMarkerByPosition(lat, lng);
-
-        // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
-        if (clickedMarker) {
-            naver.maps.Event.trigger(clickedMarker, 'click');
-        }
-        if (selectmarker) {
-            selectmarker.setMap(null);
-        }
-
-        selectmarker = new naver.maps.Marker({
-            position: new naver.maps.LatLng(lat, lng),
-            map: map
-        });
-
+        // 나머지 공통 로직
         $(".flt_map_pin_wrap").removeClass("on");
         $(".loc_nickname_wp").removeClass("on");
 
@@ -1044,31 +1575,75 @@ $expt_cnt = $row['cnt'];
     }
 
     function map_panto_location(lat, lng) {
-        map.setCenter(new naver.maps.LatLng(lat, lng));
+        if ('ko' === '<?= $userLang ?>') {
+            map.setCenter(new naver.maps.LatLng(lat, lng));
 
-        var optBottom = document.querySelector('.opt_bottom');
-        if (optBottom) {
-            var transformY = optBottom.style.transform;
-            if (transformY == 'translateY(0px)') {
-                map.panBy(new naver.maps.Point(0, 180)); // 위로 180 픽셀 이동
+            var optBottom = document.querySelector('.opt_bottom');
+            if (optBottom) {
+                var transformY = optBottom.style.transform;
+                if (transformY == 'translateY(0px)') {
+                    map.panBy(new naver.maps.Point(0, 180)); // 위로 180 픽셀 이동
+                }
+            }
+
+            // 해당 좌표에 있는 마커를 찾습니다.
+            var clickedMarker = findMarkerByPosition(lat, lng);
+
+            // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
+            if (clickedMarker) {
+                naver.maps.Event.trigger(clickedMarker, 'click');
+            }
+            if (selectMarker) {
+                selectMarker.setMap(null);
+            }
+
+            selectMarker = new naver.maps.Marker({
+                position: new naver.maps.LatLng(lat, lng),
+                map: map
+            });
+        } else {
+            // 지도 중심 이동
+            map.setCenter(new google.maps.LatLng(lat, lng));
+
+            // opt_bottom 요소 체크 및 지도 이동
+            var optBottom = document.querySelector('.opt_bottom');
+            if (optBottom) {
+                var transformY = optBottom.style.transform;
+                if (transformY == 'translateY(0px)') {
+                    map.panBy(0, -180); // 위로 180 픽셀 이동 (Google Maps에서는 음수 값 사용)
+                }
+            }
+
+            // 해당 좌표에 있는 마커를 찾습니다.
+            var clickedMarker = findMarkerByPosition(lat, lng);
+
+            // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
+            if (clickedMarker) {
+                google.maps.event.trigger(clickedMarker, 'click');
+            }
+
+            // 기존 선택 마커 제거
+            if (selectMarker) {
+                selectMarker.setMap(null);
+            }
+
+            // 새 마커 생성
+            selectMarker = new google.maps.Marker({
+                position: new google.maps.LatLng(lat, lng),
+                map: map
+            });
+        }
+    }
+
+    // 마커를 위치로 찾는 함수
+    function findMarkerByPosition(lat, lng) {
+        for (var i = 0; i < markers.length; i++) {
+            var markerPosition = markers[i].getPosition();
+            if (markerPosition.lat() === lat && markerPosition.lng() === lng) {
+                return markers[i];
             }
         }
-
-        // 해당 좌표에 있는 마커를 찾습니다.
-        var clickedMarker = findMarkerByPosition(lat, lng);
-
-        // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
-        if (clickedMarker) {
-            naver.maps.Event.trigger(clickedMarker, 'click');
-        }
-        if (selectmarker) {
-            selectmarker.setMap(null);
-        }
-
-        selectmarker = new naver.maps.Marker({
-            position: new naver.maps.LatLng(lat, lng),
-            map: map
-        });
+        return null;
     }
 
     function map_panto_recomand(lat, lng, addr, title) {
@@ -1088,11 +1663,11 @@ $expt_cnt = $row['cnt'];
         if (clickedMarker) {
             naver.maps.Event.trigger(clickedMarker, 'click');
         }
-        if (selectmarker) {
-            selectmarker.setMap(null);
+        if (selectMarker) {
+            selectMarker.setMap(null);
         }
 
-        selectmarker = new naver.maps.Marker({
+        selectMarker = new naver.maps.Marker({
             position: new naver.maps.LatLng(lat, lng),
             map: map
         });
@@ -1111,19 +1686,129 @@ $expt_cnt = $row['cnt'];
     }
 
     function findMarkerByPosition(lat, lng) {
-        var tolerance = 0.000001; // 허용 오차 범위 설정 (마커들의 위치와의 오차 범위에 따라 조절)
+        var tolerance = 0.000001;
 
-        // 마커들을 저장하는 배열이 markers 배열이라고 가정하겠습니다.
         for (var i = 0; i < markers.length; i++) {
             var marker = markers[i];
-            var position = marker.getPosition();
-            // 마커의 위치와 주어진 위치의 위도, 경도 값의 차이가 허용 오차 범위 이내인지 확인합니다.
-            if (Math.abs(position.lat() - lat) < tolerance && Math.abs(position.lng() - lng) < tolerance) {
-                return marker; // 일치하는 마커를 반환합니다.
+
+            if ('ko' === '<?= $userLang ?>') { // 네이버 지도
+                var position = marker.getPosition(); // 네이버 지도는 getPosition() 사용
+                if (Math.abs(position._lat - lat) < tolerance && Math.abs(position._lng - lng) < tolerance) {
+                    return marker;
+                }
+            } else if (typeof google !== 'undefined') { // 구글 지도
+                var position = marker.position; // 구글 지도는 position 속성 사용
+                if (Math.abs(position.Fg - lat) < tolerance && Math.abs(position.Hg - lng) < tolerance) {
+                    return marker;
+                }
             }
         }
-        return null; // 일치하는 마커가 없을 경우 null을 반환합니다.
+        return null;
     }
+
+    function calcScreenOffset() {
+        optBottomSelect = document.querySelector('.opt_bottom');
+        bottomSheetHeight = optBottomSelect ? optBottomSelect.getBoundingClientRect().height : 0;
+        verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2;
+    }
+
+    // MutationObserver 설정
+    let previousTransformY = optBottom.style.transform; // 이전 transformY 값 저장
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            if (mutation.attributeName === 'style' && optBottom.style.transform !== previousTransformY) {
+                previousTransformY = optBottom.style.transform;
+
+                if (previousTransformY === 'translateY(0px)') {
+                    panMapDown();
+                } else if (isPannedDown) {
+                    panMapUp();
+                }
+            }
+        });
+    });
+
+    function panMapDown() {
+        originalCenter = map.getCenter();
+        let newLat = 'ko' === '<?= $userLang ?>' ? (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 : (currentLat || originalCenter.lat()) - (300 / 111000) * 1.8;
+        let newCenter = 'ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
+
+        if ('ko' === '<?= $userLang ?>') {
+            map.panTo(newCenter, {
+                duration: 700,
+                easing: 'easeOutCubic'
+            });
+        } else {
+            // map.setOptions({
+            //     animation: null
+            // });
+            // map.setCenter(newCenter);
+
+            // 애니메이션 시간 설정 (밀리초 단위)
+            const duration = 700; // 0.7초
+
+            map.setOptions({
+                animation: google.maps.Animation.BOUNCE
+            });
+            map.panTo(newCenter);
+
+            // 애니메이션 시간 이후 애니메이션 옵션 초기화
+            setTimeout(() => {
+                map.setOptions({
+                    animation: null
+                });
+            }, duration);
+        }
+
+        isPannedDown = true;
+    }
+
+    function panMapUp() {
+        let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
+
+        if ('ko' === '<?= $userLang ?>') {
+            map.panTo(targetLatLng, {
+                duration: 700,
+                easing: 'easeOutCubic',
+                onComplete: function() {
+                    isPannedDown = false;
+                    originalCenter = null;
+                }
+            });
+        } else {
+            if (targetLatLng) {
+                // map.setOptions({
+                //     animation: null
+                // });
+                // map.setCenter(targetLatLng);
+                // 애니메이션 시간 설정 (밀리초 단위)
+                const duration = 700; // 0.7초
+
+                map.setOptions({
+                    animation: google.maps.Animation.BOUNCE
+                });
+                map.panTo(targetLatLng);
+
+                // 애니메이션 시간 이후 애니메이션 옵션 초기화
+                setTimeout(() => {
+                    map.setOptions({
+                        animation: null
+                    });
+                }, duration);
+
+
+
+                isPannedDown = false;
+                originalCenter = null;
+            }
+        }
+    }
+
+    // 감시 시작
+    observer.observe(optBottom, {
+        attributes: true,
+        attributeFilter: ['style']
+    });
 
     $("#frm_schedule_map").validate({
         submitHandler: function() {
@@ -1161,6 +1846,25 @@ $expt_cnt = $row['cnt'];
         $(".floating_wrap").removeClass("on");
         $(".flt_map_pin_wrap").removeClass("on");
     });
+
+    // // 커서 설정
+    // map.setOptions({
+    //     cursor: "pointer"
+    // });
+
+    // // 지도 중심 설정
+    // map.setCenter({
+    //     lat: parseFloat(st_lat),
+    //     lng: parseFloat(st_lng)
+    // });
+
+    // // 지도 클릭 이벤트 리스너 (주소 검색)
+    // map.addListener("click", (e) => {
+    //     if (selectMarker) {
+    //         selectMarker.setMap(null);
+    //     }
+    //     searchCoordinateToAddress(e.latLng);
+    // });
 </script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";

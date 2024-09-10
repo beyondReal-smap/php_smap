@@ -47,9 +47,9 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             </div>
             <div class="b_botton">
                 <!-- 이메일 중복일 경우 data-toggle="modal" data-target="#dpl_email" 버튼태기에 넣어주세요 -->
-                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_psd.php'">입력했어요!</button>-->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" id="mt_id_chk_button" onclick="check_id()">입력했어요!</button>
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()">입력했어요!</button>
+                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_psd.php'"><?= translate('입력했어요!', $userLang) ?></button>-->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" id="mt_id_chk_button" onclick="check_id()"><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
             <div id="layoutViewport"></div>
         </form>

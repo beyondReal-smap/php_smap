@@ -965,11 +965,11 @@ function f_calendar_init(t = "") {
     $("#csdate").val(dateFormat(cday));
   }
 
-  setTimeout(() => {
-    $("#calendar_date_title").html(
-      cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월"
-    );
-  }, 100);
+//   setTimeout(() => {
+//     $("#calendar_date_title").html(
+//       cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월"
+//     );
+//   }, 100);
 
   $.ajax({
     url: "./schedule_update",
@@ -1041,9 +1041,9 @@ function f_calendar_log_init(t = "") {
         $("#csdate").val(dateFormat(cday));
     }
 
-    setTimeout(() => {
-        $("#calendar_date_title").html(cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월");  
-    }, 100);
+    // setTimeout(() => {
+    //     $("#calendar_date_title").html(cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월");  
+    // }, 100);
 
     $.ajax({
         url: "./location_update",

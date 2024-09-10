@@ -3,7 +3,7 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 $b_menu = '';
 $h_menu = '6';
 $h_url = './inquiry';
-$_SUB_HEAD_TITLE = "문의 작성";
+$_SUB_HEAD_TITLE = translate("문의 작성", $userLang); // "문의 작성" 번역
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 ?>
 <div class="container sub_pg">
@@ -13,21 +13,21 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
         <div class="mt-4">
             <div class="ip_wr mt_25">
                 <div class="ip_tit d-flex align-items-center justify-content-between">
-                    <h5 class="">문의 제목</h5>
+                    <h5 class=""><?= translate("문의 제목", $userLang); ?></h5> <!-- "문의 제목" 번역 -->
                     <p class="text_num fs_12 fc_gray_600">(<span id="qt_qtitle_cnt">0</span>/50)</p>
                 </div>
-                <input type="text" class="form-control txt-cnt" name="qt_qtitle" id="qt_qtitle" maxlength="50" data-length-id="qt_qtitle_cnt" oninput="maxLengthCheck(this)" placeholder="문의 제목을 입력해주세요">
+                <input type="text" class="form-control txt-cnt" name="qt_qtitle" id="qt_qtitle" maxlength="50" data-length-id="qt_qtitle_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate("문의 제목을 입력해주세요", $userLang); ?>"> <!-- "문의 제목을 입력해주세요" 번역 -->
             </div>
             <div class="ip_wr mt_25">
                 <div class="ip_tit d-flex align-items-center justify-content-between">
-                    <h5 class="">문의 제목</h5>
+                    <h5 class=""><?= translate("문의 내용", $userLang); ?></h5> <!-- "문의 내용" 번역 -->
                     <p class="text_num fs_12 fc_gray_600">(<span id="qt_qcontent_cnt">0</span>/200)</p>
                 </div>
-                <textarea class="form-control txt-cnt" name="qt_qcontent" id="qt_qcontent" maxlength="200" data-length-id="qt_qcontent_cnt" oninput="maxLengthCheck(this)" placeholder="문의 내용을 입력해 주세요. 폭언 욕설 등의 문의글은 통보 없이 삭제 될 수 있습니다." rows="15"></textarea>
+                <textarea class="form-control txt-cnt" name="qt_qcontent" id="qt_qcontent" maxlength="200" data-length-id="qt_qcontent_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate("문의 내용을 입력해 주세요. 폭언 욕설 등의 문의글은 통보 없이 삭제 될 수 있습니다.", $userLang); ?>" rows="15"></textarea> <!-- "문의 내용을 입력해 주세요. 폭언 욕설 등의 문의글은 통보 없이 삭제 될 수 있습니다." 번역 -->
             </div>
         </div>
         <div class="b_botton">
-            <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" id="ToastBtn">등록하기</button>
+            <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" id="ToastBtn"><?= translate("등록하기", $userLang); ?></button> <!-- "등록하기" 번역 -->
         </div>
     </form>
 
@@ -63,10 +63,10 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
         },
         messages: {
             qt_qtitle: {
-                required: "문의 제목을 입력해주세요.",
+                required: "<?= translate("문의 제목을 입력해주세요.", $userLang); ?>", // "문의 제목을 입력해주세요." 번역
             },
             qt_qcontent: {
-                required: "문의 내용을 입력해주세요.",
+                required: "<?= translate("문의 내용을 입력해주세요.", $userLang); ?>", // "문의 내용을 입력해주세요." 번역
             },
         },
         errorPlacement: function(error, element) {
@@ -82,7 +82,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 <!-- 토스트 Toast -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i>문의가 등록되었습니다.</p>
+        <p><i class="xi-check-circle mr-2"></i><?= translate("문의가 등록되었습니다.", $userLang); ?></p> <!-- "문의가 등록되었습니다." 번역 -->
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>

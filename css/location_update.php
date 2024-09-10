@@ -92,7 +92,7 @@ if ($_POST['act'] == "recom_list") {
                             if ($('#schedule_box').length) {
                                 var $calendar = $('#schedule_box');
                                 $calendar.fullCalendar({
-                                    locale: 'ko',
+                                    locale: '<?= $userLang ?>',
                                     header: false,
                                     viewRender: (view) => {
                                         let date
@@ -1681,7 +1681,7 @@ if ($_POST['act'] == "recom_list") {
                     <button class="btn mem_add ">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic">그룹원 추가</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic"><?= translate('그룹원 추가', $userLang) ?></p>
                 </div>
             <? } ?>
         </div>

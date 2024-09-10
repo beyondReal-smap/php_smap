@@ -61,7 +61,7 @@ if ($_POST['act'] == "list") {
         }
     } else {
         ?>
-    <p class="text-center mt-3 mb-3"><b>자료가 없습니다.</b></p>
+    <p class="text-center mt-3 mb-3"><b><?= translate('자료가 없습니다.', $userLang); ?></b></p>
     <?php
     }
     ?>

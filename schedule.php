@@ -2,7 +2,7 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '3';
 $h_menu = '5';
-$_SUB_HEAD_TITLE = "일정";
+$_SUB_HEAD_TITLE = translate("일정", $userLang);
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
@@ -13,7 +13,7 @@ if ($_SESSION['_mt_idx'] == '') {
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
+        alert(translate('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', $userLang), './logout');
     }
 }
 if ($_GET['sdate'] == '') {
@@ -26,10 +26,12 @@ $tt = strtotime($sdate);
 $numDay = date('d', $tt);
 $numMonth = date('m', $tt);
 $numMonth2 = date('n', $tt);
+// 숫자가 1자리일 경우 앞에 0을 붙여주는 로직 추가
+$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT); 
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
-$calendar_date_title = $numYear . "년 " . $numMonth2 . "월";
+$calendar_date_title = $numYear . "." . " " . $numMonth2;
 $now_month_year = $numYear . "-" . $numMonth;
 
 //오너인 그룹수
@@ -200,13 +202,13 @@ $expt_cnt = $row['cnt'];
                 </div>
                 <div class="cld_head fs_12">
                     <ul>
-                        <li class="sun">일</li>
-                        <li>월</li>
-                        <li>화</li>
-                        <li>수</li>
-                        <li>목</li>
-                        <li>금</li>
-                        <li class="sat">토</li>
+                        <li class="sun"><?= translate('일', $userLang) ?></li>
+                        <li><?= translate('월', $userLang) ?></li>
+                        <li><?= translate('화', $userLang) ?></li>
+                        <li><?= translate('수', $userLang) ?></li>
+                        <li><?= translate('목', $userLang) ?></li>
+                        <li><?= translate('금', $userLang) ?></li>
+                        <li class="sat"><?= translate('토', $userLang) ?></li>
                     </ul>
                 </div>
             </div>
@@ -308,15 +310,15 @@ $expt_cnt = $row['cnt'];
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹만들기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹만들기", $userLang) ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700">아직 그룹이 생성되지 않았네요.
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("아직 그룹이 생성되지 않았네요.", $userLang) ?>
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">함께 일정을 공유할 그룹을 만들어볼까요?</p>
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("함께 일정을 공유할 그룹을 만들어볼까요?", $userLang) ?></p>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'">다음</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?= translate("다음", $userLang) ?></button>
             </div>
         </div>
     </div>
@@ -325,18 +327,18 @@ $expt_cnt = $row['cnt'];
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹원 초대하기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹원 초대하기", $userLang) ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700">일정공유로
-                    <span class="text-primary">그룹원</span>과 함께해요!
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("일정공유로", $userLang) ?>
+                    <span class="text-primary"><?= translate("그룹원", $userLang) ?></span><?= translate("과 함께해요!", $userLang) ?>
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">SMAP은 그룹원과 일정을 공유할 수 있어요. 
-                    서로의 일정을 확인하고 조율하여 
-                    더욱 의미 있는 시간을 보내세요.</p>
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("SMAP은 그룹원과 일정을 공유할 수 있어요.", $userLang) ?>
+                    <?= translate("서로의 일정을 확인하고 조율하여", $userLang) ?>
+                    <?= translate("더욱 의미 있는 시간을 보내세요.", $userLang) ?></p>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'">초대하러 가기</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'"><?= translate("초대하러 가기", $userLang) ?></button>
             </div>
         </div>
     </div>
@@ -349,7 +351,7 @@ $expt_cnt = $row['cnt'];
                 <div class="d-inline-block w-100 text-right">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" width="24px"></button>
                 </div>
-                <p class="fs_18 fw_700 text_dynamic line_h1_2">초대장은 어떻게 보낼까요?</p>
+                <p class="fs_18 fw_700 text_dynamic line_h1_2"><?= translate("초대장은 어떻게 보낼까요?", $userLang) ?></p>
             </div>
             <div class="modal-body">
                 <ul>
@@ -357,7 +359,7 @@ $expt_cnt = $row['cnt'];
                         <a href="javascript:;" onclick="f_share_link('kakao');" class="d-flex align-items-center justify-content-between py_07">
                             <div class="d-flex align-items-center">
                                 <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="카카오톡 열기" width="40px" class="mr_12" id="kakao_image" />
-                                <p class="fs_15 fw_500 gray_900" id="kakao_text">카카오톡 열기</p>
+                                <p class="fs_15 fw_500 gray_900" id="kakao_text"><?= translate("카카오톡 열기", $userLang) ?></p>
                             </div>
                             <i class=" xi-angle-right-min fs_15 text_gray"></i>
                         </a>
@@ -366,7 +368,7 @@ $expt_cnt = $row['cnt'];
                         <a href="javascript:;" onclick="f_share_link('clipboard');" class="d-flex align-items-center justify-content-between py_07 btn_copy">
                             <div class="d-flex align-items-center">
                                 <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="초대 링크 복사" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900">초대 링크 복사</p>
+                                <p class="fs_15 fw_500 gray_900"><?= translate("초대 링크 복사", $userLang) ?></p>
                             </div>
                             <i class="xi-angle-right-min fs_15 text_gray"></i>
                         </a>
@@ -375,7 +377,7 @@ $expt_cnt = $row['cnt'];
                         <a href="javascript:;" onclick="f_share_link('contact');" class="d-flex align-items-center justify-content-between py_07">
                             <div class="d-flex align-items-center">
                                 <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="연락처 열기" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900">연락처 열기</p>
+                                <p class="fs_15 fw_500 gray_900"><?= translate("연락처 열기", $userLang) ?></p>
                             </div>
                             <i class="xi-angle-right-min fs_15 text_gray"></i>
                         </a>
@@ -390,10 +392,10 @@ $expt_cnt = $row['cnt'];
         if (isAndroid()) {
             // $('#kakao_text').text('카카오톡 열기');
             // document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_kakao.png";
-            $('#kakao_text').text('공유하기');
+            $('#kakao_text').text("<?= translate('공유하기', $userLang) ?>");
             document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
         } else if (isiOS()) {
-            $('#kakao_text').text('공유하기');
+            $('#kakao_text').text("<?= translate('공유하기', $userLang) ?>");
             document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
         }
     });

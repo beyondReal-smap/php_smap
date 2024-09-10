@@ -29,34 +29,41 @@ if (isset($_POST['firstname']) && $_POST['firstname']) {
     exit;
 }
 
-include $_SERVER['DOCUMENT_ROOT']."/db.inc.php";
-include $_SERVER['DOCUMENT_ROOT']."/config.inc.php";
-include $_SERVER['DOCUMENT_ROOT']."/config_arr.inc.php";
-include $_SERVER['DOCUMENT_ROOT']."/mail.inc.php";
-include $_SERVER['DOCUMENT_ROOT']."/MobileDetect.inc.php";
-require_once $_SERVER['DOCUMENT_ROOT']."/redis_cache_util.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/db.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/config.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/config_arr.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/mail.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/MobileDetect.inc.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . "/redis_cache_util.php";
 // require_once $_SERVER['DOCUMENT_ROOT']."/group_log_cache.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
 
-class Logger {
+$userLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+$userLang = 'ko';
+
+class Logger
+{
     private $logFile;
     private $maxSize;
     private $backupCount;
 
-    public function __construct($logFile = 'application.log', $maxSize = 5242880, $backupCount = 5) {
+    public function __construct($logFile = 'application.log', $maxSize = 5242880, $backupCount = 5)
+    {
         $this->logFile = __DIR__ . '/' . $logFile;
         $this->maxSize = $maxSize;  // 5MB
         $this->backupCount = $backupCount;
     }
 
-    public function write($message) {
+    public function write($message)
+    {
         $this->rotateIfNeeded();
         $timestamp = date('Y-m-d H:i:s');
         $logMessage = "[{$timestamp}] {$message}" . PHP_EOL;
         file_put_contents($this->logFile, $logMessage, FILE_APPEND);
     }
 
-    private function rotateIfNeeded() {
+    private function rotateIfNeeded()
+    {
         if (file_exists($this->logFile) && filesize($this->logFile) > $this->maxSize) {
             for ($i = $this->backupCount; $i > 0; $i--) {
                 $oldFile = $this->logFile . '.' . $i;
@@ -83,7 +90,7 @@ if (!isset($cron_chk)) {
     $cron_chk = false; // 또는 적절한 기본값
 }
 
-if(!$cron_chk) {
+if (!$cron_chk) {
     if ($_SERVER['REMOTE_ADDR'] == '115.93.39.5') {
         error_reporting(E_ERROR);
         ini_set('display_errors', '1');
@@ -106,21 +113,42 @@ ini_set('display_errors', '1');
 
 
 //캐시서버 사용시 리셋
-if($chk_admin) {
+if ($chk_admin) {
     opcache_reset();
 
-    include $_SERVER['DOCUMENT_ROOT']."/config_mng.inc.php";
+    include $_SERVER['DOCUMENT_ROOT'] . "/config_mng.inc.php";
+}
+
+function translate($key, $lang = null)
+{
+    if (!$lang) {
+        // 사용자 언어 설정 (예: 세션에서 가져오거나 기본값 설정)
+        $lang = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) : 'en';
+    }
+
+    // 번역 파일 경로 설정
+    $filePath = $_SERVER['DOCUMENT_ROOT'] . "/lang/{$lang}.php";
+
+    // 번역 파일이 존재하는지 확인하고 로드
+    if (file_exists($filePath)) {
+        $translations = include($filePath);
+    } else {
+        $translations = [];
+    }
+
+    // 번역된 문자열 반환 (없으면 원래 키 반환)
+    return isset($translations[$key]) ? $translations[$key] : $key;
 }
 
 function alert($msg, $url = "", $ttl = "")
 {
     if ($msg != "") {
         echo "<script type=\"text/javascript\">
-jalert_url('".$msg."', '".$url."', '".$ttl."');
+jalert_url('" . $msg . "', '" . $url . "', '" . $ttl . "');
 </script>";
     } else {
         echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     }
     exit;
@@ -131,16 +159,16 @@ function alert_b($msg, $url = "")
     if ($url == "") {
         $url = "history.go(-1)";
     } else {
-        $url = "document.location.href = '".$url."'";
+        $url = "document.location.href = '" . $url . "'";
     }
 
     if ($msg != "") {
         echo "<script type=\"text/javascript\">
-alert('".$msg."');".$url.";
+alert('" . $msg . "');" . $url . ";
 </script>";
     } else {
         echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     }
     exit;
@@ -149,7 +177,7 @@ alert('".$msg."');".$url.";
 function just_alert($msg)
 {
     echo "<script type=\"text/javascript\">
-parent.jalert('".$msg. "');
+parent.jalert('" . $msg . "');
 </script>";
 }
 
@@ -157,11 +185,11 @@ function p_alert($msg, $url = "", $ttl = "")
 {
     if ($msg != "") {
         echo "<script type=\"text/javascript\">
-            parent.jalert_url('".$msg."', '".$url."', '".$ttl."');
+            parent.jalert_url('" . $msg . "', '" . $url . "', '" . $ttl . "');
            </script>";
     } else {
         echo "<script type=\"text/javascript\">
-            ".$url.";
+            " . $url . ";
             </script>";
     }
     exit;
@@ -170,10 +198,10 @@ function p_alert($msg, $url = "", $ttl = "")
 function p_confirm($msg, $url1, $url2)
 {
     echo "<script type=\"text/javascript\">
-if(confirm('".$msg."')) {
-parent.document.location.href = '".$url1."';
+if(confirm('" . $msg . "')) {
+parent.document.location.href = '" . $url1 . "';
 } else {
-parent.document.location.href = '".$url2."';
+parent.document.location.href = '" . $url2 . "';
 }
 </script>";
     exit;
@@ -184,47 +212,47 @@ function p_reload_to($url = "")
     if ($url == "") {
         $url = "parent.location.reload()";
     } else {
-        $url = "parent.document.location.href = '".$url."'";
+        $url = "parent.document.location.href = '" . $url . "'";
     }
 
     echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     exit;
 }
 
 function gotourl($url)
 {
-    $url = "document.location.href = '".$url."'";
+    $url = "document.location.href = '" . $url . "'";
     echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     exit;
 }
 
 function top_location_url($url)
 {
-    $url = "top.location.href = '".$url."'";
+    $url = "top.location.href = '" . $url . "'";
     echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     exit;
 }
 
 function p_gotourl($url)
 {
-    $url = "parent.document.location.href = '".$url."'";
+    $url = "parent.document.location.href = '" . $url . "'";
     echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     exit;
 }
 
 function ps_gotourl($url)
 {
-    $url = "opener.document.location.href = '".$url."'";
+    $url = "opener.document.location.href = '" . $url . "'";
     echo "<script type=\"text/javascript\">
-".$url.";
+" . $url . ";
 </script>";
     exit;
 }
@@ -233,7 +261,7 @@ function page_listing_xhr($cur_page, $total_page, $f_name)
 {
     $retValue = "<ul class=\"pagination\">";
     if ($cur_page > 1) {
-        $retValue .= "<li class=\"pgn_prev\"><a href=\"#\" onclick=\"".$f_name."('".($cur_page - 1)."')\"><i class=\"xi-angle-left-min\"></i></a></li>";
+        $retValue .= "<li class=\"pgn_prev\"><a href=\"#\" onclick=\"" . $f_name . "('" . ($cur_page - 1) . "')\"><i class=\"xi-angle-left-min\"></i></a></li>";
     } else {
         $retValue .= "<li class=\"pgn_prev\"><a href=\"#\" class=\"disabled\"><i class=\"xi-angle-left-min\"></i></a></li>";
     }
@@ -243,17 +271,17 @@ function page_listing_xhr($cur_page, $total_page, $f_name)
         $end_page = $total_page;
     }
     if ($total_page > 1) {
-        for ($k = $start_page;$k <= $end_page;$k++) {
+        for ($k = $start_page; $k <= $end_page; $k++) {
             if ($cur_page != $k) {
-                $retValue .= "<li class=\"\"><a href=\"javascript:;\" onclick=\"".$f_name."('".$k."')\">".$k."</a></li>";
+                $retValue .= "<li class=\"\"><a href=\"javascript:;\" onclick=\"" . $f_name . "('" . $k . "')\">" . $k . "</a></li>";
             } else {
-                $retValue .= "<li class=\"on\"><a href=\"javascript:;\" onclick=\"".$f_name."('".$k."')\" class=\"on\">".$k."</a></li>";
+                $retValue .= "<li class=\"on\"><a href=\"javascript:;\" onclick=\"" . $f_name . "('" . $k . "')\" class=\"on\">" . $k . "</a></li>";
             }
         }
     }
 
     if ($cur_page < $total_page && $total_page > 1) {
-        $retValue .= "<li class=\"pgn_next\"><a href=\"javascript:;\" onclick=\"".$f_name."('".($cur_page + 1)."')\"><i class=\"xi-angle-right-min\"></i></a></li>";
+        $retValue .= "<li class=\"pgn_next\"><a href=\"javascript:;\" onclick=\"" . $f_name . "('" . ($cur_page + 1) . "')\"><i class=\"xi-angle-right-min\"></i></a></li>";
     } else {
         $retValue .= "<li class=\"pgn_next\"><a href=\"#\" class=\"disabled\"><i class=\"xi-angle-right-min\"></i></a></li>";
     }
@@ -266,7 +294,7 @@ function page_listing_mng_xhr($cur_page, $total_page, $f_name)
 {
     $retValue = "<nav class=\"m-3\" aria-label=\"Page navigation\"><ul class=\"page-light pagination justify-content-center\">";
     if ($cur_page > 1) {
-        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"이전\" href=\"javascript:;\" onclick=\"".$f_name."('".($cur_page - 1)."')\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
+        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"이전\" href=\"javascript:;\" onclick=\"" . $f_name . "('" . ($cur_page - 1) . "')\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
     } else {
         $retValue .= "<li class=\"page-item disabled\"><a class=\"page-link\" href=\"javascript:;\" tabindex=\"-1\" aria-disabled=\"true\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
     }
@@ -276,17 +304,17 @@ function page_listing_mng_xhr($cur_page, $total_page, $f_name)
         $end_page = $total_page;
     }
     if ($total_page > 1) {
-        for ($k = $start_page;$k <= $end_page;$k++) {
+        for ($k = $start_page; $k <= $end_page; $k++) {
             if ($cur_page != $k) {
-                $retValue .= "<li class=\"page-item\"><a class=\"page-link\" href=\"javascript:;\" onclick=\"".$f_name."('".$k."')\">".$k."</a></li>";
+                $retValue .= "<li class=\"page-item\"><a class=\"page-link\" href=\"javascript:;\" onclick=\"" . $f_name . "('" . $k . "')\">" . $k . "</a></li>";
             } else {
-                $retValue .= "<li class=\"page-item active\" aria-current=\"page\"><a class=\"page-link\" href=\"javascript:;\" onclick=\"".$f_name."('".$k."')\">".$k."</a></li>";
+                $retValue .= "<li class=\"page-item active\" aria-current=\"page\"><a class=\"page-link\" href=\"javascript:;\" onclick=\"" . $f_name . "('" . $k . "')\">" . $k . "</a></li>";
             }
         }
     }
 
     if ($cur_page < $total_page && $total_page > 1) {
-        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"다음\" href=\"javascript:;\" onclick=\"".$f_name."('".($cur_page + 1)."')\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
+        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"다음\" href=\"javascript:;\" onclick=\"" . $f_name . "('" . ($cur_page + 1) . "')\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
     } else {
         $retValue .= "<li class=\"page-item disabled\"><a class=\"page-link\" href=\"javascript:;\" tabindex=\"-1\" aria-disabled=\"true\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
     }
@@ -299,7 +327,7 @@ function page_listing($cur_page, $total_page, $url, $link_id = "")
 {
     $retValue = "<nav class=\"m-3\" aria-label=\"Page navigation\"><ul class=\"page-light pagination justify-content-center\">";
     if ($cur_page > 1) {
-        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"이전\" href=\"".$url.($cur_page - 1).$link_id."\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
+        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"이전\" href=\"" . $url . ($cur_page - 1) . $link_id . "\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
     } else {
         $retValue .= "<li class=\"page-item disabled\"><a class=\"page-link\" href=\"#\" tabindex=\"-1\" aria-disabled=\"true\"><span aria-hidden=\"true\">&laquo;</span></a></li>";
     }
@@ -309,17 +337,17 @@ function page_listing($cur_page, $total_page, $url, $link_id = "")
         $end_page = $total_page;
     }
     if ($total_page > 1) {
-        for ($k = $start_page;$k <= $end_page;$k++) {
+        for ($k = $start_page; $k <= $end_page; $k++) {
             if ($cur_page != $k) {
-                $retValue .= "<li class=\"page-item\"><a class=\"page-link\" href=\"".$url.$k.$link_id."\">".$k."</a></li>";
+                $retValue .= "<li class=\"page-item\"><a class=\"page-link\" href=\"" . $url . $k . $link_id . "\">" . $k . "</a></li>";
             } else {
-                $retValue .= "<li class=\"page-item active\" aria-current=\"page\"><a class=\"page-link\" href=\"".$url.$k.$link_id."\">".$k."</a></li>";
+                $retValue .= "<li class=\"page-item active\" aria-current=\"page\"><a class=\"page-link\" href=\"" . $url . $k . $link_id . "\">" . $k . "</a></li>";
             }
         }
     }
 
     if ($cur_page < $total_page && $total_page > 1) {
-        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"다음\" href=\"".$url.($cur_page + 1).$link_id."\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
+        $retValue .= "<li class=\"page-item\"><a class=\"page-link\" aria-label=\"다음\" href=\"" . $url . ($cur_page + 1) . $link_id . "\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
     } else {
         $retValue .= "<li class=\"page-item disabled\"><a class=\"page-link\" href=\"#\" tabindex=\"-1\" aria-disabled=\"true\"><span aria-hidden=\"true\">&raquo;</span></a></li>";
     }
@@ -351,8 +379,8 @@ function upload_file($srcfile, $destfile, $dir)
     if ($destfile == "") {
         return false;
     }
-    move_uploaded_file($srcfile, $dir.$destfile);
-    chmod($dir.$destfile, 0666);
+    move_uploaded_file($srcfile, $dir . $destfile);
+    chmod($dir . $destfile, 0666);
 
     return true;
 }
@@ -373,7 +401,7 @@ function cut_str($strSource, $iStart, $iLength, $tail = "")
     $iSourceLength = mb_strlen($strSource, "UTF-8");
 
     if ($iSourceLength > $iLength) {
-        return mb_substr($strSource, $iStart, $iLength, "UTF-8").$tail;
+        return mb_substr($strSource, $iStart, $iLength, "UTF-8") . $tail;
     } else {
         return $strSource;
     }
@@ -461,12 +489,12 @@ function thumnail($file, $save_filename, $save_path, $max_width, $max_height)
 
     if ($img_info[2] == 1) {
         ImageInterlace($dst_img);
-        ImageGif($dst_img, $save_path.$save_filename);
+        ImageGif($dst_img, $save_path . $save_filename);
     } elseif ($img_info[2] == 2) {
         ImageInterlace($dst_img);
-        ImageJPEG($dst_img, $save_path.$save_filename);
+        ImageJPEG($dst_img, $save_path . $save_filename);
     } elseif ($img_info[2] == 3) {
-        ImagePNG($dst_img, $save_path.$save_filename);
+        ImagePNG($dst_img, $save_path . $save_filename);
     }
     @ImageDestroy($dst_img);
     @ImageDestroy($src_img);
@@ -504,12 +532,12 @@ function thumnail_width($file, $save_filename, $save_path, $max_width)
 
     if ($img_info[2] == 1) {
         ImageInterlace($dst_img);
-        ImageGif($dst_img, $save_path.$save_filename);
+        ImageGif($dst_img, $save_path . $save_filename);
     } elseif ($img_info[2] == 2) {
         ImageInterlace($dst_img);
-        ImageJPEG($dst_img, $save_path.$save_filename);
+        ImageJPEG($dst_img, $save_path . $save_filename);
     } elseif ($img_info[2] == 3) {
-        ImagePNG($dst_img, $save_path.$save_filename);
+        ImagePNG($dst_img, $save_path . $save_filename);
     }
     @ImageDestroy($dst_img);
     @ImageDestroy($src_img);
@@ -557,12 +585,12 @@ function thumbnail_crop_center($file, $save_filename, $save_path, $max_width, $m
 
     if ($img_info[2] == 1) {
         ImageInterlace($dst);
-        ImageGif($dst, $save_path.$save_filename);
+        ImageGif($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 2) {
         ImageInterlace($dst);
-        ImageJPEG($dst, $save_path.$save_filename);
+        ImageJPEG($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 3) {
-        ImagePNG($dst, $save_path.$save_filename);
+        ImagePNG($dst, $save_path . $save_filename);
     }
 
     @ImageDestroy($dst_img);
@@ -610,12 +638,12 @@ function scale_image_fill($src_image, $save_filename, $save_path, $max_width, $m
 
     if ($img_info[2] == 1) {
         ImageInterlace($dst);
-        ImageGif($dst, $save_path.$save_filename);
+        ImageGif($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 2) {
         ImageInterlace($dst);
-        ImageJPEG($dst, $save_path.$save_filename);
+        ImageJPEG($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 3) {
-        ImagePNG($dst, $save_path.$save_filename);
+        ImagePNG($dst, $save_path . $save_filename);
     }
 
     @ImageDestroy($dst_img);
@@ -663,12 +691,12 @@ function scale_image_fit($src_image, $save_filename, $save_path, $max_width, $ma
 
     if ($img_info[2] == 1) {
         ImageInterlace($dst);
-        ImageGif($dst, $save_path.$save_filename);
+        ImageGif($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 2) {
         ImageInterlace($dst);
-        ImageJPEG($dst, $save_path.$save_filename);
+        ImageJPEG($dst, $save_path . $save_filename);
     } elseif ($img_info[2] == 3) {
-        ImagePNG($dst, $save_path.$save_filename);
+        ImagePNG($dst, $save_path . $save_filename);
     }
 
     @ImageDestroy($dst_img);
@@ -693,10 +721,11 @@ function decrypt($str, $key)
     # Strip padding out.
     $block = mcrypt_get_block_size('des', 'ecb');
     $pad = ord($str[($len = strlen($str)) - 1]);
-    if ($pad && $pad < $block && preg_match(
-        '/' . chr($pad) . '{' . $pad . '}$/',
-        $str
-    )
+    if (
+        $pad && $pad < $block && preg_match(
+            '/' . chr($pad) . '{' . $pad . '}$/',
+            $str
+        )
     ) {
         return substr($str, 0, strlen($str) - $pad);
     }
@@ -820,7 +849,7 @@ function make_mktime($date)
     $date_ex2 = explode("-", $date_ex[0]);
     $date_ex3 = explode(":", $date_ex[1]);
 
-    if($date_ex[1]) {
+    if ($date_ex[1]) {
         $s_time = mktime($date_ex3[0], $date_ex3[1], $date_ex3[2], $date_ex2[1], $date_ex2[2], $date_ex2[0]);
     } else {
         $s_time = mktime(0, 0, 0, $date_ex2[1], $date_ex2[2], $date_ex2[0]);
@@ -831,9 +860,9 @@ function make_mktime($date)
 
 function quote2entities($string, $entities_type = 'number')
 {
-    $search = array("\"","'");
-    $replace_by_entities_name = array("&quot;","&apos;");
-    $replace_by_entities_number = array("&#34;","&#39;");
+    $search = array("\"", "'");
+    $replace_by_entities_name = array("&quot;", "&apos;");
+    $replace_by_entities_number = array("&#34;", "&#39;");
     $do = null;
     if ($entities_type == 'number') {
         $do = str_replace($search, $replace_by_entities_number, $string);
@@ -855,8 +884,9 @@ function printr($arr_val)
 
 function fnc_Day_Name($strDate)
 {
+    global $userLang;
     $strDate = substr($strDate, 0, 10);
-    $days = array("일","월","화","수","목","금","토");
+    $days = array(translate("일", $userLang), translate("월", $userLang), translate("화", $userLang), translate("수", $userLang), translate("목", $userLang), translate("금", $userLang), translate("토", $userLang));
     $temp_day = date("w", strtotime($strDate));
     return $days[$temp_day];
 }
@@ -868,9 +898,9 @@ function TimeType($time_t)
 
     if ($hour > 12) {
         $hour = $hour - 12;
-        $result = "오후 " . $hour. ":". $min;
+        $result = "오후 " . $hour . ":" . $min;
     } else {
-        $result = "오전 " . $hour. ":". $min;
+        $result = "오전 " . $hour . ":" . $min;
     }
 
     return $result;
@@ -878,6 +908,8 @@ function TimeType($time_t)
 
 function DateType($strDate, $type = "1")
 {
+    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
+
     if ($strDate == "" || $strDate == "0000-00-00 00:00:00") {
         $strDate = "-";
     } else {
@@ -886,38 +918,38 @@ function DateType($strDate, $type = "1")
         } elseif ($type == "2") {
             $strDate = str_replace("-", ".", substr($strDate, 0, 16));
         } elseif ($type == "3") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10))."&nbsp;(".fnc_Day_Name($strDate).")";
+            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "4") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10))."&nbsp;(".fnc_Day_Name($strDate).")&nbsp;".substr($strDate, 11, 5);
+            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
         } elseif ($type == "5") {
             $strDate = str_replace("-", ".", substr($strDate, 2, 8));
         } elseif ($type == "6") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8))."&nbsp;(".fnc_Day_Name($strDate).")&nbsp;".substr($strDate, 11, 5);
+            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
         } elseif ($type == "7") {
             $strDate = substr($strDate, 11, 5);
         } elseif ($type == "8") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8))."&nbsp;".substr($strDate, 11, 5);
+            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " " . substr($strDate, 11, 5);
         } elseif ($type == "9") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8))."&nbsp;(".fnc_Day_Name($strDate).")<br/>".substr($strDate, 11, 5);
+            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")<br/>" . substr($strDate, 11, 5);
         } elseif ($type == "10") {
-            $strDate = str_replace("-", "년 ", substr($strDate, 2, 5))."월";
+            $strDate = str_replace("-", translate("년", $userLang) . " ", substr($strDate, 2, 5)) . translate("월", $userLang);
         } elseif ($type == "11") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = $strDate_ex2[0]."년 ".$strDate_ex2[1]."월 ".$strDate_ex2[2]."일&nbsp;(".fnc_Day_Name($strDate).")";
+            $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "12") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8))."&nbsp;(".fnc_Day_Name($strDate).")";
+            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "13") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = $strDate_ex2[1]."월 ".$strDate_ex2[2]."일"."&nbsp;".fnc_Day_Name($strDate)."요일<br>".TimeType($strDate_ex1[1]);
+            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
         } elseif ($type == "14") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = $strDate_ex2[1]."월 ".$strDate_ex2[2]."일"."&nbsp;(".fnc_Day_Name($strDate).")";
+            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "15") {
             $strDate_ex1 = explode(' ', $strDate);
 
@@ -926,33 +958,33 @@ function DateType($strDate, $type = "1")
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = $strDate_ex2[1]."월 ".$strDate_ex2[2]."일"."&nbsp;".fnc_Day_Name($strDate)."요일 ".TimeType($strDate_ex1[1]);
+            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
         } elseif ($type == "17") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = fnc_Day_Name($strDate)."요일 ".TimeType($strDate_ex1[1]);
+            $strDate = fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
         } elseif ($type == "18") {
             $strDate = substr($strDate, 0, 16);
         } elseif ($type == "19") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10))." (".fnc_Day_Name($strDate).")";
+            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "20") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            if(substr($strDate_ex2[1], 1) < 10) {
+            if (substr($strDate_ex2[1], 1) < 10) {
                 $strDate_ex2[1] = str_replace('0', '', $strDate_ex2[1]);
             }
-            if(substr($strDate_ex2[2], 1) < 10) {
+            if (substr($strDate_ex2[2], 1) < 10) {
                 $strDate_ex2[2] = str_replace('0', '', $strDate_ex2[2]);
             }
 
-            $strDate = $strDate_ex2[1]."월 ".$strDate_ex2[2]."일"."&nbsp;(".fnc_Day_Name($strDate).")";
+            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
         } elseif ($type == "21") {
             $strDate_ex1 = explode(' ', $strDate);
             $strDate_ex2 = explode('-', $strDate_ex1[0]);
 
-            $strDate = $strDate_ex2[0] . "년 " . $strDate_ex2[1] . "월 " . $strDate_ex2[2] . "일";
+            $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang);
         }
     }
 
@@ -965,7 +997,7 @@ function substr_star($str)
     $str_arr = str_split($str);
 
     $result = "";
-    for ($i = 0 ; $i < $str_len ; $i++) {
+    for ($i = 0; $i < $str_len; $i++) {
         if ($i < 3) {
             $result .= $str_arr[$i];
         } else {
@@ -1006,7 +1038,7 @@ function save_remote_img_curl_fn($url, $dir, $tmpname)
             @chmod($filepath, '0755');
 
             // 파일 다운로드
-            $path = $filepath.'/'.$tmpname;
+            $path = $filepath . '/' . $tmpname;
             $fp = fopen($path, 'w');
 
             $ch = curl_init();
@@ -1029,8 +1061,8 @@ function save_remote_img_curl_fn($url, $dir, $tmpname)
                     $filename = '';
                 } else {
                     $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                    $filename = $tmpname.'.'.$ext[$size[2]];
-                    rename($path, $filepath.'/'.$filename);
+                    $filename = $tmpname . '.' . $ext[$size[2]];
+                    rename($path, $filepath . '/' . $filename);
                     //@chmod($filepath.'/'.$filename, '0644');
                 }
             }
@@ -1057,13 +1089,13 @@ function save_remote_img_curl($url, $dir, $mt_idx)
         $filename = basename($url);
         if (preg_match("/\.(gif|jpg|jpeg|png)$/i", $filename)) {
             //$tmpname = date('YmdHis').(microtime(true) * 10000);
-            $tmpname = "mt_img_".$mt_idx."_".date("YmdHis");
+            $tmpname = "mt_img_" . $mt_idx . "_" . date("YmdHis");
             $filepath = $dir;
             @mkdir($filepath, '0755');
             @chmod($filepath, '0755');
 
             // 파일 다운로드
-            $path = $filepath.'/'.$tmpname;
+            $path = $filepath . '/' . $tmpname;
             $fp = fopen($path, 'w');
 
             $ch = curl_init();
@@ -1086,9 +1118,9 @@ function save_remote_img_curl($url, $dir, $mt_idx)
                     $filename = '';
                 } else {
                     $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                    $filename = $tmpname.'.'.$ext[$size[2]];
-                    rename($path, $filepath.'/'.$filename);
-                    @chmod($filepath.'/'.$filename, '0644');
+                    $filename = $tmpname . '.' . $ext[$size[2]];
+                    rename($path, $filepath . '/' . $filename);
+                    @chmod($filepath . '/' . $filename, '0644');
                 }
             }
         }
@@ -1101,8 +1133,8 @@ function save_remote_img_file($url, $dir, $mt_idx)
 {
     $filename = file_get_contents($url);
     $img_info = pathinfo($url);
-    $tmpname = "mt_img_".$mt_idx."_".date("YmdHis").'.'.$img_info[extension];
-    file_put_contents($dir."/".$tmpname, $filename);
+    $tmpname = "mt_img_" . $mt_idx . "_" . date("YmdHis") . '.' . $img_info[extension];
+    file_put_contents($dir . "/" . $tmpname, $filename);
 
     return $tmpname;
 }
@@ -1126,13 +1158,13 @@ function save_facebook_profile_img($url, $dir, $mt_idx)
         $filename = $filename_ex[0];
         if (preg_match("/\.(gif|jpg|jpeg|png)$/i", $filename)) {
             //$tmpname = date('YmdHis').(microtime(true) * 10000);
-            $tmpname = "mt_img_".$mt_idx."_".date("YmdHis");
+            $tmpname = "mt_img_" . $mt_idx . "_" . date("YmdHis");
             $filepath = $dir;
             @mkdir($filepath, '0755');
             @chmod($filepath, '0755');
 
             // 파일 다운로드
-            $path = $filepath.'/'.$tmpname;
+            $path = $filepath . '/' . $tmpname;
             $fp = fopen($path, 'w');
 
             $ch = curl_init();
@@ -1155,8 +1187,8 @@ function save_facebook_profile_img($url, $dir, $mt_idx)
                     $filename = '';
                 } else {
                     $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                    $filename = $tmpname.'.'.$ext[$size[2]];
-                    rename($path, $filepath.'/'.$filename);
+                    $filename = $tmpname . '.' . $ext[$size[2]];
+                    rename($path, $filepath . '/' . $filename);
                     //@chmod($filepath.'/'.$filename, '0644');
                 }
             }
@@ -1186,19 +1218,19 @@ function date_diffrent($sdate, $edate)
         if ($diff->d == 0) {
             if ($diff->h == 0) {
                 if ($diff->i == 0) {
-                    $return = $diff->s."초";
+                    $return = $diff->s . "초";
                 } else {
-                    $return = $diff->i."분";
+                    $return = $diff->i . "분";
                 }
             } else {
-                $return = $diff->h."시";
+                $return = $diff->h . "시";
             }
         }
     } else {
         if ($diff->days > 7) {
-            $return = round($diff->days / 7)."주";
+            $return = round($diff->days / 7) . "주";
         } else {
-            $return = $diff->days."일";
+            $return = $diff->days . "일";
         }
     }
 
@@ -1224,13 +1256,13 @@ function save_parsing_img($url, $dir, $pt_size, $bt_idx, $img_num)
         $filename = $filename_ex[0];
         if (preg_match("/\.(gif|jpg|jpeg|png)$/i", $filename)) {
             //$tmpname = date('YmdHis').(microtime(true) * 10000);
-            $tmpname = "pt_img_".$pt_size."_".$bt_idx."_".$img_num;
+            $tmpname = "pt_img_" . $pt_size . "_" . $bt_idx . "_" . $img_num;
             $filepath = $dir;
             @mkdir($filepath, '0755');
             @chmod($filepath, '0755');
 
             // 파일 다운로드
-            $path = $filepath.'/'.$tmpname;
+            $path = $filepath . '/' . $tmpname;
             $fp = fopen($path, 'w');
 
             $ch = curl_init();
@@ -1253,8 +1285,8 @@ function save_parsing_img($url, $dir, $pt_size, $bt_idx, $img_num)
                     $filename = '';
                 } else {
                     $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                    $filename = $tmpname.'.'.$ext[$size[2]];
-                    rename($path, $filepath.'/'.$filename);
+                    $filename = $tmpname . '.' . $ext[$size[2]];
+                    rename($path, $filepath . '/' . $filename);
                     //@chmod($filepath.'/'.$filename, '0644');
                 }
             }
@@ -1296,7 +1328,7 @@ function save_owner_img($url, $dir, $pt_barcode, $pt_idx)
             $filename = $url_info[basename];
         }
 
-        $path = $dir."/".$filename;
+        $path = $dir . "/" . $filename;
 
         $fp = fopen($path, 'w');
         fwrite($fp, $raw);
@@ -1309,8 +1341,8 @@ function save_owner_img($url, $dir, $pt_barcode, $pt_idx)
                 $rtn_filename = '';
             } else {
                 $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                $rtn_filename = $pt_barcode."_".$pt_idx.'.'.$ext[$size[2]];
-                rename($path, $dir.'/'.$rtn_filename);
+                $rtn_filename = $pt_barcode . "_" . $pt_idx . '.' . $ext[$size[2]];
+                rename($path, $dir . '/' . $rtn_filename);
             }
         }
     }
@@ -1325,8 +1357,8 @@ function get_file_url($file_nm)
     if ($file_nm == "http") {
         $rtn = strip_tags($file_nm);
     } else {
-        if (is_file($ct_img_dir."/".$file_nm)) {
-            $rtn = $ct_img_url."/".$file_nm;
+        if (is_file($ct_img_dir . "/" . $file_nm)) {
+            $rtn = $ct_img_url . "/" . $file_nm;
         } else {
             $rtn = $ct_no_img_url;
         }
@@ -1359,7 +1391,7 @@ function save_url_img($url, $dir, $tmp_nm)
             //				@chmod($filepath, '0755');
 
             // 파일 다운로드
-            $path = $filepath.'/'.$tmpname;
+            $path = $filepath . '/' . $tmpname;
             $fp = fopen($path, 'w');
 
             $ch = curl_init();
@@ -1382,8 +1414,8 @@ function save_url_img($url, $dir, $tmp_nm)
                     $filename = '';
                 } else {
                     $ext = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-                    $filename = $tmpname.'.'.$ext[$size[2]];
-                    rename($path, $filepath.'/'.$filename);
+                    $filename = $tmpname . '.' . $ext[$size[2]];
+                    rename($path, $filepath . '/' . $filename);
                     //@chmod($filepath.'/'.$filename, '0644');
                 }
             }
@@ -1399,7 +1431,7 @@ function f_curl_post($url, $code)
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "selfcode=".$code);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "selfcode=" . $code);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $rtn = curl_exec($ch);
@@ -1453,7 +1485,7 @@ function format_phone($phone)
     $phone = preg_replace("/[^0-9]/", "", $phone);
     $length = strlen($phone);
 
-    switch($length) {
+    switch ($length) {
         case 11:
             return preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3", $phone);
             break;
@@ -1479,7 +1511,7 @@ function delete_all($dir)
         if (is_dir($entry)) {
             delete_all($entry);
         } else {
-            unlink($dir."/".$entry);
+            unlink($dir . "/" . $entry);
         }
     }
 }
@@ -1499,7 +1531,7 @@ function recusive_category($_level, $_pid)
     global $DB, $ct_img_url, $ct_no_img_url;
 
     unset($list);
-    $query = "select * from category_t where ct_level = '".$_level."' and ct_pid = '".$_pid."' order by ct_rank asc, ct_id asc, ct_name asc";
+    $query = "select * from category_t where ct_level = '" . $_level . "' and ct_pid = '" . $_pid . "' order by ct_rank asc, ct_id asc, ct_name asc";
     $list = $DB->select_query($query);
 
     if ($list) {
@@ -1508,27 +1540,27 @@ function recusive_category($_level, $_pid)
             if ($row['ct_level']) {
                 $s_level = "&nbsp;&nbsp;&nbsp;┗";
                 for ($i = 1; $i < $row['ct_level']; $i++) {
-                    $s_level = "&nbsp;&nbsp;&nbsp;".$s_level;
+                    $s_level = "&nbsp;&nbsp;&nbsp;" . $s_level;
                 }
             }
 
             if ($row['ct_level'] == 0) {
                 $ct_name_t = get_text($row['ct_name']);
             } else {
-                $ct_name_t = $s_level.'&nbsp;'.get_text($row['ct_name']);
+                $ct_name_t = $s_level . '&nbsp;' . get_text($row['ct_name']);
             }
 
             if ($row['ct_level'] == 0) {
-                $s_add = "<a href='./category_form.php?act=add&ct_idx=".$row['ct_id']."&ct_level=".$row['ct_level']."' class='btn btn-outline-secondary btn-sm mx-sm-1'>추가</a>";
+                $s_add = "<a href='./category_form.php?act=add&ct_idx=" . $row['ct_id'] . "&ct_level=" . $row['ct_level'] . "' class='btn btn-outline-secondary btn-sm mx-sm-1'>추가</a>";
             }
-            $s_mod = "<a href='./category_form.php?act=update&ct_idx=".$row['ct_id']."' class='btn btn-outline-primary btn-sm mx-sm-1'>수정</a>";
-            $s_del = "<a href='javascript:;' onclick=\"f_post_del('./category_update.php', '".$row['ct_id']."')\" class='btn btn-outline-danger btn-sm mx-sm-1'>삭제</a>";
+            $s_mod = "<a href='./category_form.php?act=update&ct_idx=" . $row['ct_id'] . "' class='btn btn-outline-primary btn-sm mx-sm-1'>수정</a>";
+            $s_del = "<a href='javascript:;' onclick=\"f_post_del('./category_update.php', '" . $row['ct_id'] . "')\" class='btn btn-outline-danger btn-sm mx-sm-1'>삭제</a>";
 
             echo "<tr>
-<td>".$ct_name_t."</td>
-<td class='text-center'>".$row['ct_level']."</td>
-<td class='text-center'>".$row['ct_rank']."</td>
-<td class='text-center'>".$s_add."&nbsp;".$s_mod."&nbsp;".$s_del."</td>
+<td>" . $ct_name_t . "</td>
+<td class='text-center'>" . $row['ct_level'] . "</td>
+<td class='text-center'>" . $row['ct_rank'] . "</td>
+<td class='text-center'>" . $s_add . "&nbsp;" . $s_mod . "&nbsp;" . $s_del . "</td>
 </tr>";
 
             recusive_category($row['ct_level'] + 1, $row['ct_id']);
@@ -1544,14 +1576,14 @@ function recusive_ca_name($ct_id)
 
     $arr_ca_name = array();
 
-    $query = "select * from category_t where ct_id = '".$ct_id."'";
+    $query = "select * from category_t where ct_id = '" . $ct_id . "'";
     $row = $DB->fetch_query($query);
 
     if ($row['ct_pid'] == '0') {
         return $row['ct_name'];
     } else {
         if ($row['ct_pid']) {
-            return $row['ct_name']."|".recusive_ca_name($row['ct_pid']);
+            return $row['ct_name'] . "|" . recusive_ca_name($row['ct_pid']);
         } else {
             return $row['ct_name'];
         }
@@ -1564,14 +1596,14 @@ function recusive_ca_id($ct_id)
 
     $arr_ca_name = array();
 
-    $query = "select * from category_t where ct_id = '".$ct_id."'";
+    $query = "select * from category_t where ct_id = '" . $ct_id . "'";
     $row = $DB->fetch_query($query);
 
     if ($row['ct_id']) {
         if ($row['ct_pid'] == '0') {
             return $row['ct_id'];
         } else {
-            return $row['ct_id']."|".recusive_ca_id($row['ct_pid']);
+            return $row['ct_id'] . "|" . recusive_ca_id($row['ct_pid']);
         }
     } else {
         return;
@@ -1612,7 +1644,7 @@ function get_member_t_info($mt_idx = "")
 {
     global $DB, $_SESSION;
 
-    if($mt_idx) {
+    if ($mt_idx) {
         $DB->where('mt_idx', $mt_idx);
     } else {
         $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -1786,15 +1818,15 @@ function get_member_location_log_t_info($mt_idx = "", $sdate = "")
 {
     global $DB, $_SESSION;
 
-    if($mt_idx) {
+    if ($mt_idx) {
         $DB->where('mt_idx', $mt_idx);
     } else {
         $DB->where('mt_idx', $_SESSION['_mt_idx']);
     }
-    if($sdate == '') {
+    if ($sdate == '') {
         $sdate = date("Y-m-d");
     }
-    $DB->where("mlt_wdate between '".$sdate." 00:00:00' and '".$sdate." 23:59:59'");
+    $DB->where("mlt_wdate between '" . $sdate . " 00:00:00' and '" . $sdate . " 23:59:59'");
     $DB->orderBy("mlt_idx", "desc");
     $row = $DB->getone('member_location_log_t');
 
@@ -1815,7 +1847,7 @@ function get_category_info($ct_id)
 {
     global $DB;
 
-    $query = "select * from category_t where ct_id = '".$ct_id."'";
+    $query = "select * from category_t where ct_id = '" . $ct_id . "'";
     $row = $DB->fetch_query($query);
 
     return $row;
@@ -1825,7 +1857,7 @@ function get_bootom_ct_id($ct_id)
 {
     global $DB;
 
-    $query = "select * from category_bottom_all where ct_id = '".$ct_id."'";
+    $query = "select * from category_bottom_all where ct_id = '" . $ct_id . "'";
     $row = $DB->fetch_query($query);
 
     return $row['ct_id_txt'];
@@ -1836,7 +1868,7 @@ function get_bottom_all($ct_id)
     global $DB;
 
     unset($list);
-    $query = "select * from category_t where ct_pid = '".$ct_id."'";
+    $query = "select * from category_t where ct_pid = '" . $ct_id . "'";
     $list = $DB->select_query($query);
 
     $arr_ct_id_txt = array();
@@ -1847,7 +1879,7 @@ function get_bottom_all($ct_id)
                 $arr_ct_id_txt[] = $row['ct_id'];
 
                 unset($list2);
-                $query2 = "select * from category_t where ct_pid = '".$row['ct_id']."'";
+                $query2 = "select * from category_t where ct_pid = '" . $row['ct_id'] . "'";
                 $list2 = $DB->select_query($query2);
 
                 if ($list2) {
@@ -1856,7 +1888,7 @@ function get_bottom_all($ct_id)
                             $arr_ct_id_txt[] = $row2['ct_id'];
 
                             unset($list3);
-                            $query3 = "select * from category_t where ct_pid = '".$row2['ct_id']."'";
+                            $query3 = "select * from category_t where ct_pid = '" . $row2['ct_id'] . "'";
                             $list3 = $DB->select_query($query3);
 
                             if ($list3) {
@@ -1865,7 +1897,7 @@ function get_bottom_all($ct_id)
                                         $arr_ct_id_txt[] = $row3['ct_id'];
 
                                         unset($list4);
-                                        $query4 = "select * from category_t where ct_pid = '".$row3['ct_id']."'";
+                                        $query4 = "select * from category_t where ct_pid = '" . $row3['ct_id'] . "'";
                                         $list4 = $DB->select_query($query4);
 
                                         if ($list4) {
@@ -1897,23 +1929,23 @@ function send_notification($token_list, $title, $message, $clickAction = "", $co
 
     //전송 데이터
     $fields = array(
-    'registration_ids' => $token_list,
-    'data' => array(
-    'title' => $title,
-    'message' => $message,
-    'intent' => $clickAction,
-    'content_idx' => $content_idx,
-    ),
-    'notification' => array(
-    'title' => $title,
-    'body' => $message,
-    'content_idx' => $content_idx,
-    'badge' => 1,
-    ),
+        'registration_ids' => $token_list,
+        'data' => array(
+            'title' => $title,
+            'message' => $message,
+            'intent' => $clickAction,
+            'content_idx' => $content_idx,
+        ),
+        'notification' => array(
+            'title' => $title,
+            'body' => $message,
+            'content_idx' => $content_idx,
+            'badge' => 1,
+        ),
     );
 
     //설정
-    $headers = array( 'Authorization: Bearer ya29'. $FCM_KEY, 'Content-Type:application/json' );
+    $headers = array('Authorization: Bearer ya29' . $FCM_KEY, 'Content-Type:application/json');
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $FCM_URL);
@@ -1948,11 +1980,11 @@ function get_image_url_mng($pt_image, $no_cache = "", $no_img = "")
         $no_img_t = $ct_no_img_url;
     }
 
-    if (is_file($ct_img_dir_a."/".$pt_image)) {
+    if (is_file($ct_img_dir_a . "/" . $pt_image)) {
         if ($no_cache == 'Y') {
-            $rtn = $ct_img_url."/".$pt_image."?v=".time();
+            $rtn = $ct_img_url . "/" . $pt_image . "?v=" . time();
         } else {
-            $rtn = $ct_img_url."/".$pt_image;
+            $rtn = $ct_img_url . "/" . $pt_image;
         }
     } else {
         $rtn = $no_img_t;
@@ -2045,14 +2077,14 @@ function get_coupon_code()
 }
 function price2kor($total_price)
 {
-    $trans_kor = array("","일","이","삼","사","오","육","칠","팔","구");
-    $price_unit = array("","십","백","천","만","십","백","천","억","십","백","천","조","십","백","천");
-    $valuecode = array("","만","억","조");
+    $trans_kor = array("", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구");
+    $price_unit = array("", "십", "백", "천", "만", "십", "백", "천", "억", "십", "백", "천", "조", "십", "백", "천");
+    $valuecode = array("", "만", "억", "조");
 
     $value = strlen($total_price);
 
     $k = 0;
-    for ($i = $value;$i > 0;$i--) {
+    for ($i = $value; $i > 0; $i--) {
         $vv = "";
         $vc = substr($total_price, $k, 1);
         $vt = $trans_kor[$vc];
@@ -2066,7 +2098,7 @@ function price2kor($total_price)
             }
         }
 
-        $vr = $vr.$vt.$vv;
+        $vr = $vr . $vt . $vv;
     }
 
     return $vr;
@@ -2188,7 +2220,7 @@ function get_sgt_code()
 
     $unique = false;
     do {
-        $uid = substr("G".strtoupper(md5(mt_rand())), 0, 6);
+        $uid = substr("G" . strtoupper(md5(mt_rand())), 0, 6);
         $DB->where('sgt_code', $uid);
         $row = $DB->getone('smap_group_t');
 
@@ -2212,55 +2244,96 @@ function get_sel_fct()
 
     $rtn = '';
 
-    if($list) {
-        foreach($list as $row) {
-            $rtn .= '<option value="'.$row['fct_idx'].'">'.$row['fct_name'].'</option>';
+    if ($list) {
+        foreach ($list as $row) {
+            $rtn .= '<option value="' . $row['fct_idx'] . '">' . $row['fct_name'] . '</option>';
         }
     }
 
     return $rtn;
 }
 
-function get_search_coordinate2address($lat, $lng)
+function get_search_coordinate2address($lat, $lng, $userLang = null)
 {
-    $url = "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?request=coordsToaddr&coords=" . $lng . "," . $lat . "&sourcecrs=epsg:4326&output=json&orders=admcode";
+    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
 
-    $headers = array();
-    $headers[] = 'X-NCP-APIGW-API-KEY-ID:' . NCPCLIENTID;
-    $headers[] = 'X-NCP-APIGW-API-KEY:' . NCPCLIENTSECRET;
-
-    $post_data = array(
-        'request' => 'coordsToaddr',
-        'coords' => $lng . ',' . $lat,
-        'sourcecrs' => 'epsg:4326',
-        'orders' => 'legalcode',
-        'output' => 'json',
-    );
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $result = curl_exec($ch);
-    if ($result === false) {
-        die('Curl failed: ' . curl_error($ch));
+    // $userLang이 함수 호출 시 전달되지 않으면 전역 변수 값 사용
+    if ($userLang === null) {
+        $userLang = $GLOBALS['userLang'];
     }
-    curl_close($ch);
-    $obj = json_decode($result, true);
 
-    $rtn = array();
+    if ($userLang == 'ko') {
+        // 네이버 지도 API 사용
+        $url = "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?request=coordsToaddr&coords=" . $lng . "," . $lat . "&sourcecrs=epsg:4326&output=json&orders=admcode";
 
-    if ($obj['status']['code'] == '0') {
-        $rtn['area1'] = $obj['results']['0']['region']['area1']['name'];
-        $rtn['area2'] = $obj['results']['0']['region']['area2']['name'];
-        $rtn['area3'] = $obj['results']['0']['region']['area3']['name'];
+        $headers = array();
+        $headers[] = 'X-NCP-APIGW-API-KEY-ID:' . NCPCLIENTID;
+        $headers[] = 'X-NCP-APIGW-API-KEY:' . NCPCLIENTSECRET;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        if ($result === false) {
+            die('Curl failed: ' . curl_error($ch));
+        }
+        curl_close($ch);
+
+        $obj = json_decode($result, true);
+
+        $rtn = array();
+
+        if ($obj['status']['code'] == '0') {
+            $rtn['area1'] = $obj['results']['0']['region']['area1']['name'];
+            $rtn['area2'] = $obj['results']['0']['region']['area2']['name'];
+            $rtn['area3'] = $obj['results']['0']['region']['area3']['name'];
+        } else {
+            $rtn['area1'] = '서울특별시';
+            $rtn['area2'] = '중구';
+            $rtn['area3'] = '명동';
+        }
     } else {
-        $rtn['area1'] = '서울특별시';
-        $rtn['area2'] = '중구';
-        $rtn['area3'] = '명동';
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key=" . GOOGLE_MAPS_API_KEY . "&language={$userLang}";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+
+        if ($result === false) {
+            error_log('Curl failed: ' . curl_error($ch));
+            curl_close($ch);
+            return null;
+        }
+
+        curl_close($ch);
+        $obj = json_decode($result, true);
+
+        $rtn = [
+            'area1' => null,
+            'area2' => null,
+            'area3' => null
+        ];
+
+        if ($obj['status'] == 'OK' && !empty($obj['results'][0]['address_components'])) {
+            $address_components = $obj['results'][0]['address_components'];
+
+            foreach ($address_components as $component) {
+                if (in_array('administrative_area_level_1', $component['types'])) {
+                    $rtn['area1'] = $component['long_name']; // 시도
+                } elseif (in_array('locality', $component['types']) || in_array('administrative_area_level_2', $component['types'])) {
+                    $rtn['area2'] = $component['long_name']; // 시
+                } elseif (in_array('sublocality_level_1', $component['types']) || in_array('administrative_area_level_3', $component['types'])) {
+                    $rtn['area3'] = $component['long_name']; // 구/군
+                }
+            }
+        } else {
+            error_log('Google Maps API request failed: ' . $obj['status']);
+        }
     }
 
-    return $rtn;
+    return array_filter($rtn) ? $rtn : null;;
 }
 
 function get_page_nm()
@@ -2288,19 +2361,20 @@ function result_data($success, $title, $message, $data)
 function get_sgdt_member_list($sgt_idx)
 {
     global $DB, $_SESSION;
+    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
 
     // 캐시 키 생성
     $cache_key = "sgdt_member_list_{$sgt_idx}_{$_SESSION['_mt_idx']}";
 
     // 캐시된 데이터 확인
     $cached_data = CacheUtil::get($cache_key);
-    
+
     // 캐시된 데이터가 있을 경우, 유효성 검사
     if ($cached_data) {
         $DB->where('sgt_idx', $sgt_idx);
         $DB->where('sgdt_udate', $cached_data['last_update'], '>');
         $updated = $DB->getOne('smap_group_detail_t', 'COUNT(*) as count');
-        
+
         // DB에 변경이 없으면 캐시된 데이터 반환
         if ($updated['count'] == 0) {
             return $cached_data;
@@ -2313,19 +2387,19 @@ function get_sgdt_member_list($sgt_idx)
     $row_sgpt = $DB->getone('smap_group_personal_t');
 
     unset($list_sgdt);
-    if($row_sgpt['sgpt_idx']) {
+    if ($row_sgpt['sgpt_idx']) {
         $list_sgdt = array();
         $sgdt_json_arr = json_decode($row_sgpt['sgdt_json'], true);
 
-        if($sgdt_json_arr) {
-            foreach($sgdt_json_arr as $key => $val) {
-                if($val) {
+        if ($sgdt_json_arr) {
+            foreach ($sgdt_json_arr as $key => $val) {
+                if ($val) {
                     $DB->where('sgdt_idx', $val);
                     $DB->where('sgdt_discharge', 'N');
                     $DB->where('sgdt_exit', 'N');
                     $row_sgdt = $DB->getone('smap_group_detail_t');
 
-                    if($row_sgdt) {
+                    if ($row_sgdt) {
                         $list_sgdt[] = $row_sgdt;
                     }
                 }
@@ -2347,24 +2421,24 @@ function get_sgdt_member_list($sgt_idx)
     $chk_leader = 0;
     $member_cnt = 0;
 
-    if($list_sgdt) {
-        foreach($list_sgdt as $row_sgdt) {
+    if ($list_sgdt) {
+        foreach ($list_sgdt as $row_sgdt) {
             $mt_info = get_member_t_info($row_sgdt['mt_idx']);
             $row_mllt = get_member_location_log_t_info($row_sgdt['mt_idx']);
             $my_working_cnt = $row_mllt['mt_health_work'];
 
-            if($row_sgdt['sgdt_owner_chk'] == 'Y') {
+            if ($row_sgdt['sgdt_owner_chk'] == 'Y') {
                 $sgdt_owner_leader_chk_t = '오너';
             } else {
-                if($row_sgdt['sgdt_leader_chk'] == 'Y') {
+                if ($row_sgdt['sgdt_leader_chk'] == 'Y') {
                     $sgdt_owner_leader_chk_t = '리더';
                     $chk_leader++;
                 } else {
                     $sgdt_owner_leader_chk_t = '';
                 }
             }
-            if($row_sgdt['sgdt_group_chk'] == 'Y') {
-                $row_sgdt['sgdt_adate'] = '무기한';
+            if ($row_sgdt['sgdt_group_chk'] == 'Y') {
+                $row_sgdt['sgdt_adate'] = translate('무기한', $userLang);
             } elseif ($row_sgdt['sgdt_group_chk'] == 'N') {
                 // 오늘 날짜
                 $today = new DateTime();
@@ -2375,10 +2449,10 @@ function get_sgdt_member_list($sgt_idx)
                 $remainingTimes = ($date->getTimestamp() - $today->getTimestamp()) / (60 * 60 * 24); // 시간구하기
                 $remainingHours = $remainingTimes * 24; // 시간으로 변환
                 if ($remainingDays > 0 || $remainingTimes > 0) {
-                    if($remainingDays > 0) {
-                        $row_sgdt['sgdt_adate'] = $remainingDays . '일';
+                    if ($remainingDays > 0) {
+                        $row_sgdt['sgdt_adate'] = $remainingDays . translate('일', $userLang);
                     } else {
-                        $row_sgdt['sgdt_adate'] = floor($remainingHours) . '시간';
+                        $row_sgdt['sgdt_adate'] = floor($remainingHours) . translate('시간', $userLang);
                     }
                 } else { // 기한이 지났을 경우 그룹 나가도록 설정
                     unset($arr_query);
@@ -2462,8 +2536,8 @@ function get_sgdt_member_lists($sgt_idx)
     $chk_leader = 0;
     $member_cnt = 0;
 
-    if($list_sgdt) {
-        foreach($list_sgdt as $row_sgdt) {
+    if ($list_sgdt) {
+        foreach ($list_sgdt as $row_sgdt) {
             $mt_info = get_member_t_info($row_sgdt['mt_idx']);
             $row_mllt = get_member_location_log_t_info($row_sgdt['mt_idx']);
             $my_working_cnt = $row_mllt['mt_health_work'];
@@ -2478,6 +2552,8 @@ function get_sgdt_member_lists($sgt_idx)
                 'mt_idx' => $mt_info['mt_idx'],
                 'mt_nickname' => $mt_info['mt_nickname'],
                 'mt_name' => $mt_info['mt_name'],
+                'mt_lat' => $mt_info['mt_lat'],
+                'mt_long' => $mt_info['mt_long'],
                 'my_working_cnt' => number_format($my_working_cnt),
                 'sgdt_adate' => $row_sgdt['sgdt_adate'],
             );
@@ -2575,7 +2651,7 @@ function get_sit_code()
 
     $unique = false;
     do {
-        $uid = substr("SMAP".strtoupper(md5(mt_rand())), 0, 16);
+        $uid = substr("SMAP" . strtoupper(md5(mt_rand())), 0, 16);
         $DB->where('sit_code', $uid);
         $row = $DB->getone('smap_invite_t');
 
@@ -2590,24 +2666,26 @@ function get_sit_code()
 
 function get_date_ttime($sst_sdate)
 {
-    if($sst_sdate) {
+    global $userLang;
+
+    if ($sst_sdate) {
         $sst_sdate_ex1 = explode(' ', $sst_sdate);
     }
-    if($sst_sdate_ex1[1]) {
+    if ($sst_sdate_ex1[1]) {
         $sst_sdate_ex2 = explode(':', $sst_sdate_ex1[1]);
     }
 
     $hour = intval($sst_sdate_ex2[0]);
     $minute = intval($sst_sdate_ex2[1]);
 
-    if($hour == 12 && $minute == 0) {
-        $ss_sdate_r = '정오 12';
-    } elseif($hour == 0 && $minute == 0) {
-        $ss_sdate_r = '자정 12';
-    } elseif($hour < 12) {
-        $ss_sdate_r = sprintf('오전 %02d', $hour);
+    if ($hour == 12 && $minute == 0) {
+        $ss_sdate_r = translate('정오', $userLang) . ' 12';
+    } elseif ($hour == 0 && $minute == 0) {
+        $ss_sdate_r = translate('자정', $userLang) . ' 12';
+    } elseif ($hour < 12) {
+        $ss_sdate_r = translate('오전', $userLang) . ' ' . sprintf('%02d', $hour);
     } else {
-        $ss_sdate_r = sprintf('오후 %02d', $hour == 12 ? 12 : $hour - 12);
+        $ss_sdate_r = translate('오후', $userLang) . ' ' . sprintf('%02d', $hour);
     }
 
     $ss_sdate_r .= sprintf(':%02d', $minute);
@@ -2617,16 +2695,16 @@ function get_date_ttime($sst_sdate)
 
 function get_date_f($sst_sdate)
 {
-    if($sst_sdate) {
+    if ($sst_sdate) {
         $sst_sdate_ex1 = explode(' ', $sst_sdate);
     }
-    if($sst_sdate_ex1[1]) {
+    if ($sst_sdate_ex1[1]) {
         $sst_sdate_ex2 = explode(':', $sst_sdate_ex1[1]);
     }
 
     $rtn = array();
     $rtn['date'] = $sst_sdate_ex1[0];
-    if($sst_sdate_ex2[0] < 12) {
+    if ($sst_sdate_ex2[0] < 12) {
         $rtn['ampm'] = 1;
         $rtn['hour'] = $sst_sdate_ex2[0];
     } else {
@@ -2640,10 +2718,10 @@ function get_date_f($sst_sdate)
 
 function get_distance_t($d)
 {
-    if($d < 1000) {
-        $rtn = number_format($d)."m";
+    if ($d < 1000) {
+        $rtn = number_format($d) . " m";
     } else {
-        $rtn = round(($d / 1000), 2)."km";
+        $rtn = round(($d / 1000), 2) . " km";
     }
 
     return $rtn;
@@ -2651,13 +2729,13 @@ function get_distance_t($d)
 
 function get_distance_k($d)
 {
-    if($d < 1) {
-        $rtn = round(($d * 1000), 2)."m";
+    if ($d < 1) {
+        $rtn = round(($d * 1000), 2) . " m";
     } else {
-        $rtn = round($d, 2)."km";
+        $rtn = round($d, 2) . " km";
     }
 
-    if($rtn == 'NANkm') {
+    if ($rtn == 'NANkm') {
         $rtn = '-';
     }
 
@@ -2667,9 +2745,9 @@ function get_distance_k($d)
 function get_distance_km($d)
 {
     if ($d < 1000) {
-        $rtn = round(($d), 2) . "m";
+        $rtn = round(($d), 2) . " m";
     } else {
-        $rtn = round($d / 1000, 2) . "km";
+        $rtn = round($d / 1000, 2) . " km";
     }
 
     if ($rtn == 'NANkm') {
@@ -2680,14 +2758,16 @@ function get_distance_km($d)
 }
 function get_distance_m($d)
 {
-    $rtn = round($d / 60) . "분";
+    global $userLang;
+    $rtn = round($d / 60) . ' ' . translate("분", $userLang);
 
     return $rtn;
 }
 
 function get_distance_hm($d)
 {
-    $rtn = round($d) . "분";
+    global $userLang;
+    $rtn = round($d) . ' ' . translate("분", $userLang);
 
     return $rtn;
 }
@@ -2721,7 +2801,7 @@ function get_gps_distance_k($mt_idx, $sdate)
             if ($prev_gps_time !== null) {
                 $gps_time += (strtotime($row['mlt_wdate']) - strtotime($prev_gps_time));
             }
-            
+
             // 걸음수 계산
             $gps_health_work = $row['mt_health_work'];
 
@@ -2760,7 +2840,7 @@ function get_gps_distance($mt_idx, $sdate)
         AND mt_idx = " . $mt_idx . "
         AND mlt_gps_time BETWEEN '" . $sdate . " 00:00:00' AND '" . $sdate . " 23:59:59'
         AND mlt_speed > 0
-        AND mlt_accuacy < ". $slt_mlt_accuacy ."
+        AND mlt_accuacy < " . $slt_mlt_accuacy . "
     ),
     Diffs AS (
         SELECT
@@ -3095,13 +3175,13 @@ function api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $
 
     //전송 데이터
     $fields = array(
-    'plt_type' => $plt_type,
-    'sst_idx' => $sst_idx,
-    'plt_condition' => $plt_condition,
-    'plt_memo' => $plt_memo,
-    'mt_id' => $mt_id,
-    'plt_title' => $plt_title,
-    'plt_content' => $plt_content,
+        'plt_type' => $plt_type,
+        'sst_idx' => $sst_idx,
+        'plt_condition' => $plt_condition,
+        'plt_memo' => $plt_memo,
+        'mt_id' => $mt_id,
+        'plt_title' => $plt_title,
+        'plt_content' => $plt_content,
     );
 
     $headers = array('Content-Type:application/json');
@@ -3123,7 +3203,6 @@ function api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $
     $obj = json_decode($result);
 
     return $obj;
-
 }
 
 function group_invite_del($mt_idx)
@@ -3135,10 +3214,10 @@ function group_invite_del($mt_idx)
     $DB->where('sit_status', '2');
     $sit_list = $DB->get('smap_invite_t');
 
-    if($sit_list) {
-        foreach($sit_list as $sit_row) {
+    if ($sit_list) {
+        foreach ($sit_list as $sit_row) {
             $new_date = date('Y-m-d', strtotime($sit_row['sit_wdate'] . ' +1 day'));
-            if($new_date < $current_date) {
+            if ($new_date < $current_date) {
                 unset($arr_query);
                 $arr_query = array(
                     "sit_status" => '4',
@@ -3156,11 +3235,10 @@ function member_location_history_delete()
     global $DB;
 
     $current_date = date('Y-m-d H:i:s');
-    $before_date = date('Y-m-d H:i:s', strtotime($current_date. ' -14 day'));
+    $before_date = date('Y-m-d H:i:s', strtotime($current_date . ' -14 day'));
 
-    $DB->where('mlt_gps_time <= "'. $before_date.'"');
+    $DB->where('mlt_gps_time <= "' . $before_date . '"');
     $DB->delete('member_location_log_t');
-
 }
 
 function coupon_end_check()
@@ -3250,7 +3328,7 @@ function get_ad_log_check($mt_idx)
     // $DB->select("salt.salt_idx");
     // $row = $DB->getone('smap_ad_log_t salt');
 
-    if(!$row['salt_idx']) {
+    if (!$row['salt_idx']) {
         unset($arr_query);
         $arr_query = array(
             "mt_idx" => $mt_idx,
@@ -3269,14 +3347,15 @@ function get_ad_log_check($mt_idx)
 }
 
 // 로그를 파일에 저장하는 함수
-function logToFile($message) {
+function logToFile($message)
+{
     $currentDir = dirname(__FILE__); // 현재 PHP 파일의 디렉토리 경로를 가져옵니다.
     $logFile = $currentDir . '/logfile.txt';  // 로그 파일 경로 설정
     $message = date('Y-m-d H:i:s') . ' - ' . $message . PHP_EOL;
     file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
 }
 
-if($chk_mobile) {
+if ($chk_mobile) {
     // 앱토큰값 손실 확인 로그
     unset($arr_query);
     $arr_query = array(

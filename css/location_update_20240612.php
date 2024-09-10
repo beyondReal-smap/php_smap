@@ -92,7 +92,7 @@ if ($_POST['act'] == "recom_list") {
                             if ($('#schedule_box').length) {
                                 var $calendar = $('#schedule_box');
                                 $calendar.fullCalendar({
-                                    locale: 'ko',
+                                    locale: '<?= $userLang ?>',
                                     header: false,
                                     viewRender: (view) => {
                                         let date

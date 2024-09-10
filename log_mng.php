@@ -11,10 +11,12 @@ $tt = strtotime($sdate);
 $numDay = date('d', $tt);
 $numMonth = date('m', $tt);
 $numMonth2 = date('n', $tt);
+// 숫자가 1자리일 경우 앞에 0을 붙여주는 로직 추가
+$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT); 
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
-$calendar_date_title = $numYear . "년 " . $numMonth2 . "월";
+$calendar_date_title = $numYear . "." . " " . $numMonth2;
 $now_month_year = $numYear . "-" . $numMonth;
 
 $log_start_date = date('Y-m-d', strtotime($sdate . '-30 days'));

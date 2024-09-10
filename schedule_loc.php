@@ -16,10 +16,10 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <div class="py_20 px_16">
                 <div class="ip_wr ip_valid pt-2">
                     <div class="ip_tit">
-                        <h5 class="">주소검색</h5>
+                        <h5 class=""><?= translate('주소검색', $userLang); ?></h5>
                     </div>
                     <div class="loc_search_wrap">
-                        <input type="search" class="form-control search_location" placeholder="주소를 검색해주세요." id="search_location" name="search_location">
+                        <input type="search" class="form-control search_location" placeholder="<?= translate('주소를 검색해주세요.', $userLang); ?>" id="search_location" name="search_location">
                         <button type="button" class="btn w-auto h-auto p-2 loc_search_btn"><i class="xi-search fs_24"></i></button>
                     </div>
                     <!-- <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
@@ -32,18 +32,19 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <!-- 검색 전 -->
             <div>
                 <ul class="search_results">
-                    <p class="fw_700 pt-4">검색Tip</p>
-                    <p class="position-relative slash1 pl-3 mt-3">도로명 + <span class="fw_600">건물번호</span></p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2">(예:송파대로 570)</p>
-                    <p class="position-relative slash1 pl-3 mt-3">동/읍/면/리 + <span class="fw_600">번지</span></p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2">(예:신청동 7-30)</p>
-                    <p class="position-relative slash1 pl-3 mt-3">건물명, 아파트명</p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2">(예:반포자이아파트)</p>
+                    <p class="fw_700 pt-4"><?= translate('검색Tip', $userLang); ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('도로명', $userLang); ?> + <span class="fw_600"><?= translate('건물번호', $userLang); ?></span></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:송파대로 570)', $userLang); ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('동/읍/면/리', $userLang); ?><span class="fw_600"><?= translate('+ 번지', $userLang); ?></span></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:신천동 7-30)', $userLang); ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('건물명, 아파트명', $userLang); ?></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:반포자이아파트)', $userLang); ?></p>
                 </ul>
             </div>
         </div>
     </form>
 </div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly" async defer></script>
 <script>
     $(document).ready(function() {
         // 페이지 로드 시 실행되는 함수
@@ -51,37 +52,68 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
         $('#search_location').on('keyup', function() {
             // 키 입력 시 실행되는 함수
             var keyword = $('#search_location').val();
-            $.ajax({
-                url: 'https://dapi.kakao.com/v2/local/search/keyword.json',
-                type: 'GET',
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader('Authorization', 'KakaoAK bc7899314df5dc2bebcb2a7960ac89bf');
-                },
-                data: {
-                    query: keyword
-                },
-                success: function(response) {
+            <?php
+            if ($userLang === 'ko') {
+                // 카카오 주소 찾기 스크립트
+            ?>
+                $.ajax({
+                    url: 'https://dapi.kakao.com/v2/local/search/keyword.json',
+                    type: 'GET',
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('Authorization', 'KakaoAK bc7899314df5dc2bebcb2a7960ac89bf');
+                    },
+                    data: {
+                        query: keyword
+                    },
+                    success: function(response) {
+                        $('.search_results').empty(); // 이전 검색 결과를 지움
+                        if (response.documents.length > 0) {
+                            // 검색 결과가 있을 경우
+                            $.each(response.documents, function(index, place) {
+                                var html = '<li class="d-flex align-items-center justify-content-between border-bottom py-4">';
+                                html += '<p class="fs_16 fw_600 text_dynamic line_h1_2 mr-3">' + place.place_name;
+                                html += '<br><span class="fs_14 fw_500 text_gray text_dynamic line_h1_2 mr-3">' + place.road_address_name + '</span></p>';
+                                html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.road_address_name + '\',\'' + place.y + '\',\'' + place.x + '\',\'' + place.place_name + '\')">선택</button>';
+                                html += '</li>';
+                                $('.search_results').append(html);
+                            });
+                        } else {
+                            // 검색 결과가 없을 경우
+                            $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('API 요청 실패:', status, error);
+                        $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
+                    }
+                });
+            <?php } else {
+            ?>
+                // Google Maps API를 사용한 장소 검색 (여러 결과)
+                var service = new google.maps.places.PlacesService(document.createElement('div'));
+                var request = {
+                    query: keyword,
+                    fields: ['name', 'formatted_address', 'geometry']
+                };
+
+                service.textSearch(request, function(results, status) {
                     $('.search_results').empty(); // 이전 검색 결과를 지움
-                    if (response.documents.length > 0) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
                         // 검색 결과가 있을 경우
-                        $.each(response.documents, function(index, place) {
+                        $.each(results, function(index, place) {
                             var html = '<li class="d-flex align-items-center justify-content-between border-bottom py-4">';
-                            html += '<p class="fs_16 fw_600 text_dynamic line_h1_2 mr-3">' + place.place_name;
-                            html += '<br><span class="fs_14 fw_500 text_gray text_dynamic line_h1_2 mr-3">' + place.road_address_name + '</span></p>';
-                            html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.road_address_name + '\',\'' + place.y + '\',\'' + place.x + '\',\'' + place.place_name + '\')">선택</button>';
+                            html += '<p class="fs_16 fw_600 text_dynamic line_h1_2 mr-3">' + place.name;
+                            html += '<br><span class="fs_14 fw_500 text_gray text_dynamic line_h1_2 mr-3">' + place.formatted_address + '</span></p>';
+                            html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.formatted_address + '\',\'' + place.geometry.location.lat() + '\',\'' + place.geometry.location.lng() + '\',\'' + place.name + '\')">선택</button>';
                             html += '</li>';
                             $('.search_results').append(html);
                         });
                     } else {
                         // 검색 결과가 없을 경우
-                        $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
+                        $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="No results"><p class="mt_20 fc_gray_500 text-center line_h1_4">No results found for your search.</p></div>');
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error('API 요청 실패:', status, error);
-                    $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
-                }
-            });
+                });
+            <?php } ?>
         });
         setTimeout(function() {
             if (isAndroid()) {

@@ -8,24 +8,24 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 test_dynamic">SMAP과 함께라면,
-            소중한 사람들과의 거리가
-            가까워 집니다</p>
-        <p class="fc_gray_600 test_dynamic mt-3">위치 기반 일정 관리로 더 빠르고 정확하게 소통해요.</p>
+        <p class="tit_h1 wh_pre line_h1_3 test_dynamic"><?= translate('SMAP과 함께라면,', $userLang) ?>
+            <?= translate('소중한 사람들과의 거리가', $userLang) ?>
+            <?= translate('가까워 집니다.', $userLang) ?></p>
+        <p class="fc_gray_600 test_dynamic mt-3"><?= translate('위치 기반 일정 관리로 더 빠르고 정확하게 소통해요.', $userLang) ?></p>
         <form action="" onkeypress="return event.keyCode != 13;">
             <div class="mt-5">
                 <div class="ip_wr mt-5">
                     <div class="ip_tit">
-                        <h5 class="">휴대전화번호</h5>
+                        <h5 class=""><?= translate('휴대전화번호', $userLang) ?></p></h5>
                     </div>
-                    <input type="tel" class="form-control" placeholder="010-0000-0000" id="phoneNumber" name="phoneNumber" maxlength="13" oninput="restrictInput(this);formatPhoneNumber(this);">
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 휴대전화번호를 다시 확인해주세요</div>
+                    <input type="tel" class="form-control" placeholder="<?= translate('010-0000-0000', $userLang) ?>" id="phoneNumber" name="phoneNumber" maxlength="13" oninput="restrictInput(this);formatPhoneNumber(this);">
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate('확인되었습니다.', $userLang) ?></p></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate('휴대전화번호를 다시 확인해주세요.', $userLang) ?></p></div>
                 </div>
             </div>
             <div class="mt-5">
-                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_verify.php'">입력했어요!</button>-->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="check_hp()">입력했어요!</button>
+                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_verify.php'"><?= translate('입력했어요!', $userLang) ?></button>-->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="check_hp()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

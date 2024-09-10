@@ -52,7 +52,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn rounded btn-primary btn-lg btn-block" disabled>입력했어요!</button>
+                <button type="submit" class="btn rounded btn-primary btn-lg btn-block" disabled><?= translate('입력했어요!', $userLang) ?></button>
             </div>
             <div id="layoutViewport"></div>
         </form>

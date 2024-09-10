@@ -30,7 +30,11 @@ opcache_reset();
 
     <meta content="telephone=no" name="format-detection">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
+
+    <link rel="apple-touch-startup-image" href="/path/to/launch.png">
 
     <meta property="og:title" content="smap">
 

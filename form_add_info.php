@@ -66,7 +66,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
             </div>
             <div class="bottom_btn_flex_end_wrap" style="height: 120px;">
                 <div class="bottom_btn_flex_end_box">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block">입력했어요!</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?= translate('입력했어요!', $userLang) ?></button>
                 </div>
             </div>
         </form>

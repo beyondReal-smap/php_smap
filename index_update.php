@@ -10,7 +10,7 @@ if ($_POST['act'] == "weather_get") {
     $cache_key = 'weather_dat_' . $_SESSION['_mt_idx'];
 
     // 캐시에서 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
+    // $cached_data = CacheUtil::get($cache_key);
 
     if ($cached_data) {
         // 캐시에서 데이터를 찾았을 경우
@@ -82,8 +82,8 @@ if ($_POST['act'] == "weather_get") {
 
         $get_weather_icon = $arr_mt_weather_sky_icon[$get_weather_status];
         $get_weather_txt = $arr_mt_weather_sky[$get_weather_status];
-
-        $region = get_search_coordinate2address($_SESSION['_mt_lat'], $_SESSION['_mt_long']);
+        // logToFile("index_update - lat : {$_SESSION['_mt_lat']} / lng : {$_SESSION['_mt_long']} ");
+        $region = get_search_coordinate2address($_SESSION['_mt_lat'], $_SESSION['_mt_long'], $userLang);
 
         // 캐시에 데이터 저장
         $cache_data = [
@@ -97,6 +97,7 @@ if ($_POST['act'] == "weather_get") {
         ];
         CacheUtil::set($cache_key, $cache_data, 3600); // 1시간 동안 캐시 유지
 
+        // logToFile("index_update - lat : {$_SESSION['_mt_lat']} / lng : {$_SESSION['_mt_long']} ");
         if ($_SESSION['_mt_idx']) {
             unset($arr_query);
             $arr_query = array(
@@ -124,8 +125,8 @@ if ($_POST['act'] == "weather_get") {
     if ($get_weather_t == 'Y') {
 ?>
         <div class="d-flex align-items-center p_address">
-            <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area3'] ?> ·</p>
-            <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area1'] ?></p>
+            <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area1'] ?> ·</p>
+            <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area3'] ?></p>
         </div>
         <div class="d-flex align-items-center justify-content-between flex-wrap">
             <div class="date_weather d-flex align-items-center flex-wrap">
@@ -171,7 +172,7 @@ if ($_POST['act'] == "weather_get") {
                     $arr_rtn['speed_km'] = $mt_speed_t . "km/h";
                 }
 
-                $my_add = get_search_coordinate2address($mt_location_info['mlt_lat'], $mt_location_info['mlt_long']);
+                $my_add = get_search_coordinate2address($mt_location_info['mlt_lat'], $mt_location_info['mlt_long'], $userLang);
                 $arr_rtn['my_add'] = $my_add['area1'] . " " . $my_add['area2'] . " " . $my_add['area3'];
 
                 $arr_sst_idx = get_schedule_array($row_slmt['sgdt_mt_idx'], $s_date);

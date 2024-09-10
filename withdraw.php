@@ -3,17 +3,17 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '6';
 $h_url = './setting_list';
-$_SUB_HEAD_TITLE = "회원탈퇴";
+$_SUB_HEAD_TITLE = translate("회원탈퇴", $userLang); // "회원탈퇴" 번역
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert(translate('로그인이 필요합니다.', $userLang), './login', ''); // "로그인이 필요합니다." 번역
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', './logout');
+        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout'); // "다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다." 번역
     }
 }
 ?>
@@ -57,29 +57,28 @@ if ($_SESSION['_mt_idx'] == '') {
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">본인 확인을 위해
-            현재 비밀번호를 입력해 주세요.
-        </p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= translate("본인 확인을 위해", $userLang); ?>
+            <?= translate("현재 비밀번호를 입력해 주세요.", $userLang); ?> </p>
         <form method="post" name="frm_form" id="frm_form" action="./setting_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="withdraw" />
             <div class="mt-5">
                 <div class="ip_wr" id="mt_pass_text">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= translate("비밀번호", $userLang); ?></h5> <!-- "비밀번호" 번역 -->
                     </div>
                     <div class="ip_password">
-                        <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="비밀번호를 입력해주세요." oninput="f_isValid(this)">
+                        <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="<?= translate("비밀번호를 입력해주세요.", $userLang); ?>" oninput="f_isValid(this)"> <!-- "비밀번호를 입력해주세요." 번역 -->
                         <div class="btn btn_password_eye" id="password_show"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2">비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.</div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 비밀번호를 다시 확인해주세요</div>
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2"><?= translate("비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.", $userLang); ?></div> <!-- "비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다." 번역 -->
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate("확인되었습니다.", $userLang); ?></div> <!-- "확인되었습니다." 번역 -->
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate("비밀번호를 다시 확인해주세요", $userLang); ?></div> <!-- "비밀번호를 다시 확인해주세요" 번역 -->
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block ">비밀번호 확인하기</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block "><?= translate("비밀번호 확인하기", $userLang); ?></button> <!-- "비밀번호 확인하기" 번역 -->
             </div>
             <div id="layoutViewport"></div>
         </form>
@@ -124,7 +123,7 @@ if ($_SESSION['_mt_idx'] == '') {
 
             $.validator.addMethod("regex", function(value, element, regexpr) {
                 return regexpr.test(value);
-            }, "비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.");
+            }, "<?= translate("비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.", $userLang); ?>"); // "비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다." 번역
 
             $("#frm_form").validate({
                 submitHandler: function() {
@@ -152,7 +151,7 @@ if ($_SESSION['_mt_idx'] == '') {
                                 $('#withdraw_modal').modal('show');
                             } else {
                                 // $('#splinner_modal').modal('toggle');
-                                jalert('아이디 및 비밀번호가 올바르지 않습니다.<br/>아이디, 비밀번호는 대문자, 소문자를 구분합니다.<br/><Caps Lock>키가 켜져 있는지 확인하시고 다시 입력하십시오.');
+                                jalert('<?= translate("아이디 및 비밀번호가 올바르지 않습니다.<br/>아이디, 비밀번호는 대문자, 소문자를 구분합니다.<br/><Caps Lock>키가 켜져 있는지 확인하시고 다시 입력하십시오.", $userLang); ?>'); // "아이디 및 비밀번호가 올바르지 않습니다.<br/>아이디, 비밀번호는 대문자, 소문자를 구분합니다.<br/><Caps Lock>키가 켜져 있는지 확인하시고 다시 입력하십시오." 번역
                             }
                         },
                         error: function(err) {
@@ -171,8 +170,8 @@ if ($_SESSION['_mt_idx'] == '') {
                 },
                 messages: {
                     mt_pass: {
-                        required: "비밀번호를 입력하세요.",
-                        minlength: "최소 {0}글자이상이어야 합니다",
+                        required: "<?= translate("비밀번호를 입력하세요.", $userLang); ?>", // "비밀번호를 입력하세요." 번역
+                        minlength: "<?= translate("최소 {0}글자이상이어야 합니다", $userLang); ?>", // "최소 {0}글자이상이어야 합니다" 번역
                     },
                 },
                 errorPlacement: function(error, element) {
@@ -192,11 +191,11 @@ if ($_SESSION['_mt_idx'] == '') {
                 });
 
                 if (c < 1) {
-                    jalert('탈퇴사유를 선택바랍니다.');
+                    jalert('<?= translate("탈퇴사유를 선택바랍니다.", $userLang); ?>'); // "탈퇴사유를 선택바랍니다." 번역
                     return false;
                 }
                 if ($("input:radio[name=mt_retire_chk]:checked").val() == '4' && $('#mt_retire_etc').val() == '') {
-                    jalert('탈퇴하시는 기타이유를 입력바랍니다.');
+                    jalert('<?= translate("탈퇴하시는 기타이유를 입력바랍니다.", $userLang); ?>'); // "탈퇴하시는 기타이유를 입력바랍니다." 번역
                     return false;
                 }
 
@@ -220,7 +219,7 @@ if ($_SESSION['_mt_idx'] == '') {
                     success: function(data) {
                         if (data == 'Y') {
                             $('#withdraw_modal').modal('hide');
-                            jalert_url('회원탈퇴가 완료되었습니다.', './join_entry');
+                            jalert_url('<?= translate("회원탈퇴가 완료되었습니다.", $userLang); ?>', './join_entry'); // "회원탈퇴가 완료되었습니다." 번역
                         } else {
 
                             console.log(data);
@@ -240,11 +239,10 @@ if ($_SESSION['_mt_idx'] == '') {
     <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header px-5 pt-5 pb-4">
-                <p class="text_dynamic fs_16 fw_800 line_h1_3">우리 서비스를 떠나시려는 이유를
+                <p class="text_dynamic fs_16 fw_800 line_h1_3"><?= translate("우리 서비스를 떠나시려는 이유를
                     알려주실 수 있나요?
                     귀하의 소중한 의견을 통해
-                    더 나은 서비스를 제공하려 노력합니다.
-                </p>
+                    더 나은 서비스를 제공하려 노력합니다.", $userLang); ?></p> <!-- "우리 서비스를 떠나시려는 이유를\n알려주실 수 있나요?\n귀하의 소중한 의견을 통해\n더 나은 서비스를 제공하려 노력합니다." 번역 -->
             </div>
             <div class="modal-body px-5 pt-0 pb-5">
                 <form class="">
@@ -270,31 +268,31 @@ if ($_SESSION['_mt_idx'] == '') {
                             <!-- 탈퇴이유 -->
                             <div class="ip_wr pb-3">
                                 <div class="ip_tit d-flex align-items-center justify-content-between">
-                                    <h5 class="fs_15 fw_500 text-text">탈퇴하는 이유를 알려주세요.</h5>
+                                    <h5 class="fs_15 fw_500 text-text"><?= translate("탈퇴하는 이유를 알려주세요.", $userLang); ?></h5> <!-- "탈퇴하는 이유를 알려주세요." 번역 -->
                                 </div>
-                                <textarea class="form-control txt-cnt" name="mt_retire_etc" id="mt_retire_etc" maxlength="1000" data-length-id="mt_retire_etc_cnt" placeholder="입력해주세요" rows="3"></textarea>
+                                <textarea class="form-control txt-cnt" name="mt_retire_etc" id="mt_retire_etc" maxlength="1000" data-length-id="mt_retire_etc_cnt" placeholder="<?= translate("입력해주세요", $userLang); ?>" rows="3"></textarea> <!-- "입력해주세요" 번역 -->
                                 <p class="fc_gray_600 fs_12 text-right mt-2">(<span id="mt_retire_etc_cnt">0</span>/1000)</p>
-                                <div class="invalid-feedback">1000자까지만 써주세요</div>
+                                <div class="invalid-feedback"><?= translate("1000자까지만 써주세요", $userLang); ?></div> <!-- "1000자까지만 써주세요" 번역 -->
                             </div>
                         </div>
                     </div>
                 </form>
                 <div class="bg_gray px_16 pt_16 pb-2 rounded_12">
                     <div class="d-flex align-items-center">
-                        <img src="<?= CDN_HTTP ?>/img/ico_warring_chk.png" width="14px" alt="확인해주세요" class="mr_08" />
-                        <p class="fs_16 fw_800 line_h1_2">아래 사항을 확인해주세요.</p>
+                        <img src="<?= CDN_HTTP ?>/img/ico_warring_chk.png" width="14px" alt="<?= translate("확인해주세요", $userLang); ?>" class="mr_08" /> <!-- "확인해주세요" 번역 -->
+                        <p class="fs_16 fw_800 line_h1_2"><?= translate("아래 사항을 확인해주세요.", $userLang); ?></p> <!-- "아래 사항을 확인해주세요." 번역 -->
                     </div>
                     <ul class="py_07">
-                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2">모든 데이터와 기록이 삭제돼요.</li>
-                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2">한 번 탈퇴하시면 복구가 불가능해요.</li>
-                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2">재가입 시 이전 정보와 데이터는 복원되지 않아요.</li>
+                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2"><?= translate("모든 데이터와 기록이 삭제돼요.", $userLang); ?></li> <!-- "모든 데이터와 기록이 삭제돼요." 번역 -->
+                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2"><?= translate("한 번 탈퇴하시면 복구가 불가능해요.", $userLang); ?></li> <!-- "한 번 탈퇴하시면 복구가 불가능해요." 번역 -->
+                        <li class="position-relative slash5 text_dynamic pl_22 fs_14 py_06 line_h1_2"><?= translate("재가입 시 이전 정보와 데이터는 복원되지 않아요.", $userLang); ?></li> <!-- "재가입 시 이전 정보와 데이터는 복원되지 않아요." 번역 -->
                     </ul>
                 </div>
             </div>
             <div class="modal-footer w-100 p-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="f_withdraw();">탈퇴하기</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close">나중에</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="f_withdraw();"><?= translate("탈퇴하기", $userLang); ?></button> <!-- "탈퇴하기" 번역 -->
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?= translate("나중에", $userLang); ?></button> <!-- "나중에" 번역 -->
                 </div>
             </div>
         </div>

@@ -2612,14 +2612,16 @@ function get_distance_km($d)
 }
 function get_distance_m($d)
 {
-    $rtn = round($d / 60) . "분";
+    global $userLang;
+    $rtn = round($d / 60) . translate("분", $userLang); 
 
     return $rtn;
 }
 
 function get_distance_hm($d)
-{
-    $rtn = round($d) . "분";
+{ 
+    global $userLang;
+    $rtn = round($d) . translate("분", $userLang);
 
     return $rtn;
 }

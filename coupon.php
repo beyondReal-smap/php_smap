@@ -37,7 +37,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 </div>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="check_coupon()">입력했어요!</button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="check_coupon()"><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

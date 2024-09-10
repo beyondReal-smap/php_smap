@@ -2,7 +2,7 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '2';
 $h_menu = '8';
-$_SUB_HEAD_TITLE = "그룹";
+$_SUB_HEAD_TITLE = translate("그룹", $userLang);
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 // include $_SERVER['DOCUMENT_ROOT'] . "/anthropic.php";
@@ -268,16 +268,16 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                     <a href="#" class="d-flex align-items-center">
                         <div class="prd_img flex-shrink-0 mr_12 mine">
                             <div class="rect_square rounded_14">
-                                <img src="<?= $_SESSION['_mt_file1'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="프로필이미지" />
+                                <img src="<?= $_SESSION['_mt_file1'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="<?= translate("프로필이미지", $userLang) ?>" />
                             </div>
                         </div>
                         <div>
                             <p class="fs_14 fw_500 text_dynamic mr-2"><?= $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'] ?></p>
                             <div class="d-flex align-items-center flex-wrap">
                                 <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><? if ($sgt_cnt > 0) {
-                                                                                                        echo "오너";
+                                                                                                        echo translate("오너", $userLang);
                                                                                                     } else if ($sgdt_leader_cnt > 0) {
-                                                                                                        echo "리더";
+                                                                                                        echo translate("리더", $userLang);
                                                                                                     } ?></p>
                                 <?php if ($sgt_cnt <= 0) {
                                     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -286,7 +286,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                     $DB->where('sgdt_show', 'Y');
                                     $sgdt_row = $DB->getone('smap_group_detail_t');
                                     if ($sgdt_row['sgdt_group_chk'] == 'Y') {
-                                        $sgdt_row['sgdt_adate'] = '무기한';
+                                        $sgdt_row['sgdt_adate'] = translate("무기한", $userLang);
                                     } else if ($sgdt_row['sgdt_group_chk'] == 'N') {
                                         // 오늘 날짜
                                         $today = new DateTime();
@@ -298,9 +298,9 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                         $remainingHours = $remainingTimes * 24; // 시간으로 변환
                                         if ($remainingDays > 0 || $remainingTimes > 0) {
                                             if ($remainingDays > 0) {
-                                                $sgdt_row['sgdt_adate'] = $remainingDays . '일';
+                                                $sgdt_row['sgdt_adate'] = $remainingDays . translate("일", $userLang);
                                             } else {
-                                                $sgdt_row['sgdt_adate'] = floor($remainingHours) . '시간';
+                                                $sgdt_row['sgdt_adate'] = floor($remainingHours) . translate("시간", $userLang);
                                             }
                                         }
                                     }
@@ -311,7 +311,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <?php }
                                     if ($sgdt_leader_cnt  > 0 || $sgdt_cnt > 0) { ?>
-                                        <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"> 남은기간 : <?= $sgdt_row['sgdt_adate'] ?></p>
+                                        <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate("남은기간", $userLang) ?> : <?= $sgdt_row['sgdt_adate'] ?></p>
                                 <?php }
                                 } ?>
                             </div>
@@ -375,14 +375,14 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
     </script>
     <div id="invite_group_list_box"></div>
 </div>
-<div class="container sub_pg bg_main">
+<!-- <div class="container sub_pg bg_main">
     <div class="mt_20">
         <div class="fixed_top bg_main">
             <div class="py_20 px_16">
             </div>
         </div>
     </div>
-</div>
+</div> -->
 <?php
         }
 ?>
@@ -391,16 +391,16 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹만들기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹만들기", $userLang) ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700">친구들과 함께하는
-                    <span class="text-primary">그룹</span>을 만들어보세요!
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("친구들과 함께하는", $userLang) ?>
+                    <span class="text-primary"><?= translate("그룹", $userLang) ?></span>을 <?= translate("만들어보세요!", $userLang) ?>
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">그룹을 통해 친구들과 실시간 위치와 일정을 공유해보세요.</p>
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹을 통해 친구들과 실시간 위치와 일정을 공유해보세요.", $userLang) ?></p>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'">다음</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?= translate("다음", $userLang) ?></button>
             </div>
         </div>
     </div>
@@ -410,16 +410,16 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹원 초대하기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹원 초대하기", $userLang) ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700">그룹이 생성되었습니다. 
-                    이제 함께할 <span class="text-primary">그룹원</span>을 초대해볼까요?
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("그룹이 생성되었습니다.", $userLang) ?> 
+                    <?= translate("이제 함께할", $userLang) ?> <span class="text-primary"><?= translate("그룹원", $userLang) ?></span>을 <?= translate("초대해볼까요?", $userLang) ?>
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">그룹원을 초대하고 함께 위치와 일정을 공유해보세요!</p>
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹원을 초대하고 함께 위치와 일정을 공유해보세요!", $userLang) ?></p>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'">초대하러 가기</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'"><?= translate("초대하러 가기", $userLang) ?></button>
             </div>
         </div>
     </div>
@@ -439,20 +439,19 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹 활동기한 설정</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹 활동기한 설정", $userLang) ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700">반가워요!
-                    <?= $sgt_row['sgt_title'] ?> 그룹 활동 기한 설정이 필요하신가요?
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("반가워요!", $userLang) ?>
+                    <?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한 설정이 필요하신가요?", $userLang) ?>
                 </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 fw_500 mt-3"><?= $sgt_row['sgt_title'] ?> 그룹 활동 기한은 개인 정보 보호를 위해
-                    설정한 시간 동안만 위치를 공유하게 해줍니다.
+                <p class="text_dynamic line_h1_3 text_gray fs_14 fw_500 mt-3"><?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한은 개인 정보 보호를 위해\n설정한 시간 동안만 위치를 공유하게 해줍니다.", $userLang) ?>
                 </p>
             </div>
             <div class="flt_footer flt_footer_b">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 flt_close" onclick="group_activity_chk('<?= $row['sgdt_idx'] ?>')">아니요</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./group_act_period?sgdt_idx=<?= $row['sgdt_idx'] ?>'">네</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 flt_close" onclick="group_activity_chk('<?= $row['sgdt_idx'] ?>')"><?= translate("아니요", $userLang) ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./group_act_period?sgdt_idx=<?= $row['sgdt_idx'] ?>'"><?= translate("네", $userLang) ?></button>
                 </div>
             </div>
         </div>
@@ -464,12 +463,12 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         <div class="modal-content">
             <input type="hidden" name="group_out_modal_sgdt_idx" id="group_out_modal_sgdt_idx" value="" />
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">그룹에서 나가시겠어요?</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= translate("그룹에서 나가시겠어요?", $userLang) ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close">아니요</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();">나가기</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate("아니요", $userLang) ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();"><?= translate("나가기", $userLang) ?></button>
                 </div>
             </div>
         </div>
@@ -485,15 +484,15 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                 <div class="d-inline-block w-100 text-right">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" width="24px"></button>
                 </div>
-                <p class="fs_18 fw_700 text_dynamic line_h1_2">초대장은 어떻게 보낼까요?</p>
+                <p class="fs_18 fw_700 text_dynamic line_h1_2"><?= translate("초대장은 어떻게 보낼까요?", $userLang) ?></p>
             </div>
             <div class="modal-body">
                 <ul>
                     <li>
                         <a href="javascript:;" onclick="f_share_link('kakao');" class="d-flex align-items-center justify-content-between py_07">
                             <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="카카오톡 열기" width="40px" class="mr_12" id="kakao_image" />
-                                <p class="fs_15 fw_500 gray_900" id="kakao_text">카카오톡 열기</p>
+                                <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="<?= translate("카카오톡 열기", $userLang) ?>" width="40px" class="mr_12" id="kakao_image" />
+                                <p class="fs_15 fw_500 gray_900" id="kakao_text"><?= translate("카카오톡 열기", $userLang) ?></p>
                             </div>
                             <i class=" xi-angle-right-min fs_15 text_gray"></i>
                         </a>
@@ -501,8 +500,8 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                     <li>
                         <a href="javascript:;" onclick="f_share_link('clipboard');" class="d-flex align-items-center justify-content-between py_07 btn_copy">
                             <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="초대 링크 복사" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900">초대 링크 복사</p>
+                                <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="<?= translate("초대 링크 복사", $userLang) ?>" width="40px" class="mr_12" />
+                                <p class="fs_15 fw_500 gray_900"><?= translate("초대 링크 복사", $userLang) ?></p>
                             </div>
                             <i class="xi-angle-right-min fs_15 text_gray"></i>
                         </a>
@@ -510,8 +509,8 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                     <li>
                         <a href="javascript:;" onclick="f_share_link('contact');" class="d-flex align-items-center justify-content-between py_07">
                             <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="연락처 열기" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900">연락처 열기</p>
+                                <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="<?= translate("연락처 열기", $userLang) ?>" width="40px" class="mr_12" />
+                                <p class="fs_15 fw_500 gray_900"><?= translate("연락처 열기", $userLang) ?></p>
                             </div>
                             <i class="xi-angle-right-min fs_15 text_gray"></i>
                         </a>

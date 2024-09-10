@@ -198,7 +198,7 @@ $expt_cnt = $row['cnt'];
                 <div class="border bg-white rounded-lg px_16 py_16">
                     <!-- 위치조정 슬라이드 -->
                     <div class="border-bottom loc_rog_adj pb-4">
-                        <p class="fs_16 fw_600">위치로그 탐색</p>
+                        <p class="fs_16 fw_600">이동경로 따라가기</p>
                         <div class="pt-4">
                             <input type="range" class="custom-range" id="timeSlider" min='1' max='1' value='1'>
                         </div>

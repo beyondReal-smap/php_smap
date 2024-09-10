@@ -92,7 +92,7 @@ if ($_POST['act'] == "recom_list") {
                             if ($('#schedule_box').length) {
                                 var $calendar = $('#schedule_box');
                                 $calendar.fullCalendar({
-                                    locale: 'ko',
+                                    locale: '<?= $userLang ?>',
                                     header: false,
                                     viewRender: (view) => {
                                         let date
@@ -193,32 +193,32 @@ if ($_POST['act'] == "recom_list") {
     if (empty($_SESSION['_mt_idx'])) {
         p_alert('로그인이 필요합니다.', './login', '');
     }
-    
+
     $mt_idx_t = $_POST['sgdt_mt_idx'] ?? $_SESSION['_mt_idx'];
     $sdate = $_POST['sdate'] ?? date('Y-m-d');
     $lsdate = $_POST['lsdate'] ?? '';
     $ledate = $_POST['ledate'] ?? '';
-    
+
     // Get member information
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
-    
+
     // Calculate the start date based on member level
     $days_back = ($mem_row['mt_level'] == 5 || $mem_row['mt_level'] == 9) ? 14 : 2;
     $start_date = date('Y-m-d', strtotime("$sdate -$days_back days"));
-    
+
     $get_first_date_week = date('w', strtotime($start_date));
     $get_end_date_week = date('w', strtotime($sdate));
     $get_first_date = date('Y-m-d', strtotime("$start_date - $get_first_date_week days"));
     $get_end_date = date('Y-m-d', strtotime("$sdate + " . (6 - $get_end_date_week) . " days"));
-    
+
     $diff_days = (strtotime($get_end_date) - strtotime($get_first_date)) / (60 * 60 * 24); // 초 단위를 일 단위로 변환
-    
+
     $_POST['start'] = $get_first_date;
     $_POST['end'] = $get_end_date;
-    
+
     $arr_data = [];
-    
+
     // Retrieve summarized location logs
     $sql = "
         SELECT 
@@ -239,16 +239,16 @@ if ($_POST['act'] == "recom_list") {
         ORDER BY 
             log_date ASC
     ";
-    
+
     $list = $DB->rawQuery($sql);
-    
+
     foreach ($list as $row) {
         $arr_data[$row['log_date']] = [
             'id' => $row['mlt_idx'],
             'start' => $row['start_time'],
             'end' => $row['end_time'],
         ];
-    }    
+    }
 
     ?>
     <form>
@@ -341,20 +341,20 @@ if ($_POST['act'] == "recom_list") {
         $rtn = get_gps_distance($_POST['mt_idx'], $_POST['event_start_date']);
     ?>
         <li class="text-center border-right flex-fill loc_rog_ul_l11">
-            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic">일정개수</p>
-            <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= number_format($cnt) ?><span>개</span></p>
+            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('일정개수', $userLang) ?></p>
+            <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= number_format($cnt) ?><span><?= translate(' 개', $userLang) ?></span></p>
         </li>
         <li class="text-center border-right flex-fill loc_rog_ul_l12">
-            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic">이동거리</p>
+            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동거리', $userLang) ?></p>
             <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= get_distance_km($rtn[0]) ?></p>
         </li>
         <li class="text-center border-right flex-fill loc_rog_ul_l13">
-            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic">이동시간</p>
+            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동시간', $userLang) ?></p>
             <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= get_distance_hm($rtn[1]) ?></p>
         </li>
         <li class="text-center flex-fill loc_rog_ul_l14">
-            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic">걸음수</p>
-            <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= $rtn[2] ?>걸음</p>
+            <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('걸음수', $userLang) ?></p>
+            <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic"><?= number_format($rtn[2]) ?> <?= translate(' 걸음', $userLang) ?></p>
         </li>
     <?php
     }
@@ -363,261 +363,356 @@ if ($_POST['act'] == "recom_list") {
         p_alert('로그인이 필요합니다.', './login', '');
     }
 
-    // 캐시 키 생성
-    $cache_key = 'get_line_' . $_POST['sgdt_idx'] . '_' . $_POST['event_start_date'] . '_' . $_POST['sgdt_mt_idx'];
+    // Function to calculate distance between two coordinates using Haversine formula
+    function haversineDistance2($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // Earth radius in meters
 
-    // 캐시에서 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
-    
-    if ($cached_data === null) {
-        // 캐시에 데이터가 없으면 계산 수행
-        $DB->where('sgdt_idx', $_POST['sgdt_idx']);
-        $sgdt_row = $DB->getone('smap_group_detail_t');
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
 
-        // 기본 지도 위치 지정
-        if ($sgdt_row) {
-            $DB->where('mt_idx', $sgdt_row['mt_idx']);
-            $mem_row = $DB->getone('member_t');
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
 
-            $DB->where('mt_idx', $sgdt_row['mt_idx']);
-            // $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
-            // $DB->where("mlt_speed >= " . $slt_mlt_speed);
-            $DB->orderby('mlt_gps_time', 'desc');
-            $mt_location_info = $DB->getone('member_location_log_t');
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-            if ($_SESSION['_mt_lat'] == '') {
-                $_SESSION['_mt_lat'] = 37.5665;
-            }
-            if ($_SESSION['_mt_long'] == '') {
-                $_SESSION['_mt_long'] = 126.9780;
-            }
-            $arr_data['my_lat'] = $mt_location_info['mlt_lat'] == "" ? $_SESSION['_mt_lat'] : $mt_location_info['mlt_lat'];
-            $arr_data['mt_long'] = $mt_location_info['mlt_long'] == "" ? $_SESSION['_mt_long'] :  $mt_location_info['mlt_long'];
-            $arr_data['my_profile'] = $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']);
-            
-        } else {
-            $arr_data['my_lat'] = $_SESSION['_mt_lat'] == "" ? 37.5665 : $_SESSION['_mt_lat'];
-            $arr_data['mt_long'] = $_SESSION['_mt_long'] == "" ? 126.9780 : $_SESSION['_mt_long'];
-            $arr_data['my_profile'] = $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'];
+        return $earthRadius * $c;
+    }
+
+    // 거리 계산 함수
+    function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        // Haversine 공식을 사용하여 두 지점 사이의 거리를 계산하는 함수입니다.
+        $earthRadius = 6371; // 지구 반지름 (단위: km)
+
+        $lat1 = deg2rad($lat1);
+        $lon1 = deg2rad($lon1);
+        $lat2 = deg2rad($lat2);
+        $lon2 = deg2rad($lon2);
+
+        $deltaLat = $lat2 - $lat1;
+        $deltaLon = $lon2 - $lon1;
+
+        $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($deltaLon / 2) * sin($deltaLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        $distance = $earthRadius * $c;
+
+        return $distance;
+    }
+
+    function isOutlier($prev, $current, $next)
+    {
+        $distancePrevCurrent = calculateDistance(
+            $prev['latitude'],
+            $prev['longitude'],
+            $current['latitude'],
+            $current['longitude']
+        );
+        $distanceCurrentNext = calculateDistance(
+            $current['latitude'],
+            $current['longitude'],
+            $next['latitude'],
+            $next['longitude']
+        );
+        $distancePrevNext = calculateDistance(
+            $prev['latitude'],
+            $prev['longitude'],
+            $next['latitude'],
+            $next['longitude']
+        );
+
+        // 현재 위치가 이전과 다음 위치 사이에서 너무 벗어나 있는지 확인
+        $threshold = 1.8; // 이 값은 상황에 따라 조정 가능
+        if ($distancePrevCurrent + $distanceCurrentNext > $distancePrevNext * $threshold) {
+            return true;
+        }
+        return false;
+    }
+
+    function formatStayTime($seconds)
+    {
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        $stay_time_formatted = "";
+
+        if ($hours > 0) {
+            $stay_time_formatted .= $hours . "시간 ";
         }
 
-        // 일정 마커 구하기
-        $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
-        $cnt = count($arr_sst_idx);
-        if ($cnt < 1) {
-            // JSON으로 변환하여 출력
-            $arr_data['schedule_chk'] = 'N';
-        } else {
-            $arr_sst_idx_im = implode(',', $arr_sst_idx);
-            unset($list_sst);
-            $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
-            $DB->where('sst_show', 'Y');
-            // $DB->groupBy("mt_idx");
-            $DB->orderBy("sst_all_day", "asc");
-            $DB->orderBy("sst_sdate", "asc");
-            $list_sst = $DB->get('smap_schedule_t');
+        $stay_time_formatted .= $minutes . "분 체류";
+        return $stay_time_formatted;
+    }
 
-            if ($list_sst) {
-                $count = 1;
-                $current_date = date('Y-m-d H:i:s');
-                foreach ($list_sst as $row_sst_a) {
-                    $mt_info = get_member_t_info($row_sst_a['mt_idx']);
-                    $mt_file1_url = get_image_url($mt_info['mt_file1']);
+    function log_to_file($message, $file_path)
+    {
+        $date = date('Y-m-d H:i:s');
+        $log_message = "[{$date}] {$message}" . PHP_EOL;
+        file_put_contents($file_path, $log_message, FILE_APPEND);
+    }
 
-                    if ($row_sst_a['sst_all_day'] == 'Y') {
-                        $sst_all_day_t = '하루종일';
-                    } else {
-                        $repeat_array = json_decode($row_sst_a['sst_repeat_json'], true);
-                        // 반복을 저장할 배열
-                        $repeat_values = array();
 
-                        // "r1"이 1이 아니거나 값이 없는 경우를 제외하고 반복을 생성
-                        if ($repeat_array['r1'] == 1 || empty($repeat_array['r1'])) {
-                            $sst_sdate_d1 = datetype($row_sst_a['sst_sdate'], 5);
-                            $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
-                            $sst_sdate_d2 = datetype($row_sst_a['sst_edate'], 5);
-                            $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
-                            // $sst_all_day_t = $sst_sdate_d1 . $sst_sdate_e1 . ' ~ ' . $sst_sdate_d2 . $sst_sdate_e2;
-                            $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
-                        } else {
-                            $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
-                            $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
-                            $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
-                        }
-                    }
+    $DB->where('sgdt_idx', $_POST['sgdt_idx']);
+    $sgdt_row = $DB->getone('smap_group_detail_t');
 
-                    $content = '
-                        <style>
-                        .infobox1 {
-                            position: absolute !important;
-                            left: 50%; /* 아이콘의 중심에 위치 */
-                            top: 100%; /* 아이콘의 아래쪽에 위치 */
-                            transform: translate(-50%, -80%); /* 중앙 정렬 및 약간 아래쪽으로 이동 */
-                            background-color: #413F4A;
-                            padding: 0.3rem 0.8rem; /* 상하 0.3rem, 좌우 0.8rem */
-                            border-radius: 0.4rem;
-                            z-index: 1;
-                            white-space: nowrap; /* 한 줄로 표시 */
-                        }
-                        
-                        .infobox1 span {
-                            color: ' . $random_color . ';
-                            font-size: 12px !important;
-                            white-space: nowrap !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                        }
-                        
-                        </style>
-                        <div class="point_wrap point1">
-                            <button type="button" class="btn point point_sch">
-                                <span class="point_inner">
-                                    <img src="./img/sch_alarm.png" alt="Desired Image" class="btn point point_ing" style="width: 24px; height: 24px;"/>
-                                </span>
-                            </button>
-                            <div class="infobox1 rounded_04 px_08 py_03 on">
-                                <span class="fs_12 fw_800 text_dynamic line_h1_2 mt-2">' . $row_sst_a['sst_title'] . '</span>
-                            </div>
-                        </div>
-                    ';
-
-                    $arr_data['markerLat_' . $count] = $row_sst_a['sst_location_lat'];
-                    $arr_data['markerLong_' . $count] = $row_sst_a['sst_location_long'];
-                    $arr_data['markerContent_' . $count] = $content;
-                    $count++;
-                }
-            }
-            // JSON으로 변환하여 출력
-            $arr_data['schedule_chk'] = 'Y';
-            $arr_data['count'] = $count - 1;
-        }
-
-        $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    // 기본 지도 위치 지정
+    if ($sgdt_row) {
+        $DB->where('mt_idx', $sgdt_row['mt_idx']);
         $mem_row = $DB->getone('member_t');
-        if ($mem_row['mt_level'] == '2') {
-            $limit = 4;
-        } else {
-            $limit = 10;
+
+        $DB->where('mt_idx', $sgdt_row['mt_idx']);
+        // $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
+        // $DB->where(" mlt_speed>= " . $slt_mlt_speed);
+        $DB->orderby('mlt_gps_time', 'desc');
+        $mt_location_info = $DB->getone('member_location_log_t');
+
+        if ($_SESSION['_mt_lat'] == '') {
+            $_SESSION['_mt_lat'] = 37.5665;
         }
-        // 내장소 마커 구하기
-        unset($list_slt);
-        $DB->where("( mt_idx = '" . $sgdt_row['mt_idx'] . "' or sgdt_idx = '" . $_POST['sgdt_idx'] . "' )");
-        $DB->where('slt_show', 'Y');
-        $DB->orderby('slt_wdate', 'asc');
-        $list_slt = $DB->get('smap_location_t', $limit);
-        if ($list_slt) {
-            $mycount = 1;
-            foreach ($list_slt as $row_slt) {
-                // (로그마커조정) 로그에 있는 내 장소 마커
-                $content = '
-                    <style>
-                    .infobox2 {
-                        position: absolute;
-                        left: 50%; /* 아이콘의 중심에 위치 */
-                        top: 100%; /* 아이콘의 아래쪽에 위치 */
-                        transform: translate(-50%, 40%); /* 중앙 정렬 및 약간 아래쪽으로 이동 */
-                        background-color: #413F4A;
-                        padding: 0.3rem 0.8rem; /* 상하 0.3rem, 좌우 0.8rem */
-                        border-radius: 0.4rem;
-                        z-index: 1;
-                        white-space: nowrap; /* 한 줄로 표시 */
-                    }
-                    
-                    .infobox2 span {
-                        color: ' . $random_color . ';
-                        font-size: 12px !important;
-                        white-space: nowrap !important;
-                        overflow: hidden !important;
-                        text-overflow: ellipsis !important;
-                    }
-                    
-                    </style>
-                    <div class="point_wrap point1">
-                        <button type="button" class="btn point point_myplc">
-                            <span class="point_inner">
-                                <img src="./img/loc_alarm.png" alt="Desired Image" class="btn point point_ing" style="width: 24px; height: 24px;"/>
-                            </span>
-                        </button>
-                        <div class="infobox2 rounded_04 px_08 py_03 on">
-                            <span class="fs_12 fw_800 text_dynamic line_h1_2 mt-2">' . $row_slt['slt_title'] . '</span>
-                        </div>
-                    </div>
-                ';
-
-                $arr_data['locationmarkerLat_' . $mycount] = $row_slt['slt_lat'];
-                $arr_data['locationmarkerLong_' . $mycount] = $row_slt['slt_long'];
-                $arr_data['locationmarkerContent_' . $mycount] = $content;
-                $mycount++;
-            }
-            $arr_data['location_chk'] = 'Y';
-            $arr_data['location_count'] = $mycount - 1;
-        } else {
-            $arr_data['location_chk'] = 'N';
-            $arr_data['location_count'] = 0;
+        if ($_SESSION['_mt_long'] == '') {
+            $_SESSION['_mt_long'] = 126.9780;
         }
-        // 오늘자 이동로그 구하기
-        $current_date = date('Y-m-d H:i:s');
+        $arr_data['my_lat'] = $mt_location_info['mlt_lat'] == "" ? $_SESSION['_mt_lat'] : $mt_location_info['mlt_lat'];
+        $arr_data['mt_long'] = $mt_location_info['mlt_long'] == "" ? $_SESSION['_mt_long'] : $mt_location_info['mlt_long'];
+        $arr_data['my_profile'] = $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']);
+    } else {
+        $arr_data['my_lat'] = $_SESSION['_mt_lat'] == "" ? 37.5665 : $_SESSION['_mt_lat'];
+        $arr_data['mt_long'] = $_SESSION['_mt_long'] == "" ? 126.9780 : $_SESSION['_mt_long'];
+        $arr_data['my_profile'] = $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'];
+    }
 
-        $total_log_count = 1;
-        $stay_count = 1;
-        // 마커 배열에 담은 후 재배치 필요
-        $location_data = array();
-        // 마커2
-        $loc_new = [];
+    // ... (일정 마커 구하기, 내 장소 마커 구하기)
+    // 일정 마커 구하기
+    $arr_sst_idx = get_schedule_main($_POST['sgdt_idx'], $_POST['event_start_date'], $sgdt_row['mt_idx']);
+    // log_to_file("get_schedule_main: " . $_POST['sgdt_idx'] . ' / ' . $_POST['event_start_date']. ' / ' . $sgdt_row['mt_idx'], $log_file);
+    // log_to_file("arr_sst_idx array: " . json_encode($arr_sst_idx, JSON_PRETTY_PRINT), $log_file);
+    $cnt = count($arr_sst_idx);
+    if ($cnt < 1) {
+        // JSON으로 변환하여 출력
+        $arr_data['schedule_chk'] = 'N';
+    } else {
+        $arr_sst_idx_im = implode(',', $arr_sst_idx);
+        unset($list_sst);
+        $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
+        $DB->where('sst_show', 'Y');
+        // $DB->groupBy("mt_idx");
+        $DB->orderBy("sst_all_day", "asc");
+        $DB->orderBy("sst_sdate", "asc");
+        $list_sst = $DB->get('smap_schedule_t');
 
-        // 전체 이동로그 구하기
-        unset($list_move);
-        $move_query = get_move_query($mt_idx, $slt_mlt_accuacy, $event_start_date);
-                
-        $list_move = $DB->Query($move_query);
-        // 오늘 자 이동로그가 있을 때
-        if ($list_move) {
-            $move_log_count = 1;
-            $list_count = count($list_move);
-            $move_count = count($list_move);
-            foreach ($list_move as $row_mlt) {
-                if ($move_log_count == '1') {
-                    // 00:00분 처음 들어간 로그 확인하기
-                    $DB->where('mt_idx', $_POST['sgdt_mt_idx']);
-                    $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
-                    $DB->where("mlt_speed < " . $slt_mlt_speed);
-                    $DB->where("(mlt_lat > 0 and mlt_long > 0)");
-                    $DB->where("mlt_gps_time BETWEEN '" . $_POST['event_start_date'] . " 00:00:00' AND '" . $_POST['event_start_date'] . " 23:59:59'");
-                    $DB->orderBy("mlt_gps_time", "asc");
-                    $first_location = $DB->getone('member_location_log_t');
+        if ($list_sst) {
+            $count = 1;
+            $current_date = date('Y-m-d H:i:s');
+            foreach ($list_sst as $row_sst_a) {
+                $mt_info = get_member_t_info($row_sst_a['mt_idx']);
+                $mt_file1_url = get_image_url($mt_info['mt_file1']);
 
-                    if ($first_location['rownum'] == 1) {
-                        $first_log_date = strtotime($_POST['event_start_date'] . " 00:00:00");
-                        $last_log_date = strtotime($first_location['mlt_gps_time']);
-                        $stay_time_seconds = $last_log_date - $first_log_date;
-                    
-                        if ($stay_time_seconds >= 300) {
-                            // 시간과 분으로 변환
-                            $hours = floor($stay_time_seconds / 3600);
-                            $minutes = floor(($stay_time_seconds % 3600) / 60);
+                if ($row_sst_a['sst_all_day'] == 'Y') {
+                    $sst_all_day_t = '하루종일';
+                } else {
+                    $repeat_array = json_decode($row_sst_a['sst_repeat_json'], true);
+                    // 반복을 저장할 배열
+                    $repeat_values = array();
 
-                            // 형식에 맞게 문자열로 표현
-                            $stay_time_formatted = "";
-                            if ($hours > 0) {
-                                $stay_time_formatted .= $hours . "시간 ";
-                            }
-                            $stay_time_formatted .= $minutes . "분 체류";
-
-                            $addr = get_search_coordinate2address($first_location['mlt_lat'], $first_location['mlt_long']);
-                            $address =  $addr['area2'] . ' ' . $addr['area3'];
-
-                            $loc_new[] = [
-                                'start_time' => $first_location['mlt_gps_time'],
-                                'end_time' => $first_location['mlt_gps_time'],
-                                'stay_time_formatted' => $stay_time_formatted,
-                                'address' => $address,
-                                'mlt_lat' => $first_location['mlt_lat'],
-                                'mlt_long' => $first_location['mlt_long'],
-                                'stay_move_flg' => 'stay'
-                            ];
-                        }
+                    // "r1"이 1이 아니거나 값이 없는 경우를 제외하고 반복을 생성
+                    if ($repeat_array['r1'] == 1 || empty($repeat_array['r1'])) {
+                        $sst_sdate_d1 = datetype($row_sst_a['sst_sdate'], 5);
+                        $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
+                        $sst_sdate_d2 = datetype($row_sst_a['sst_edate'], 5);
+                        $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
+                        // $sst_all_day_t = $sst_sdate_d1 . $sst_sdate_e1 . ' ~ ' . $sst_sdate_d2 . $sst_sdate_e2;
+                        $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
+                    } else {
+                        $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
+                        $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
+                        $sst_all_day_t = $sst_sdate_e1 . ' ~ ' . $sst_sdate_e2;
                     }
                 }
+
+                $arr_data['markerLat_' . $count] = $row_sst_a['sst_location_lat'];
+                $arr_data['markerLong_' . $count] = $row_sst_a['sst_location_long'];
+                $arr_data['markerTitle_' . $count] = $row_sst_a['sst_title'];
+                $count++;
+            }
+        }
+        // JSON으로 변환하여 출력
+        $arr_data['schedule_chk'] = 'Y';
+        $arr_data['count'] = $count - 1;
+    }
+
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $mem_row = $DB->getone('member_t');
+    if ($mem_row['mt_level'] == '2') {
+        $limit = 4;
+    } else {
+        $limit = 10;
+    }
+    // 내장소 마커 구하기
+    unset($list_slt);
+    $DB->where("( mt_idx = '" . $sgdt_row['mt_idx'] . "' or sgdt_idx = '" . $_POST['sgdt_idx'] . "' )");
+    $DB->where('slt_show', 'Y');
+    $DB->orderby('slt_wdate', 'asc');
+    $list_slt = $DB->get('smap_location_t', $limit);
+    if ($list_slt) {
+        $mycount = 1;
+        foreach ($list_slt as $row_slt) {
+            $arr_data['locationmarkerLat_' . $mycount] = $row_slt['slt_lat'];
+            $arr_data['locationmarkerLong_' . $mycount] = $row_slt['slt_long'];
+            $arr_data['locationmarkerTitle_' . $mycount] = $row_slt['slt_title'];
+            $mycount++;
+        }
+        $arr_data['location_chk'] = 'Y';
+        $arr_data['location_count'] = $mycount - 1;
+    } else {
+        $arr_data['location_chk'] = 'N';
+        $arr_data['location_count'] = 0;
+    }
+
+    // ... (기존 PHP 코드)
+
+    // 이동로그 및 체류로그 데이터 처리
+
+    // 오늘자 이동로그 구하기
+    $current_date = date('Y-m-d H:i:s');
+
+    $total_log_count = 1;
+    $stay_count = 1;
+    // 마커 배열에 담은 후 재배치 필요
+    $location_data = array();
+    // 마커2
+    $loc_new = [];
+
+    // 전체 이동로그 구하기
+    unset($list_move);
+    $move_query = get_move_query($mt_idx, $slt_mlt_accuacy, $event_start_date);
+
+    $list_move = $DB->Query($move_query);
+    // 오늘 자 이동로그가 있을 때
+    if ($list_move) {
+        $move_log_count = 1;
+        $list_count = count($list_move);
+        $move_count = count($list_move);
+        foreach ($list_move as $row_mlt) {
+            if ($move_log_count == '1') {
+                // 00:00분 처음 들어간 로그 확인하기
+                $DB->where('mt_idx', $_POST['sgdt_mt_idx']);
+                $DB->where("mlt_accuacy < " . $slt_mlt_accuacy);
+                $DB->where(" mlt_speed < " . $slt_mlt_speed);
+                $DB->where(" (mlt_lat> 0 and mlt_long > 0)");
+                $DB->where("mlt_gps_time BETWEEN '" . $_POST['event_start_date'] . " 00:00:00' AND '" . $_POST['event_start_date'] . " 23:59:59'");
+                $DB->orderBy("mlt_gps_time", "asc");
+                $first_location = $DB->getone('member_location_log_t');
+
+                if ($first_location['rownum'] == 1) {
+                    $first_log_date = strtotime($_POST['event_start_date'] . " 00:00:00");
+                    $last_log_date = strtotime($first_location['mlt_gps_time']);
+                    $stay_time_seconds = $last_log_date - $first_log_date;
+
+                    if ($stay_time_seconds >= 300) {
+                        // 시간과 분으로 변환
+                        $hours = floor($stay_time_seconds / 3600);
+                        $minutes = floor(($stay_time_seconds % 3600) / 60);
+
+                        // 형식에 맞게 문자열로 표현
+                        $stay_time_formatted = "";
+                        if ($hours > 0) {
+                            $stay_time_formatted .= $hours . "시간 ";
+                        }
+                        $stay_time_formatted .= $minutes . "분 체류";
+
+                        $addr = get_search_coordinate2address($first_location['mlt_lat'], $first_location['mlt_long'], $userLang);
+                        $address = $addr['area2'] . ' ' . $addr['area3'];
+
+                        $loc_new[] = [
+                            'start_time' => $first_location['mlt_gps_time'],
+                            'end_time' => $first_location['mlt_gps_time'],
+                            'stay_time_formatted' => $stay_time_formatted,
+                            'address' => $address,
+                            'mlt_lat' => $first_location['mlt_lat'],
+                            'mlt_long' => $first_location['mlt_long'],
+                            'stay_move_flg' => 'stay'
+                        ];
+                    }
+                }
+            }
+
+            $loc_new[] = [
+                'start_time' => $row_mlt['start_time'],
+                'end_time' => $row_mlt['end_time'],
+                'stay_time_formatted' => $stay_time_formatted,
+                'address' => $address,
+                'mlt_lat' => $row_mlt['start_lat'],
+                'mlt_long' => $row_mlt['start_long'],
+                'stay_move_flg' => 'move'
+            ];
+        }
+    }
+
+    //체류시간구하기
+    unset($list_stay);
+    $stay_query = get_stay_query($mt_idx, $slt_mlt_accuacy, $event_start_date);
+    $list_stay = $DB->Query($stay_query);
+
+
+    // 오늘 자 체류로그가 있을 때
+    if ($list_stay) {
+        $log_count = 1;
+        $list_count_stay = count($list_stay);
+        $staylog_count = count($list_stay);
+        $filtered_stays = [];
+
+        // First stay data point is always kept
+        $filtered_stays[] = $list_stay[0];
+
+        for ($i = 1; $i < $list_count_stay; $i++) {
+            $prev_stay = &$filtered_stays[count($filtered_stays) - 1];
+            $current_stay = $list_stay[$i];
+
+            // Calculate the distance between the previous stay and the current stay
+            $distance = haversineDistance2($prev_stay['start_lat'], $prev_stay['start_long'], $current_stay['start_lat'], $current_stay['start_long']);
+
+            // Check if both labels are the same
+            if ($prev_stay['label'] === $current_stay['label']) {
+                // If the distance is within 100 meters, accumulate duration and update end_time
+                if ($distance <= 100) {
+                    $prev_stay['duration'] += $current_stay['duration'];
+                    $prev_stay['end_time'] = $current_stay['end_time'];
+                } else {
+                    // If the distance is greater than 100 meters, keep the current stay
+                    $filtered_stays[] = $current_stay;
+                }
+            } else {
+                // If the labels are different, keep the current stay
+                $filtered_stays[] = $current_stay;
+            }
+        }
+
+        // Process the filtered stays
+        foreach ($filtered_stays as $row_mlt) {
+            // Check if the label is 'stay'
+            if ($row_mlt['label'] === 'stay') {
+                // Convert start_time and end_time to DateTime objects for accurate calculation
+                $start_time = new DateTime($row_mlt['start_time']);
+                $end_time = new DateTime($row_mlt['end_time']);
+
+                // Calculate duration in minutes
+                $duration = $end_time->getTimestamp() - $start_time->getTimestamp();
+                $hours = floor($duration / 3600);
+                $minutes = floor(($duration % 3600) / 60);
+
+                // Format stay time
+                $stay_time_formatted = "";
+                if ($hours > 0) {
+                    $stay_time_formatted .= $hours . "시간 ";
+                }
+                $stay_time_formatted .= $minutes . "분 체류";
+
+                // Get address
+                $addr = get_search_coordinate2address($row_mlt['start_lat'], $row_mlt['start_long'], $userLang);
+                $address = $addr['area2'] . ' ' . $addr['area3'];
 
                 $loc_new[] = [
                     'start_time' => $row_mlt['start_time'],
@@ -626,424 +721,297 @@ if ($_POST['act'] == "recom_list") {
                     'address' => $address,
                     'mlt_lat' => $row_mlt['start_lat'],
                     'mlt_long' => $row_mlt['start_long'],
-                    'stay_move_flg' => 'move'
+                    'stay_move_flg' => 'stay'
                 ];
             }
         }
-        //체류시간구하기
-        unset($list_stay);
-        $stay_query = get_stay_query($mt_idx, $slt_mlt_accuacy, $event_start_date);
-        $list_stay = $DB->Query($stay_query);
-        // Function to calculate distance between two coordinates using Haversine formula
-        function haversineDistance2($lat1, $lon1, $lat2, $lon2) {
-            $earthRadius = 6371000; // Earth radius in meters
+    }
 
-            $dLat = deg2rad($lat2 - $lat1);
-            $dLon = deg2rad($lon2 - $lon1);
+    // 이벤트 필터링 및 병합
 
-            $a = sin($dLat / 2) * sin($dLat / 2) +
-                cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * 
-                sin($dLon / 2) * sin($dLon / 2);
+    if (!empty($loc_new)) {
+        $events = [];
+        $filteredEvents = [];
+        $filteredEventsMove = [];
+        $maxDistance = 5; // 최대 허용 거리 (km)
+        $maxSpeed = 80; // 최대 허용 속도 (km/h)
+        $minSpeed = 0.0; // 최소 허용 속도 (km/h), 정지 상태와 구분하기 위함
+        $stayThreshold = 0.1; // stay 상태에서 허용되는 최대 이동 거리 (km)
 
-            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-            return $earthRadius * $c;
+        // 기존 데이터 배열로부터 이벤트를 생성
+        foreach ($loc_new as $log) {
+            $events[] = [
+                'startTime' => $log['start_time'],
+                'endTime' => $log['end_time'],
+                'latitude' => $log['mlt_lat'],
+                'longitude' => $log['mlt_long'],
+                'address' => $log['address'],
+                'stayTime' => $log['stay_time_formatted'],
+                'logStatus' => $log['stay_move_flg'],
+                'totalLogCount' => $log['total_log_count']
+            ];
         }
 
-        // 오늘 자 체류로그가 있을 때
-        if ($list_stay) {
-            $log_count = 1;
-            $list_count_stay = count($list_stay);
-            $staylog_count = count($list_stay);
-            $filtered_stays = [];
+        // 종료 시간을 기준으로 정렬
+        usort($events, function ($a, $b) {
+            return strtotime($a['endTime']) - strtotime($b['endTime']);
+        });
 
-            // First stay data point is always kept
-            $filtered_stays[] = $list_stay[0];
+        $currentStatus = null;
+        $stayStartTime = null;
+        $stayEndTime = null;
+        $lastValidLocation = null;
+        $tempMoveEvents = [];
 
-            for ($i = 1; $i < $list_count_stay; $i++) {
-                $prev_stay = &$filtered_stays[count($filtered_stays) - 1];
-                $current_stay = $list_stay[$i];
-            
-                // Calculate the distance between the previous stay and the current stay
-                $distance = haversineDistance2($prev_stay['start_lat'], $prev_stay['start_long'], $current_stay['start_lat'], $current_stay['start_long']);
-            
-                // Check if both labels are the same
-                if ($prev_stay['label'] === $current_stay['label']) {
-                    // If the distance is within 100 meters, accumulate duration and update end_time
-                    if ($distance <= 100) {
-                        $prev_stay['duration'] += $current_stay['duration'];
-                        $prev_stay['end_time'] = $current_stay['end_time'];
+        for ($i = 0; $i < count($events); $i++) {
+            $current = $events[$i];
+
+            if ($i == 0) {
+                $filteredEvents[] = $current;
+                $currentStatus = $current['logStatus'];
+                $stayStartTime = $current['startTime'];
+                $stayEndTime = $current['endTime'];
+                $lastValidLocation = $current;
+                continue;
+            }
+
+            $distance = calculateDistance(
+                $lastValidLocation['latitude'],
+                $lastValidLocation['longitude'],
+                $current['latitude'],
+                $current['longitude']
+            );
+
+            $timeDiff = (strtotime($current['startTime']) - strtotime($lastValidLocation['startTime'])) / 3600; // in hours
+
+            if ($timeDiff > 0) {
+                $speed = $distance / $timeDiff;
+
+                if ($currentStatus == 'stay') {
+                    if ($distance > $stayThreshold) {
+                        // Move detected
+                        $lastValidLocation['endTime'] = $current['startTime'];
+                        $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
+                        $filteredEvents[] = $lastValidLocation;
+
+                        $current['logStatus'] = 'move';
+                        $currentStatus = 'move';
+                        $tempMoveEvents = [$current];
+                        $lastValidLocation = $current;
                     } else {
-                        // If the distance is greater than 100 meters, keep the current stay
-                        $filtered_stays[] = $current_stay;
+                        // Still in stay status, update end time
+                        $lastValidLocation['endTime'] = $current['endTime'];
                     }
-                } else {
-                    // If the labels are different, keep the current stay
-                    $filtered_stays[] = $current_stay;
-                }
-            }
+                } else { // move status
+                    if ($distance <= $stayThreshold && $speed < $minSpeed) {
+                        // Stay detected
+                        $current['logStatus'] = 'stay';
+                        $currentStatus = 'stay';
+                        $stayStartTime = $current['startTime'];
+                        $stayEndTime = $current['endTime'];
 
-            // Process the filtered stays
-            foreach ($filtered_stays as $row_mlt) {
-                // Check if the label is 'stay'
-                if ($row_mlt['label'] === 'stay') {
-                    // Convert start_time and end_time to DateTime objects for accurate calculation
-                    $start_time = new DateTime($row_mlt['start_time']);
-                    $end_time = new DateTime($row_mlt['end_time']);
-                    
-                    // Calculate duration in minutes
-                    $duration = $end_time->getTimestamp() - $start_time->getTimestamp();
-                    $hours = floor($duration / 3600);
-                    $minutes = floor(($duration % 3600) / 60);
+                        // Clear temporary move events
+                        $tempMoveEvents = [];
 
-                    // Format stay time
-                    $stay_time_formatted = "";
-                    if ($hours > 0) {
-                        $stay_time_formatted .= $hours . "시간 ";
-                    }
-                    $stay_time_formatted .= $minutes . "분 체류";
-
-                    // Get address
-                    $addr = get_search_coordinate2address($row_mlt['start_lat'], $row_mlt['start_long']);
-                    $address =  $addr['area2'] . ' ' . $addr['area3'];
-
-                    $loc_new[] = [
-                        'start_time' => $row_mlt['start_time'],
-                        'end_time' => $row_mlt['end_time'],
-                        'stay_time_formatted' => $stay_time_formatted,
-                        'address' => $address,
-                        'mlt_lat' => $row_mlt['start_lat'],
-                        'mlt_long' => $row_mlt['start_long'],
-                        'stay_move_flg' => 'stay'
-                    ];
-                }
-            }
-        }
-
-        // 거리 계산 함수
-        function calculateDistance($lat1, $lon1, $lat2, $lon2) {
-            // Haversine 공식을 사용하여 두 지점 사이의 거리를 계산하는 함수입니다.
-            $earthRadius = 6371; // 지구 반지름 (단위: km)
-
-            $lat1 = deg2rad($lat1);
-            $lon1 = deg2rad($lon1);
-            $lat2 = deg2rad($lat2);
-            $lon2 = deg2rad($lon2);
-
-            $deltaLat = $lat2 - $lat1;
-            $deltaLon = $lon2 - $lon1;
-
-            $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
-                cos($lat1) * cos($lat2) *
-                sin($deltaLon / 2) * sin($deltaLon / 2);
-            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-            $distance = $earthRadius * $c;
-
-            return $distance;
-        }
-
-        function isOutlier($prev, $current, $next) {
-            $distancePrevCurrent = calculateDistance(
-                $prev['latitude'], $prev['longitude'],
-                $current['latitude'], $current['longitude']
-            );
-            $distanceCurrentNext = calculateDistance(
-                $current['latitude'], $current['longitude'],
-                $next['latitude'], $next['longitude']
-            );
-            $distancePrevNext = calculateDistance(
-                $prev['latitude'], $prev['longitude'],
-                $next['latitude'], $next['longitude']
-            );
-        
-            // 현재 위치가 이전과 다음 위치 사이에서 너무 벗어나 있는지 확인
-            $threshold = 1.8; // 이 값은 상황에 따라 조정 가능
-            if ($distancePrevCurrent + $distanceCurrentNext > $distancePrevNext * $threshold) {
-                return true;
-            }
-            return false;
-        }
-
-        function formatStayTime($seconds) {
-            $hours = floor($seconds / 3600);
-            $minutes = floor(($seconds % 3600) / 60);
-            $stay_time_formatted = "";
-            
-            if ($hours > 0) {
-                $stay_time_formatted .= $hours . "시간 ";
-            }
-            
-            $stay_time_formatted .= $minutes . "분 체류";
-            return $stay_time_formatted;
-        }
-        
-        if (!empty($loc_new)) {
-            $events = [];
-            $filteredEvents = [];
-            $filteredEventsMove = [];
-            $maxDistance = 5; // 최대 허용 거리 (km)
-            $maxSpeed = 80; // 최대 허용 속도 (km/h)
-            $minSpeed = 0.0; // 최소 허용 속도 (km/h), 정지 상태와 구분하기 위함
-            $stayThreshold = 0.1; // stay 상태에서 허용되는 최대 이동 거리 (km)
-
-            // 기존 데이터 배열로부터 이벤트를 생성
-            foreach ($loc_new as $log) {
-                $events[] = [
-                    'startTime' => $log['start_time'],
-                    'endTime' => $log['end_time'],
-                    'latitude' => $log['mlt_lat'],
-                    'longitude' => $log['mlt_long'],
-                    'address' => $log['address'],
-                    'stayTime' => $log['stay_time_formatted'],
-                    'logStatus' => $log['stay_move_flg'],
-                    'totalLogCount' => $log['total_log_count']
-                ];
-            }
-
-            // 시작 시간을 기준으로 정렬
-            usort($events, function ($a, $b) {
-                return strtotime($a['startTime']) - strtotime($b['startTime']);
-            });
-
-            $currentStatus = null;
-            $stayStartTime = null;
-            $stayEndTime = null;
-            $lastValidLocation = null;
-            $tempMoveEvents = [];
-
-            for ($i = 0; $i < count($events); $i++) {
-                $current = $events[$i];
-                
-                if ($i == 0) {
-                    $filteredEvents[] = $current;
-                    $currentStatus = $current['logStatus'];
-                    $stayStartTime = $current['startTime'];
-                    $stayEndTime = $current['endTime'];
-                    $lastValidLocation = $current;
-                    continue;
-                }
-
-                $distance = calculateDistance(
-                    $lastValidLocation['latitude'], $lastValidLocation['longitude'],
-                    $current['latitude'], $current['longitude']
-                );
-
-                $timeDiff = (strtotime($current['startTime']) - strtotime($lastValidLocation['startTime'])) / 3600; // in hours
-                
-                if ($timeDiff > 0) {
-                    $speed = $distance / $timeDiff;
-
-                    if ($currentStatus == 'stay') {
-                        if ($distance > $stayThreshold) {
-                            // Move detected
-                            $lastValidLocation['endTime'] = $current['startTime'];
-                            $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
-                            $filteredEvents[] = $lastValidLocation;
-
-                            $current['logStatus'] = 'move';
-                            $currentStatus = 'move';
-                            $tempMoveEvents = [$current];
-                            $lastValidLocation = $current;
-                        } else {
-                            // Still in stay status, update end time
-                            $lastValidLocation['endTime'] = $current['endTime'];
-                        }
-                    } else { // move status
-                        if ($distance <= $stayThreshold && $speed < $minSpeed) {
-                            // Stay detected
-                            $current['logStatus'] = 'stay';
-                            $currentStatus = 'stay';
-                            $stayStartTime = $current['startTime'];
-                            $stayEndTime = $current['endTime'];
-                            
-                            // Clear temporary move events
-                            $tempMoveEvents = [];
-                            
-                            $filteredEvents[] = $current;
-                            $lastValidLocation = $current;
-                        } else if ($distance <= $maxDistance && $speed <= $maxSpeed) {
-                            // Valid move
-                            $tempMoveEvents[] = $current;
-                            $lastValidLocation = $current;
-                        }
-                        // If it's an invalid move (too fast or too far), we ignore it
-                    }
-                } else {
-                    // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
-                    if ($currentStatus == 'move') {
-                        $tempMoveEvents[] = $current;
-                    } else {
                         $filteredEvents[] = $current;
+                        $lastValidLocation = $current;
+                    } else if ($distance <= $maxDistance && $speed <= $maxSpeed) {
+                        // Valid move
+                        $tempMoveEvents[] = $current;
+                        $lastValidLocation = $current;
                     }
+                    // If it's an invalid move (too fast or too far), we ignore it
+                }
+            } else {
+                // 시간 차이가 0이면 동일한 시간의 데이터로 간주하고 추가
+                if ($currentStatus == 'move') {
+                    $tempMoveEvents[] = $current;
+                } else {
+                    $filteredEvents[] = $current;
                 }
             }
+        }
 
-            // 마지막 이벤트 처리
-            if ($currentStatus == 'stay') {
-                $lastValidLocation['endTime'] = end($events)['endTime'];
-                $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
-                $filteredEvents[count($filteredEvents) - 1] = $lastValidLocation;
-            } else if ($currentStatus == 'move') {
-                // Add remaining move events
-                $filteredEvents = array_merge($filteredEvents, $tempMoveEvents);
+        // 마지막 이벤트 처리
+        if ($currentStatus == 'stay') {
+            $lastValidLocation['endTime'] = end($events)['endTime'];
+            $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
+            $filteredEvents[] = $lastValidLocation;
+        } else if ($currentStatus == 'move') {
+            // Add remaining move events
+            $filteredEvents = array_merge($filteredEvents, $tempMoveEvents);
+        }
+
+        // 마지막 stay 이벤트가 추가되지 않았다면 추가
+        if (end($filteredEvents)['logStatus'] != 'stay' && $currentStatus == 'stay') {
+            $lastValidLocation['endTime'] = end($events)['endTime'];
+            $lastValidLocation['stayTime'] = formatStayTime(strtotime($lastValidLocation['endTime']) - strtotime($stayStartTime));
+            $filteredEvents[] = $lastValidLocation;
+        }
+
+        // stay 상태의 시간 범위에 있는 move 데이터를 삭제
+        $filteredEventsFinal = [];
+        $stayPeriods = [];
+
+        // 먼저 모든 stay 기간을 수집
+        foreach ($filteredEvents as $event) {
+            if ($event['logStatus'] == 'stay') {
+                $stayPeriods[] = [
+                    'startTime' => strtotime($event['startTime']),
+                    'endTime' => strtotime($event['endTime'])
+                ];
             }
+        }
 
-            // stay 상태의 시간 범위에 있는 move 데이터를 삭제
-            $filteredEventsFinal = [];
-            $stayPeriods = [];
+        // 그 다음 모든 이벤트를 처리
+        foreach ($filteredEvents as $event) {
+            if ($event['logStatus'] == 'stay') {
+                // stay 이벤트는 항상 유지
+                $filteredEventsFinal[] = $event;
+            } else {
+                $isWithinStayPeriod = false;
+                $eventStartTime = strtotime($event['startTime']);
+                $eventEndTime = strtotime($event['endTime']);
 
-            foreach ($filteredEvents as $event) {
-                if ($event['logStatus'] == 'stay') {
-                    $stayPeriods[] = [
-                        'startTime' => strtotime($event['startTime']),
-                        'endTime' => strtotime($event['endTime'])
-                    ];
+                foreach ($stayPeriods as $period) {
+                    if ($eventStartTime >= $period['startTime'] && $eventEndTime <= $period['endTime']) {
+                        $isWithinStayPeriod = true;
+                        break;
+                    }
+                }
+
+                if (!$isWithinStayPeriod) {
                     $filteredEventsFinal[] = $event;
-                } else {
-                    $isWithinStayPeriod = false;
-                    $eventStartTime = strtotime($event['startTime']);
-                    $eventEndTime = strtotime($event['endTime']);
-
-                    foreach ($stayPeriods as $period) {
-                        if ($eventStartTime > $period['startTime'] && $eventEndTime < $period['endTime']) {
-                            $isWithinStayPeriod = true;
-                            break;
-                        }
-                    }
-
-                    if (!$isWithinStayPeriod) {
-                        $filteredEventsFinal[] = $event;
-                    }
                 }
             }
+            // log_to_file("event " . $event, $log_file);
+        }
+        // log_to_file(" jj events: " . json_encode($filteredEventsFinal, JSON_PRETTY_PRINT), $log_file);
+        // stay 이벤트 병합 및 체류 시간 계산
+        $mergedStayEvents = [];
+        $currentStay = null;
+        $sameTimeEvents = [];
 
-            // stay 이벤트 병합 및 체류 시간 계산
-            $mergedStayEvents = [];
-            $currentStay = null;
-            $sameTimeEvents = [];
+        $lastEvent = end($filteredEventsFinal);
+        $filteredEventsFinalWithoutLast = array_slice($filteredEventsFinal, 0, -1);
 
-            foreach ($filteredEventsFinal as $event) {
-                if ($event['logStatus'] == 'stay') {
-                    if ($currentStay === null) {
-                        $currentStay = $event;
-                        $sameTimeEvents = [$event];
-                    } else {
-                        $currentEndTime = strtotime($currentStay['endTime']);
-                        $nextStartTime = strtotime($event['startTime']);
-                        
-                        if ($nextStartTime == $currentEndTime) {
-                            // 시작 시간과 종료 시간이 같은 경우
-                            $sameTimeEvents[] = $event;
-                        } elseif ($nextStartTime < $currentEndTime) {
-                            // 겹치는 경우, 시작 시간은 더 이른 것으로, 종료 시간은 더 늦은 것으로 업데이트
-                            $currentStay['startTime'] = min($currentStay['startTime'], $event['startTime']);
-                            $currentStay['endTime'] = max($currentStay['endTime'], $event['endTime']);
-                            $sameTimeEvents = [$currentStay];
-                        } else {
-                            // 겹치지 않는 경우, 현재 stay를 저장하고 새로운 stay 시작
-                            if (!empty($sameTimeEvents)) {
-                                $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
-                            } else {
-                                $mergedStayEvents[] = $currentStay;
-                            }
-                            $currentStay = $event;
-                            $sameTimeEvents = [$event];
-                        }
-                    }
+        foreach ($filteredEventsFinalWithoutLast as $event) {
+            if ($event['logStatus'] == 'stay') {
+                if ($currentStay === null) {
+                    $currentStay = $event;
+                    $sameTimeEvents = [$event];
                 } else {
-                    if ($currentStay !== null) {
+                    $currentEndTime = strtotime($currentStay['endTime']);
+                    $nextStartTime = strtotime($event['startTime']);
+
+                    if ($nextStartTime <= $currentEndTime) {
+                        // 겹치는 경우, 시작 시간은 더 이른 것으로, 종료 시간은 더 늦은 것으로 업데이트
+                        $currentStay['startTime'] = min($currentStay['startTime'], $event['startTime']);
+                        $currentStay['endTime'] = max($currentStay['endTime'], $event['endTime']);
+                        $sameTimeEvents = [$currentStay];
+                    } else {
+                        // 겹치지 않는 경우, 현재 stay를 저장하고 새로운 stay 시작
                         if (!empty($sameTimeEvents)) {
                             $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
                         } else {
                             $mergedStayEvents[] = $currentStay;
                         }
-                        $currentStay = null;
-                        $sameTimeEvents = [];
+                        $currentStay = $event;
+                        $sameTimeEvents = [$event];
                     }
-                    $mergedStayEvents[] = $event;
                 }
-            }
-
-            // 마지막 stay 이벤트 처리
-            if ($currentStay !== null) {
-                if (!empty($sameTimeEvents)) {
-                    $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
-                } else {
-                    $mergedStayEvents[] = $currentStay;
+            } else {
+                if ($currentStay !== null) {
+                    if (!empty($sameTimeEvents)) {
+                        $mergedStayEvents[] = $sameTimeEvents[0];  // 같은 시간대의 이벤트 중 하나만 저장
+                    } else {
+                        $mergedStayEvents[] = $currentStay;
+                    }
+                    $currentStay = null;
+                    $sameTimeEvents = [];
                 }
+                $mergedStayEvents[] = $event;
             }
-
-            // 체류 시간 계산 및 포맷팅
-            foreach ($mergedStayEvents as &$event) {
-                if ($event['logStatus'] == 'stay') {
-                    $stayDuration = strtotime($event['endTime']) - strtotime($event['startTime']);
-                    $hours = floor($stayDuration / 3600);
-                    $minutes = floor(($stayDuration % 3600) / 60);
-                    $event['stayTime'] = sprintf("%d시간 %d분 체류", $hours, $minutes);
-                }
-            }
-
-            $events = $mergedStayEvents;
-
-            $stay_count = 1;
-            $move_count = 1;
-            $log_count = 1;
-
-            foreach ($events as $index => &$event) {
-                $event['totalLogCount'] = $index + 1;
-                $log_count = $index + 1;
-                
-                if ($event['logStatus'] == 'stay') {
-                    $start_time = new DateTime($event['startTime']);
-                    $end_time = new DateTime($event['endTime']);
-
-                    $event['stay_move_count'] = $stay_count++;
-                    $content = '<div class="point_wrap point2" data-rangeindex="' . $event['totalLogCount'] . '">
-                                    <button type="button" class="btn log_point point_stay">
-                                        <span class="point_inner">
-                                            <span class="point_txt">' . $event['stay_move_count'] . '</span>
-                                        </span>
-                                    </button>
-                                    <div class="infobox rounded-sm bg-white px_08 py_08">
-                                        <p class="fs_12 fw_800 text_dynamic">' . $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i') . '</p>
-                                        <p class="fs_10 fw_600 text_dynamic text-primary line_h1_2 mt-2">' . $event['stayTime'] . '</p>
-                                        <p class="fs_10 fw_400 line1_text line_h1_2 mt-2">' . $event['address'] . '</p>
-                                    </div>
-                                </div>';
-                } else {
-                    $event['stay_move_count'] = $move_count++;
-                    $content = '<div class="point_wrap point2 d-none log_marker" data-rangeindex="' . $event['totalLogCount'] . '">
-                                    <div class="infobox infobox_2 rounded-sm px_08 py_08" style="background-color: #413F4A; color: #E6F3FF;">
-                                        <p class="fs_12 fw_800 text_dynamic">' . datetype($event['startTime'], 7) . '</p>
-                                    </div>
-                                </div>';
-                }
-                $event['content'] = $content;
-            }
-
-            // $arr_data 배열에 각 이벤트의 정보를 담습니다.
-            foreach ($events as $index => $event) {
-                $arr_data['logmarkerLat_' . ($index + 1)] = $event['latitude'];
-                $arr_data['logmarkerLong_' . ($index + 1)] = $event['longitude'];
-                $arr_data['logmarkerContent_' . ($index + 1)] = $event['content'];
-            }
-            // $log_count 에 필터링된 이벤트의 갯수를 저장합니다.
-            $arr_data['log_count'] = $log_count;
-            $arr_data['log_chk'] = 'Y';
-        } else {
-            $arr_data['log_count'] = 0;
-            $arr_data['log_chk'] = 'N';
         }
-        // 결과 데이터를 캐시에 저장 (30분 동안)
-        CacheUtil::set($cache_key, $arr_data, 1800);
-    } else {
-        // 캐시에서 데이터를 가져옴
-        $arr_data = $cached_data;
+
+        // 마지막 이벤트 처리
+        if ($lastEvent['logStatus'] == 'stay') {
+            if ($currentStay !== null) {
+                $currentEndTime = strtotime($currentStay['endTime']);
+                $lastStartTime = strtotime($lastEvent['startTime']);
+
+                if ($lastStartTime <= $currentEndTime) {
+                    // 마지막 stay 이벤트가 현재 stay와 겹치는 경우
+                    $currentStay['endTime'] = max($currentStay['endTime'], $lastEvent['endTime']);
+                    $mergedStayEvents[] = $currentStay;
+                } else {
+                    // 겹치지 않는 경우, 현재 stay를 저장하고 마지막 stay 추가
+                    $mergedStayEvents[] = $currentStay;
+                    $mergedStayEvents[] = $lastEvent;
+                }
+            } else {
+                // 현재 stay가 없는 경우, 마지막 stay 이벤트 추가
+                $mergedStayEvents[] = $lastEvent;
+            }
+        } else {
+            // 마지막 이벤트가 stay가 아닌 경우
+            if ($currentStay !== null) {
+                $mergedStayEvents[] = $currentStay;
+            }
+            $mergedStayEvents[] = $lastEvent;
+        }
+
+        // 결과 출력
+        // print_r($mergedStayEvents);
+
+
+        // 체류 시간 계산 및 포맷팅
+        foreach ($filteredEventsFinal as &$event) {
+            if ($event['logStatus'] == 'stay') {
+                $stayDuration = strtotime($event['endTime']) - strtotime($event['startTime']);
+                $hours = floor($stayDuration / 3600);
+                $minutes = floor(($stayDuration % 3600) / 60);
+                $event['stayTime'] = sprintf(" %d시간 %d분 체류", $hours, $minutes);
+            }
+            // log_to_file("event['stayTime']: " . $event['stayTime'], $log_file);
+        }
+
+        $mevents = $filteredEventsFinal;
     }
+
+    // 최종 마커 데이터 생성
+    $finalMarkers = [];
+    foreach ($mevents as $index => $event) {
+        $marker = [];
+        $marker['latitude'] = $event['latitude'];
+        $marker['longitude'] = $event['longitude'];
+
+        // HTML 문자열 대신 데이터만 전달
+        if ($event['logStatus'] == 'stay') {
+            $start_time = new DateTime($event['startTime']);
+            $end_time = new DateTime($event['endTime']);
+
+            $marker['type'] = 'stay';
+            $marker['stay_move_count'] = $index + 1;
+            $marker['time'] = $start_time->format('H:i') . ' ~ ' . $end_time->format('H:i');
+            $marker['stayTime'] = $event['stayTime'];
+            $marker['address'] = $event['address'];
+        } else {
+            $marker['type'] = 'move';
+            $marker['stay_move_count'] = $index + 1;
+            $marker['time'] = datetype($event['startTime'], 7);
+        }
+
+        $finalMarkers[] = $marker;
+    }
+
+    $arr_data['log_markers'] = $finalMarkers;
+    $arr_data['log_count'] = count($finalMarkers);
+    $arr_data['log_chk'] = 'Y';
+
+
     // $arr_data 배열 출력
     echo json_encode($arr_data, JSON_PRETTY_PRINT);
-    exit;
 } elseif ($_POST['act'] == "input_location") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert('로그인이 필요합니다.', './login', '');
@@ -1147,45 +1115,11 @@ if ($_POST['act'] == "recom_list") {
                     "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
                 );
             }
-            //(내장소 마커 조정)내 장소에 있는 내 장소 마커
-            $content = '
-                        <style>
-                        .infobox3 {
-                            position: absolute;
-                            left: 50%; /* 아이콘의 중심에 위치 */
-                            top: 100%; /* 아이콘의 아래쪽에 위치 */
-                            transform: translate(-50%, -70%); /* 중앙 정렬 및 약간 아래쪽으로 이동 */
-                            background-color: #413F4A;
-                            padding: 0.3rem 0.8rem; /* 상하 0.3rem, 좌우 0.8rem */
-                            border-radius: 0.4rem;
-                            z-index: 1;
-                            white-space: nowrap; /* 한 줄로 표시 */
-                        }
-                        
-                        .infobox3 span {
-                            color: ' . $random_color . ';
-                            font-size: 12px !important;
-                            white-space: nowrap !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                        }
-                        
-                        </style>
-                        <div class="point_wrap point1">
-                            <button type="button" class="btn point point_myplc">
-                                <span class="point_inner">
-                                    <img src="./img/loc_alarm.png" alt="Desired Image" class="btn point point_ing" style="width: 24px; height: 24px;"/>
-                                </span>
-                            </button>
-                            <div class="infobox3 rounded_04 px_08 py_03 on">
-                                <span class="fs_12 fw_800 text_dynamic line_h1_2 mt-2">' . $row_slt['slt_title'] . '</span>
-                            </div>
-                        </div>
-                    ';
 
             $result_data['markerLat_' . $count] = $row_slt['slt_lat'];
             $result_data['markerLong_' . $count] = $row_slt['slt_long'];
-            $result_data['markerContent_' . $count] = $content;
+            $result_data['markerTitle_' . $count] = $row_slt['slt_title'];
+
             $count++;
         }
         // JSON으로 변환하여 출력
@@ -1246,28 +1180,28 @@ if ($_POST['act'] == "recom_list") {
     }
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
-    if($mem_row['mt_level'] == '2'){
+    if ($mem_row['mt_level'] == '2') {
         $limit = 4;
-    }else{
+    } else {
         $limit = 10;
     }
     $DB->where('(sgdt_idx = "' . $_POST['sgdt_idx'] . '" or mt_idx="' . $_POST . ['mt_idx'] . '")');
     $DB->where('slt_show', 'Y');
-    $DB->orderby('slt_wdate','asc');
+    $DB->orderby('slt_wdate', 'asc');
     $slt_list = $DB->get('smap_location_t', $limit);
     $cnt = count($slt_list);
     ?>
     <div class="px_16" style="margin-bottom: 12px;">
         <div class="border bg-white rounded-lg px_16 py_16">
-            <p class="fs_16 fw_600 mb-3">리스트</p>
+            <p class="fs_16 fw_600 mb-3"><?= translate('리스트', $userLang) ?></p>
             <div class="swiper locSwiper location_point_list_wrap pb-0">
                 <div class="swiper-wrapper lo_grid_wrap">
 
                     <!--장소 추가-->
                     <div class="trace_box trace_add_place swiper-slide" onclick="map_info_box_show()" style="height: 135px;">
                         <div class="trace_box_txt_box text-center" style="height: 91.5px;">
-                            <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center">내장소를
-                                추가해보세요!
+                            <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center" style="word-break: break-all; line-height: 0.6;"><?= translate('내장소를', $userLang) ?><br>
+                                <?= translate('추가해보세요!', $userLang) ?>
                             </p>
                             <button type="button" class="btn trace_addbtn"></button>
                         </div>
@@ -1283,7 +1217,7 @@ if ($_POST['act'] == "recom_list") {
                             $parts = explode(' ', $slt_row['slt_add']);
                             array_shift($parts);
                             $slt_row['slt_add'] = implode(' ', $parts);
-                            ?>
+                    ?>
                             <div class="trace_box swiper-slide" style="height: 135px;">
                                 <div class="trace_box_txt_box" onclick="map_panto('<?= $slt_row['slt_lat'] ?>','<?= $slt_row['slt_long'] ?>')" style="height: 63.5px;">
                                     <p class="mr-2">
@@ -1521,14 +1455,14 @@ if ($_POST['act'] == "recom_list") {
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic">그룹원 추가</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
                 </div>
             <?php } else { ?>
                 <div class="swiper-slide mem_box add_mem_box" style="visibility: hidden;">
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic">그룹원 추가</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
                 </div>
             <?php } ?>
         </div>

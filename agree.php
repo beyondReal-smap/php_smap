@@ -3,7 +3,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '6';
 $h_url = './setting';
-$_SUB_HEAD_TITLE = "약관 및 동의 관리";
+$_SUB_HEAD_TITLE = translate("약관 및 동의 관리", $userLang); // "약관 및 동의 관리" 번역
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 ?>
 <script>
@@ -37,7 +37,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 foreach ($arr_mt_agree as $key => $val) {
                 ?>
                     <a onclick="openurl('<?= $st_info['st_agree' . $key] ?>')" target="_blank" class="d-flex align-items-center justify-content-between px_16 py_16">
-                        <p class="fs_16 fw_600"><?= $val ?></p>
+                        <p class="fs_16 fw_600"><?= translate($val, $userLang); ?></p> <!-- $val 번역 -->
                         <i class="xi-angle-right-thin text_light_gray fs_16"></i>
                     </a>
                 <?php

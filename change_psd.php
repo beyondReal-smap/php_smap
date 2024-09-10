@@ -86,7 +86,7 @@ if (!$_GET['phoneNumber']) {
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " disabled>입력했어요!</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " disabled><?= translate('입력했어요!', $userLang) ?></button>
             </div>
         </form>
     </div>

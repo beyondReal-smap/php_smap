@@ -148,13 +148,13 @@ html {
                     <button class="btn mem_add mx-auto">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic">그룹원 추가</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic"><?= translate('그룹원 추가', $userLang) ?></p>
                 </div>
                 <div class="mem_box w_fit mr_12" data-toggle="modal" data-target="#link_modal">
                     <button class="btn mem_add mx-auto">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic">그룹원 추가</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic"><?= translate('그룹원 추가', $userLang) ?></p>
                 </div>
             </div>
         </div>
