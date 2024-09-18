@@ -22,21 +22,6 @@ if ($_GET['sdate'] == '') {
     $_GET['sdate'] = date('Y-m-d');
 }
 
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->orderBy("slmt_idx", "desc");
-// $row_slmt = $DB->getone('smap_location_member_t');
-
-// if ($_GET['sgdt_mt_idx']) {
-//     $row_slmt['sgdt_mt_idx'] = $_GET['sgdt_mt_idx'];
-// }
-
-// $mt_location_info = get_member_location_log_t_info($row_slmt['sgdt_mt_idx']);
-// $mt_info = get_member_t_info($row_slmt['sgdt_mt_idx']);
-
-// $m_mt_lat = $mt_location_info['mlt_lat'];
-// $m_mt_long = $mt_location_info['mlt_long'];
-// $mt_file1_url = get_image_url($mt_info['mt_file1']);
-
 $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); //오너인 그룹수
 $sgdt_leader_cnt = f_get_leader_cnt($_SESSION['_mt_idx']); //리더인 그룹수
 $sgdt_cnt = f_group_invite_cnt($_SESSION['_mt_idx']); //초대된 그룹수
@@ -96,6 +81,53 @@ $expt_cnt = $row['cnt'];
         position: relative;
         overflow-y: auto;
     }
+
+    /* 로딩 화면 스타일 */
+    #map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .dots-spinner {
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #0046FE;
+        border-radius: 50%;
+        animation: dot-bounce 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes dot-bounce {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.5);
+        }
+    }
 </style>
 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
 <div class="container sub_pg px-0 py-0">
@@ -106,6 +138,14 @@ $expt_cnt = $row['cnt'];
         <input type="hidden" name="sst_location_long" id="sst_location_long" value="" />
         <input type="hidden" id="slt_idx" name="slt_idx" value="">
         <div class="pg_map_inner" id="map">
+            <!-- 로딩 화면 추가 -->
+            <div id="map-loading" style="display: none;">
+                <div class="dots-spinner">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
         </div>
         <div class="pg_map_inner" id="map_info_box">
             <div class="flt_map_wrap">
@@ -195,105 +235,17 @@ $expt_cnt = $row['cnt'];
             <?php } ?>
         </div>
         <div>
-            <form method="post" name="frm_list" id="frm_list" onsubmit="return false;">
-                <input type="hidden" name="act" id="act" value="location_map_list" />
-                <input type="hidden" name="obj_list" id="obj_list" value="location_map_list_box" />
-                <input type="hidden" name="obj_frm" id="obj_frm" value="frm_list" />
-                <input type="hidden" name="obj_uri" id="obj_uri" value="./location_update" />
-                <input type="hidden" name="obj_pg" id="obj_pg" value="1" />
-                <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-                <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-                <input type="hidden" name="sgt_idx" id="sgt_idx" value="<?= $sgdt_row['sgt_idx'] ?>" />
-                <input type="hidden" name="sgdt_idx" id="sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
-                <input type="hidden" name="mt_idx" id="mt_idx" value="<?= $sgdt_row['mt_idx'] ?>" />
-            </form>
+            <input type="hidden" name="sgt_idx" id="sgt_idx" value="<?= $sgdt_row['sgt_idx'] ?>" />
+            <input type="hidden" name="sgdt_idx" id="sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
+            <input type="hidden" name="mt_idx" id="mt_idx" value="<?= $sgdt_row['mt_idx'] ?>" />
             <!-- 프로필 tab_scroll scroll_bar_x -->
             <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
                 <div class="grp_wrap">
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mb-3"><?= translate('그룹원', $userLang) ?></p>
-                        <form method="post" name="frm_group_list" id="frm_group_list" onsubmit="return false;">
-                            <input type="hidden" name="act" id="act" value="group_member_list" />
-                            <input type="hidden" name="obj_list2" id="obj_list2" value="group_member_list_box" />
-                            <input type="hidden" name="obj_frm2" id="obj_frm2" value="frm_group_list" />
-                            <input type="hidden" name="obj_uri2" id="obj_uri2" value="./location_update" />
-                            <input type="hidden" name="obj_pg2" id="obj_pg2" value="1" />
-                            <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-                            <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-                            <input type="hidden" name="group_sgt_idx" id="group_sgt_idx" value="<?= $sgdt_row['sgt_idx'] ?>" />
-                            <input type="hidden" name="group_sgdt_idx" id="group_sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
-                        </form>
-                        <style>
-                            @keyframes loading {
-                                0% {
-                                    transform: rotate(0deg);
-                                }
-
-                                100% {
-                                    transform: rotate(360deg);
-                                }
-                            }
-
-                            .loading-animation {
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                border: 4px solid #f3f3f3;
-                                border-top: 4px solid #3498db;
-                                animation: loading 1s infinite linear;
-                            }
-                        </style>
-
-                        <div id="group_member_list_box">
-                            <div class="mem_wrap mem_swiper">
-                                <div class="swiper-wrapper d-flex">
-                                    <!-- 로딩 애니메이션 추가 -->
-                                    <div id="loading-placeholder" class="d-flex align-items-center justify-content-center" style="width: 100%; height: 81px;">
-                                        <div class="loading-animation"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 그룹원 자리 -->
                 </div>
             <?php } ?>
-            <div id="location_map_list_box">
-                <div class="px_16" style="margin-bottom: 12px;">
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mb-3"><?= translate('리스트', $userLang) ?></p>
-                        <div class="swiper locSwiper location_point_list_wrap pb-0">
-                            <div class="swiper-wrapper lo_grid_wrap">
-                                <div class="trace_box trace_add_place swiper-slide mr-3" style="height: 135px;">
-                                    <div class="trace_box_txt_box text-center" style="height: 91.5px;">
-                                        <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center"></p>
-                                    </div>
-                                </div>
-                                <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
-                                    <div class="trace_box swiper-slide mr-3" style="height: 135px;">
-                                        <div class="trace_box_txt_box" style="height: 91.5px;">
-                                            <!-- <p class="mr-2">
-                                                <span class="fs_13 fc_primary rounded_04 bg_secondary px_06 py_02 line1_text line_h1_4 mb-2">내장소 불러오는 중..</span>
-                                            </p> 
-                                            <p class="line2_text fs_13 fw_400 text_dynamic line_h1_4">내장소 정보 불러오는 중..</p> -->
-                                        </div>
-                                        <div class="trace_box_btn_box">
-                                        </div>
-                                    </div>
-                                    <div class="trace_box trace_frt_place swiper-slide mr-3">
-                                        <div class="trace_box_txt_box" style="height: 91.5px;">
-                                            <!-- <p class="mr-2">
-                                                <span class="fs_13 fc_d58c19 rounded_04 bg_fbf3e8 px_06 py_02 line1_text line_h1_4 mb-2">추천장소 불러오는 중..</span>
-                                            </p>
-                                            <p class="line2_text fs_13 fw_400 text_dynamic line_h1_4">추천장소 정보 불러오는 중..</p> -->
-                                        </div>
-                                        <div class="d-flex align-items-center trace_box_btn_box">
-                                        </div>
-                                    </div>
-                                <?php } ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="location_map_list_box" class="px_16">
+                <!-- 내장소 리스트 자리 -->
             </div>
         </div>
     </section>
@@ -517,6 +469,7 @@ $expt_cnt = $row['cnt'];
     let currentLat;
     let currentLng;
     let optBottom = document.querySelector(".opt_bottom");
+    const loadingElement = document.getElementById('map-loading');
 </script>
 <?php
 // 한국어 사용자를 위한 네이버 지도 API 스크립트
@@ -557,7 +510,7 @@ if ($userLang == 'ko') {
         }
 
         // 지도 초기화 함수
-        async function initMap(st_lat = 35.12806700000000, st_lng = 136.90676000000000) {
+        async function initMap(st_lat, st_lng) {
             if (!googleMapsLoaded) {
                 console.log("Waiting for Google Maps API to load...");
                 await loadGoogleMapsScript();
@@ -591,6 +544,12 @@ if ($userLang == 'ko') {
             };
 
             map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            // 추가 옵션 설정
+            map.setOptions({
+                disableDefaultUI: true, // 기본 UI 비활성화
+                gestureHandling: 'greedy' // 스크롤 동작 변경
+            });
 
             geocoder = new google.maps.Geocoder();
 
@@ -685,6 +644,8 @@ if ($userLang == 'ko') {
 <?php } ?>
 <script>
     $(document).ready(function() {
+        createGroupMember(<?= $sgdt_row['sgdt_idx'] ?>);
+        createLocationList(<?= $sgdt_row['sgt_idx'] ?>, <?= $sgdt_row['sgdt_idx'] ?>, <?= $sgdt_row['mt_idx'] ?>);
         f_get_box_list2();
         f_get_box_list();
         setTimeout(() => {
@@ -693,6 +654,180 @@ if ($userLang == 'ko') {
         }, 100);
 
     });
+
+    function renderMemberList(data) {
+        const grpWrap = $('.grp_wrap');
+        grpWrap.empty(); // 기존 내용 삭제
+
+        // 전체 HTML 구조 생성
+        const html = `
+        <div class="border bg-white rounded-lg px_16 py_16">
+            <p class="fs_16 fw_600 mb-3">${'<?= translate('그룹원', $userLang) ?>'}</p>
+            <style>
+                @keyframes loading {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+
+                    100% {
+                        transform: rotate(360deg);
+                    }
+                }
+                .loading-animation {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #3498db;
+                    animation: loading 1s infinite linear;
+                }
+            </style>
+
+            <div id="group_member_list_box">
+                <div class="mem_wrap mem_swiper">
+                    <div class="swiper-wrapper d-flex">
+                        ${generateMemberItems(data)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+        grpWrap.html(html);
+
+        // Swiper 다시 초기화
+        mem_swiper = new Swiper(".mem_swiper", {
+            slidesPerView: 'auto',
+            spaceBetween: 12,
+        });
+    }
+
+    // 멤버 아이템 생성 함수
+    function generateMemberItems(data) {
+        let html = '';
+
+        // 본인 정보 추가
+        html += `
+        <div class="swiper-slide checks mem_box">
+            <label>
+                <input type="radio" name="rd2" checked onclick="mem_schedule(${data.my_info.sgt_idx}, ${data.my_info.sgdt_idx});">
+                <div class="prd_img mx-auto">
+                    <div class="rect_square rounded_14">
+                        <img src="${data.my_info.profile_image}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                    </div>
+                </div>
+                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.my_info.nickname}</p>
+            </label>
+        </div>
+    `;
+
+        // 그룹 멤버 정보 추가
+        data.group_members.forEach(member => {
+            html += `
+            <div class="swiper-slide checks mem_box">
+                <label>
+                    <input type="radio" name="rd2" onclick="mem_schedule(${member.sgt_idx}, ${member.sgdt_idx});">
+                    <div class="prd_img mx-auto"> 
+                        <div class="rect_square rounded_14">
+                            <img src="${member.profile_image}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                        </div>
+                    </div>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.nickname}</p>
+                </label>
+            </div>
+        `;
+        });
+
+        // 그룹원추가 버튼 추가
+        html += `
+        <div class="swiper-slide mem_box add_mem_box" ${data.sgt_cnt > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
+            <button class="btn mem_add">
+                <i class="xi-plus-min fs_20"></i>
+            </button>
+            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" style="word-break: break-all; line-height:0.7;">
+                ${'<?= translate(' 그룹원 ', $userLang) ?>'}<br>
+                ${'<?= translate(' 추가 ', $userLang) ?>'}
+            </p>
+        </div>
+    `;
+
+        return html;
+    }
+
+    function renderLocationList(data) {
+        const locationMapListBox = $('#location_map_list_box'); // location_map_list_box 요소 선택
+        locationMapListBox.empty(); // 기존 내용 삭제
+
+        // 장소 추가 버튼 HTML
+        let html = `
+        <div class="trace_box trace_add_place swiper-slide" onclick="map_info_box_show()" style="height: 135px;">
+            <div class="trace_box_txt_box text-center" style="height: 91.5px;">
+                <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center" style="line-height: 0.7;">${'<?= translate('내장소를', $userLang) ?>'}<br>
+                    ${'<?= translate('추가해보세요!', $userLang) ?>'}
+                </p>
+                <button type="button" class="btn trace_addbtn"></button>
+            </div>
+        </div>
+    `;
+
+        // 내 장소 목록 HTML 생성
+        data.slt_list.forEach(slt_row => {
+            // slt_row['slt_add']에서 첫 번째 단어를 제거
+            let parts = slt_row.slt_add.split(' ');
+            parts.shift();
+            const slt_add = parts.join(' ');
+
+            html += `
+            <div class="trace_box swiper-slide" style="height: 135px;">
+                <div class="trace_box_txt_box" onclick="map_panto('${slt_row.slt_lat}','${slt_row.slt_long}')" style="height: 63.5px;">
+                    <p class="mr-2">
+                        <span class="fs_13 fc_primary rounded_04 bg_secondary px_06 py_02 line1_text line_h1_4 mb-2" style="display: inline-block; max-width: 6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${slt_row.slt_title}</span>
+                    </p>
+                    <p class="line2_text fs_13 fw_400 text_dynamic line_h1_4">${slt_add}</p>
+                </div>
+                <div class="trace_box_btn_box" style="height: 28px;">
+                    <button type="button" class="btn trace_armbtn ${slt_row.slt_enter_alarm === 'Y' ? 'on' : ''}" onclick="f_location_alarm_modal('${slt_row.slt_idx}','${slt_row.slt_enter_alarm}')"></button>
+                    <button type="button" class="btn trace_binbtn" onclick="f_del_location_modal('${slt_row.slt_idx}')" style="margin-left: 3px;"></button>
+                </div>
+            </div>
+        `;
+        });
+
+        // 추천 장소 목록 HTML 생성
+        if (data.sgt_cnt > 0 || data.sgdt_leader_cnt > 0) {
+            data.rlt_list.forEach(rlt_row => {
+                html += `
+                <div class="trace_box trace_frt_place swiper-slide">
+                    <div class="trace_box_txt_box" onclick="map_panto_recomand('${rlt_row.rlt_lat}','${rlt_row.rlt_long}','${rlt_row.rlt_add1 + rlt_row.rlt_add2}','${rlt_row.rlt_title}')">
+                        <p class="mr-2">
+                            <span class="fs_13 fc_d58c19 rounded_04 bg_fbf3e8 px_06 py_02 line1_text line_h1_4 mb-2">추천장소</span>
+                        </p>
+                        <p class="line2_text fs_13 fw_400 text_dynamic line_h1_4">${rlt_row.rlt_add1 + rlt_row.rlt_add2}</p>
+                    </div>
+                    <div class="d-flex align-items-center trace_box_btn_box">
+                        <button type="button" class="btn trace_frtplace_btn" onclick="map_panto_recomand('${rlt_row.rlt_lat}','${rlt_row.rlt_long}','${rlt_row.rlt_add1 + rlt_row.rlt_add2}','${rlt_row.rlt_title}')"></button>
+                    </div>
+                </div>
+            `;
+            });
+        }
+
+        // locationPointListWrap을 location_map_list_box 아래에 추가
+        locationMapListBox.html(`
+            <div class="border bg-white rounded-lg px_16 py_16 pb_3">
+                <p class="fs_16 fw_600 mb-3">${'<?= translate('리스트', $userLang) ?>'}</p>
+                <div class="swiper locSwiper location_point_list_wrap pb-0">
+                    <div class="swiper-wrapper lo_grid_wrap">
+                        ${html} 
+                    </div>
+                </div>
+            </div>
+        `);
+        // Swiper 다시 초기화
+        loc_swiper = new Swiper(".locSwiper", {
+            slidesPerView: 'auto',
+            spaceBetween: 10,
+        });
+    }
 
     function f_modal_map_search() {
         // location.href='./schedule_loc';
@@ -740,6 +875,7 @@ if ($userLang == 'ko') {
         $('#sgdt_idx').val(sgdt_idx);
         f_get_box_list();
         location_map(sgdt_idx);
+        createLocationList(sgdt_idx, sgdt_idx, '');
     }
     // 내장소 추가 팝업 띄우기
     function map_info_box_show() {
@@ -750,7 +886,7 @@ if ($userLang == 'ko') {
 
     function initNaverMap(my_profile, st_lat, st_lng, markerData) {
         var mapContainer = document.getElementById("map");
-        var optBottom = document.querySelector('.opt_bottom');
+        optbottom = document.querySelector('.opt_bottom');
         var bottomSheetHeight = optBottom ? optBottom.getBoundingClientRect().height : 0;
         var mapHeight = mapContainer.getBoundingClientRect().height;
         var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
@@ -972,7 +1108,8 @@ if ($userLang == 'ko') {
             $('.point_wrap').not(this).find('.infobox').removeClass('on');
         });
 
-        // map.setCursor('pointer');
+        // 지도 로딩 완료 후 로딩 화면 숨기기
+        hideMapLoading();
     }
 
     async function initGoogleMap(my_profile, st_lat, st_lng, markerData) {
@@ -1086,6 +1223,8 @@ if ($userLang == 'ko') {
 
             markers.push(locationMarker);
         }
+        // 지도 로딩 완료 후 로딩 화면 숨기기
+        hideMapLoading();
     }
 
     function generateRandomColor() {
@@ -1208,7 +1347,82 @@ if ($userLang == 'ko') {
         });
     }
 
+    function createGroupMember(sgdt_idx) {
+        // sessionStorage에서 데이터를 먼저 확인
+        let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
+        if (cachedData) {
+            // 캐싱된 데이터가 있으면 사용
+            let response = JSON.parse(cachedData);
+            if (response.result === 'success') {
+                renderMemberList(response.data);
+                return; // 함수 종료
+            }
+        }
+        var form_data = new FormData();
+        form_data.append("act", "group_member_list");
+        form_data.append("group_sgdt_idx", sgdt_idx);
+
+        $.ajax({
+            url: "./location_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 10000,
+            dataType: 'json',
+            success: function(response) {
+                if (response.result === 'success') {
+                    // sessionStorage에 데이터 저장
+                    sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
+                    renderMemberList(response.data);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            },
+        });
+    }
+
+    function createLocationList(sgt_idx, sgdt_idx, mt_idx) {
+        var form_data = new FormData();
+        form_data.append("act", "location_map_list");
+        form_data.append("sgdt_idx", sgdt_idx);
+        form_data.append("sgt_idx", sgt_idx);
+        form_data.append("mt_idx", mt_idx);
+
+        $.ajax({
+            url: "./location_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 10000,
+            dataType: 'json',
+            success: function(response) {
+                if (response.result === 'success') {
+                    renderLocationList(response.data);
+                } else {
+                    alert(response.message);
+                }
+                hideMapLoading(); // success 후 무조건 실행
+            },
+            error: function(err) {
+                console.log(err);
+                hideMapLoading(); // error 후 무조건 실행
+            }
+        });
+    }
+
     function location_map(sgdt_idx) {
+        showMapLoading();
         var form_data = new FormData();
         form_data.append("act", "my_location_list");
         form_data.append("sgdt_idx", sgdt_idx);
@@ -1231,13 +1445,6 @@ if ($userLang == 'ko') {
                     var st_lat = data.my_lat;
                     var st_lng = data.mt_long;
 
-                    // 이미지가 들어있는 부모 요소를 찾습니다.
-                    // var parentElement = document.getElementById('map');
-
-                    // // 부모 요소의 자식 요소로 있는 모든 이미지를 제거합니다.
-                    // while (parentElement.firstChild) {
-                    //     parentElement.removeChild(parentElement.firstChild);
-                    // }
                     if ('ko' === '<?= $userLang ?>') {
                         initNaverMap(my_profile, st_lat, st_lng, data);
                     } else if ('ko' !== '<?= $userLang ?>') {
@@ -1252,6 +1459,9 @@ if ($userLang == 'ko') {
             error: function(err) {
                 console.log(err);
             },
+            complete: function() {
+                hideMapLoading(); // AJAX 요청 완료 후 무조건 실행 (success 또는 error 후에도 실행)
+            }
         });
     }
 
@@ -1294,6 +1504,7 @@ if ($userLang == 'ko') {
                     var sgdt_idx = $('#sgdt_idx').val();
                     f_get_box_list();
                     location_map(sgdt_idx);
+                    createLocationList($('#sgt_idx').val(), $('#sgdt_idx').val(), '');
                 }
             },
             error: function(err) {
@@ -1380,6 +1591,7 @@ if ($userLang == 'ko') {
                     location_map(sgdt_idx);
                     $('#map_info_box').addClass('d-none-temp');
                     $('#slt_title').val('');
+                    createLocationList($('#sgt_idx').val(), $('#sgdt_idx').val(), '');
                 } else if (data == 'E') {
                     // jalert("내장소는 최대 2개까지 등록 가능합니다.");
                     $('#showSub_modal').modal('show');
@@ -1400,7 +1612,7 @@ if ($userLang == 'ko') {
         var startY = 0;
         var isDragging;
 
-        var optBottom = document.querySelector('.opt_bottom');
+        optbottom = document.querySelector('.opt_bottom');
         if (optBottom) {
             optBottom.addEventListener('touchstart', function(event) {
                 startY = event.touches[0].clientY; // 터치 시작 좌표 저장
@@ -1478,16 +1690,50 @@ if ($userLang == 'ko') {
         });
     });
 
-    // 문서 전체를 클릭했을 때 마커 상세내역 사라짐
-    // $(document).click(function(event) {
-    //     if (!$(event.target).closest('.point_wrap, .infobox').length) {
-    //         $('.point_wrap .infobox').removeClass('on');
-    //     }
-    // });
+    // 로딩 화면을 보이게 하는 함수
+    function showMapLoading(center = true) {
+        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+
+        // 랜덤 색상 적용
+        const randomColor = generateSpinnerColor();
+        spinnerDots.forEach(dot => {
+            dot.style.backgroundColor = randomColor;
+        });
+
+        if (optBottom) {
+            var transformY = optBottom.style.transform;
+            if (transformY == 'translateY(0px)') {
+                // 화면 중앙에서 180px 위로 이동
+                // loadingElement.style.top = 'calc(50% - 180px)';
+                loadingElement.style.transform = 'translate(0, -25%)';
+            }
+        }
+        loadingElement.style.display = 'flex'; // 로딩바 표시
+    }
+
+    // 로딩 화면을 숨기는 함수
+    function hideMapLoading() {
+        document.getElementById("map-loading").style.display = 'none';
+    }
+
+    function generateSpinnerColor() {
+        const colorSets = [
+            '#FF0000', // 빨간색
+            '#FFA500', // 주황색
+            '#0000FF', // 파란색
+            '#000080', // 남색
+            '#800080', // 보라색
+        ];
+
+        const randomIndex = Math.floor(Math.random() * colorSets.length);
+        return colorSets[randomIndex];
+    }
 
     function map_panto(lat, lng) {
+        currentLat = parseFloat(lat);
+        currentLng = parseFloat(lng);
         var mapContainer = document.getElementById("map");
-        var optBottom = document.querySelector('.opt_bottom');
+        optbottom = document.querySelector('.opt_bottom');
         var bottomSheetHeight = optBottom ? optBottom.getBoundingClientRect().height : 0;
         var mapHeight = mapContainer.getBoundingClientRect().height;
         var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
@@ -1578,7 +1824,7 @@ if ($userLang == 'ko') {
         if ('ko' === '<?= $userLang ?>') {
             map.setCenter(new naver.maps.LatLng(lat, lng));
 
-            var optBottom = document.querySelector('.opt_bottom');
+            optbottom = document.querySelector('.opt_bottom');
             if (optBottom) {
                 var transformY = optBottom.style.transform;
                 if (transformY == 'translateY(0px)') {
@@ -1606,7 +1852,7 @@ if ($userLang == 'ko') {
             map.setCenter(new google.maps.LatLng(lat, lng));
 
             // opt_bottom 요소 체크 및 지도 이동
-            var optBottom = document.querySelector('.opt_bottom');
+            optbottom = document.querySelector('.opt_bottom');
             if (optBottom) {
                 var transformY = optBottom.style.transform;
                 if (transformY == 'translateY(0px)') {
@@ -1649,7 +1895,7 @@ if ($userLang == 'ko') {
     function map_panto_recomand(lat, lng, addr, title) {
         map.setCenter(new naver.maps.LatLng(lat, lng));
 
-        var optBottom = document.querySelector('.opt_bottom');
+        optbottom = document.querySelector('.opt_bottom');
         if (optBottom) {
             var transformY = optBottom.style.transform;
             if (transformY == 'translateY(0px)') {

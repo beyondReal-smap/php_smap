@@ -57,46 +57,46 @@
         <li <?php if ($b_menu === '1') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/" onclick="sendBottomMenuEvent('home');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_off.png" alt="홈 아이콘" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_on.png" alt="홈 아이콘" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_off.png" alt="<?= translate('홈', $userLang) ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_on.png" alt="<?= translate('홈', $userLang) ?>" class="img_on">
                 </div>
-                <p><?= translate('홈', $userLang)?></p>
+                <p><?= translate('홈', $userLang) ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '2') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/group" onclick="sendBottomMenuEvent('group');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_off.png" alt="그룹 아이콘" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_on.png" alt="그룹 아이콘" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_off.png" alt="<?= translate('그룹', $userLang) ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_on.png" alt="<?= translate('그룹', $userLang) ?>" class="img_on">
                 </div>
-                <p><?= translate('그룹', $userLang)?></p>
+                <p><?= translate('그룹', $userLang) ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '3') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/schedule" onclick="sendBottomMenuEvent('schedule');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_off.png" alt="일정 아이콘" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_on.png" alt="일정 아이콘" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_off.png" alt="<?= translate('일정', $userLang) ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_on.png" alt="<?= translate('일정', $userLang) ?>" class="img_on">
                 </div>
-                <p><?= translate('일정', $userLang)?></p>
+                <p><?= translate('일정', $userLang) ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '4') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/location" onclick="sendBottomMenuEvent('location');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_off.png" alt="내장소" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_on.png" alt="내장소" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_off.png" alt="<?= translate('내장소', $userLang) ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_on.png" alt="<?= translate('내장소', $userLang) ?>" class="img_on">
                 </div>
-                <p><?= translate('내장소', $userLang)?></p>
+                <p><?= translate('내장소', $userLang) ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '5') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/log" onclick="sendBottomMenuEvent('log');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_off.png" alt="로그" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_on.png" alt="로그" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_off.png" alt="<?= translate('로그', $userLang) ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_on.png" alt="<?= translate('로그', $userLang) ?>" class="img_on">
                 </div>
-                <p><?= translate('로그', $userLang)?></p>
+                <p><?= translate('로그', $userLang) ?></p>
             </a>
         </li>
     </ul>

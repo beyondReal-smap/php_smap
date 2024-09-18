@@ -38,8 +38,68 @@ require_once $_SERVER['DOCUMENT_ROOT'] . "/redis_cache_util.php";
 // require_once $_SERVER['DOCUMENT_ROOT']."/group_log_cache.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
 
+// include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
+
+// // 구글 맵스 API 키 설정
+// $google_maps_api_key = 'AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw'; // Google Maps API 키로 대체
+
+// // 사용자 IP 주소 가져오기
+// $user_ip = $_SERVER['REMOTE_ADDR'];
+
+// // 구글 맵스 Geolocation API URL 생성
+// $geolocation_api_url = "https://www.googleapis.com/geolocation/v1/geolocate?key=$google_maps_api_key";
+
+// // API 요청 생성
+// $ch = curl_init();
+// curl_setopt($ch, CURLOPT_URL, $geolocation_api_url);
+// curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+// curl_setopt($ch, CURLOPT_POST, 1);
+// curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['considerIp' => $user_ip]));
+// curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+
+// // API 요청 실행 및 응답 가져오기
+// $response = curl_exec($ch);
+// curl_close($ch);
+
+// // 응답 파싱
+// $location_data = json_decode($response, true);
+
+// // 로케일 추출
+// if (isset($location_data['location']['latLng'])) {
+//     // 위도 및 경도에서 로케일 가져오기
+//     $lat = $location_data['location']['latLng']['latitude'];
+//     $lng = $location_data['location']['latLng']['longitude'];
+
+//     // 구글 맵스 Reverse Geocoding API URL 생성
+//     $reverse_geocoding_api_url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$google_maps_api_key";
+
+//     // API 요청 생성 및 실행
+//     $ch = curl_init();
+//     curl_setopt($ch, CURLOPT_URL, $reverse_geocoding_api_url);
+//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//     $geocoding_response = curl_exec($ch);
+//     curl_close($ch);
+
+//     // 응답 파싱
+//     $geocoding_data = json_decode($geocoding_response, true);
+
+//     // 로케일 정보 추출
+//     if (isset($geocoding_data['results'][0]['address_components'])) {
+//         $address_components = $geocoding_data['results'][0]['address_components'];
+//         foreach ($address_components as $component) {
+//             if (in_array('country', $component['types'])) {
+//                 $userLang = strtolower($component['short_name']);
+//                 break;
+//             }
+//         }
+//     }
+// } else {
+//     // Geolocation API에서 위치 정보를 가져오지 못한 경우 기본 로케일 설정
+//     $userLang = 'ko'; // 기본 로케일 (영어)
+// }
+
 $userLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-$userLang = 'ko';
+// $userLang = 'en';
 
 class Logger
 {
@@ -908,88 +968,234 @@ function TimeType($time_t)
 
 function DateType($strDate, $type = "1")
 {
-    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
+    global $userLang;
 
     if ($strDate == "" || $strDate == "0000-00-00 00:00:00") {
-        $strDate = "-";
-    } else {
-        if ($type == "1") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10));
-        } elseif ($type == "2") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 16));
-        } elseif ($type == "3") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "4") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
-        } elseif ($type == "5") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8));
-        } elseif ($type == "6") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
-        } elseif ($type == "7") {
-            $strDate = substr($strDate, 11, 5);
-        } elseif ($type == "8") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " " . substr($strDate, 11, 5);
-        } elseif ($type == "9") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")<br/>" . substr($strDate, 11, 5);
-        } elseif ($type == "10") {
-            $strDate = str_replace("-", translate("년", $userLang) . " ", substr($strDate, 2, 5)) . translate("월", $userLang);
-        } elseif ($type == "11") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "12") {
-            $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "13") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-        } elseif ($type == "14") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "15") {
-            $strDate_ex1 = explode(' ', $strDate);
-
-            $strDate = TimeType($strDate_ex1[1]);
-        } elseif ($type == "16") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-        } elseif ($type == "17") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-        } elseif ($type == "18") {
-            $strDate = substr($strDate, 0, 16);
-        } elseif ($type == "19") {
-            $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "20") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            if (substr($strDate_ex2[1], 1) < 10) {
-                $strDate_ex2[1] = str_replace('0', '', $strDate_ex2[1]);
-            }
-            if (substr($strDate_ex2[2], 1) < 10) {
-                $strDate_ex2[2] = str_replace('0', '', $strDate_ex2[2]);
-            }
-
-            $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
-        } elseif ($type == "21") {
-            $strDate_ex1 = explode(' ', $strDate);
-            $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-            $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang);
-        }
+        return "-";
     }
 
-    return $strDate;
+    $dateTime = new DateTime($strDate);
+
+    switch ($type) {
+        case "1":
+            return $dateTime->format('Y.m.d');
+        case "2":
+            return $dateTime->format('Y.m.d H:i');
+        case "3":
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+        case "4":
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ") " . $dateTime->format('H:i');
+        case "5":
+            return $dateTime->format('y.m.d');
+        case "6":
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ") " . $dateTime->format('H:i');
+        case "7":
+            return $dateTime->format('H:i');
+        case "8":
+            return $dateTime->format('y.m.d H:i');
+        case "9":
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ")<br/>" . $dateTime->format('H:i');
+        case "10":
+            return $dateTime->format('y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang);
+        case "11":
+            return $dateTime->format('Y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+        case "12":
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+        case "13":
+            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+        case "14":
+            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+        case "15":
+            return TimeType($dateTime->format('H:i:s'));
+        case "16":
+            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+        case "17":
+            return fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+        case "18":
+            return $dateTime->format('Y-m-d H:i');
+        case "19":
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+        case "20":
+            switch ($userLang) {
+                case 'ko':
+                    return $dateTime->format('n월 j일 ') . fnc_Day_Name_Country($strDate, 'ko');
+                case 'en':
+                    return $dateTime->format('D, M j'); // Tue, Sep 10 형식
+                case 'ja':
+                    return $dateTime->format('n月 j日 ') . fnc_Day_Name_Country($strDate, 'ja') . ' ';
+                case 'id':
+                    return $dateTime->format('j M ') . fnc_Day_Name_Country($strDate, 'id');
+                case 'vi':
+                    return $dateTime->format('j') . ' Tháng ' . $dateTime->format('n') . fnc_Day_Name_Country($strDate, 'vi');
+                case 'es':
+                    return $dateTime->format('j \d\e M') . fnc_Day_Name_Country($strDate, 'es');
+                default:
+                    return $dateTime->format('n') . translate("월", $userLang) . " " . $dateTime->format('j') . translate("일", $userLang) . fnc_Day_Name_Country($strDate);
+            }
+        case "21":
+            return $dateTime->format('Y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang);
+        default:
+            return $strDate;
+    }
 }
+
+function getOrdinalSuffix($number)
+{
+    if (!in_array(($number % 100), array(11, 12, 13))) {
+        switch ($number % 10) {
+            case 1:
+                return 'st';
+            case 2:
+                return 'nd';
+            case 3:
+                return 'rd';
+        }
+    }
+    return 'th';
+}
+
+function fnc_Day_Name_Country($strDate, $lang = null)
+{
+    global $userLang;
+    $lang = $lang ?? $userLang;
+
+    $dayOfWeek = date('w', strtotime($strDate));
+
+    $dayNames = [
+        'ko' => ['일', '월', '화', '수', '목', '금', '토'],
+        'en' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        'ja' => ['日', '月', '火', '水', '木', '金', '土'],
+        'id' => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+        'vi' => ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+        'es' => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+    ];
+
+    return $dayNames[$lang][$dayOfWeek] ?? $dayNames['en'][$dayOfWeek];
+}
+
+// TimeType 함수가 정의되어 있다고 가정합니다.
+// 이 함수가 없다면, 필요에 따라 구현해야 합니다.
+
+// function DateType($strDate, $type = "1")
+// {
+//     global $userLang; // 함수 내에서 전역 변수 $userLang 사용
+//     $dateTime = new DateTime($strDate);
+
+//     if ($strDate == "" || $strDate == "0000-00-00 00:00:00") {
+//         $strDate = "-";
+//     } else {
+//         if ($type == "1") {
+//             $strDate = str_replace("-", ".", substr($strDate, 0, 10));
+//         } elseif ($type == "2") {
+//             $strDate = str_replace("-", ".", substr($strDate, 0, 16));
+//         } elseif ($type == "3") {
+//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
+//         } elseif ($type == "4") {
+//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
+//         } elseif ($type == "5") {
+//             $strDate = str_replace("-", ".", substr($strDate, 2, 8));
+//         } elseif ($type == "6") {
+//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
+//         } elseif ($type == "7") {
+//             $strDate = substr($strDate, 11, 5);
+//         } elseif ($type == "8") {
+//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " " . substr($strDate, 11, 5);
+//         } elseif ($type == "9") {
+//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")<br/>" . substr($strDate, 11, 5);
+//         } elseif ($type == "10") {
+//             $strDate = str_replace("-", translate("년", $userLang) . " ", substr($strDate, 2, 5)) . translate("월", $userLang);
+//         } elseif ($type == "11") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+//         } elseif ($type == "12") {
+//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")";
+//         } elseif ($type == "13") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
+//         } elseif ($type == "14") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+//         } elseif ($type == "15") {
+//             $strDate_ex1 = explode(' ', $strDate);
+
+//             $strDate = TimeType($strDate_ex1[1]);
+//         } elseif ($type == "16") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
+//         } elseif ($type == "17") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
+//         } elseif ($type == "18") {
+//             $strDate = substr($strDate, 0, 16);
+//         } elseif ($type == "19") {
+//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
+//         } elseif ($type == "20") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             if (substr($strDate_ex2[1], 1) < 10) {
+//                 $strDate_ex2[1] = str_replace('0', '', $strDate_ex2[1]);
+//             }
+//             if (substr($strDate_ex2[2], 1) < 10) {
+//                 $strDate_ex2[2] = str_replace('0', '', $strDate_ex2[2]);
+//             }
+
+//             if ($type == "20") {
+//                 switch ($userLang) {
+//                     case 'ko':
+//                         return $dateTime->format('n월 j일 (') . fnc_Day_Name_Country($strDate, 'ko') . ')';
+//                     case 'en':
+//                         return $dateTime->format('jS M (') . fnc_Day_Name_Country($strDate, 'en') . ')';
+//                     case 'ja':
+//                         return $dateTime->format('n月j日 (') . fnc_Day_Name_Country($strDate, 'ja') . ')';
+//                     case 'id':
+//                         return $dateTime->format('j M (') . fnc_Day_Name_Country($strDate, 'id') . ')';
+//                     case 'vi':
+//                         return $dateTime->format('j') . ' Tháng ' . $dateTime->format('n') . ' (' . fnc_Day_Name_Country($strDate, 'vi') . ')';
+//                     case 'es':
+//                         return $dateTime->format('j \d\e M (') . fnc_Day_Name_Country($strDate, 'es') . ')';
+//                     default:
+//                         return $dateTime->format('n') . translate("월", $userLang) . " " . $dateTime->format('j') . translate("일", $userLang) . " (" . fnc_Day_Name_Country($strDate) . ")";
+//                 }
+//             }
+//         } elseif ($type == "21") {
+//             $strDate_ex1 = explode(' ', $strDate);
+//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
+
+//             $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang);
+//         }
+//     }
+
+//     return $strDate;
+// }
+
+// function fnc_Day_Name_Country($strDate, $lang = null) {
+//     global $userLang;
+//     $lang = $lang ?? $userLang;
+
+//     $dayOfWeek = date('w', strtotime($strDate));
+
+//     $dayNames = [
+//         'ko' => ['일', '월', '화', '수', '목', '금', '토'],
+//         'en' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+//         'ja' => ['日', '月', '火', '水', '木', '金', '土'],
+//         'id' => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+//         'vi' => ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+//         'es' => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+//     ];
+
+//     return $dayNames[$lang][$dayOfWeek] ?? $dayNames['en'][$dayOfWeek];
+// }
 
 function substr_star($str)
 {
@@ -2358,6 +2564,93 @@ function result_data($success, $title, $message, $data)
     return $obj;
 }
 
+function get_cached_group_member_data($mt_idx)
+{
+    global $DB;
+
+    $cache_key = 'group_member_data_' . $mt_idx;
+    $cache_file = $_SERVER['DOCUMENT_ROOT'] . '/cache/' . $cache_key . '.json';
+    
+    $DB->where('mt_idx', $mt_idx);
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $DB->where('sgdt_show', 'Y');
+    $row_sgdt = $DB->getone("smap_group_detail_t");
+
+    $sgdt_idx = $row_sgdt['sgdt_idx'];
+
+    // 캐시 파일이 존재하고, 1시간 이내에 생성된 파일이면 캐시 데이터 사용
+    if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 3600) {
+        $cached_data = json_decode(file_get_contents($cache_file), true);
+        return $cached_data;
+    }
+
+    // 캐시 파일이 없거나 오래된 파일이면 데이터를 새로 생성하고 캐시 파일에 저장
+    if ($_SESSION['_mt_idx'] == '') {
+        $data = ['result' => 'error', 'message' => '로그인이 필요합니다.'];
+    } else {
+        if (!isset($sgdt_idx)) {
+            $data = ['result' => 'error', 'message' => '잘못된 접근입니다. group_sgdt_idx'];
+        } else {
+            $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); // 오너인 그룹 수
+            $DB->where('sgdt_idx', $sgdt_idx);
+            $sgdt_row = $DB->getone('smap_group_detail_t');
+
+            $DB->where('sgdt_idx', $sgdt_idx);
+            $DB->where('sgdt_discharge', 'N');
+            $DB->where('sgdt_exit', 'N');
+            $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
+
+            $data = [
+                'my_info' => [
+                    'sgt_idx' => $sgdt_row['sgt_idx'],
+                    'sgdt_idx' => $sgdt_row['sgdt_idx'],
+                    'mt_idx' => $sgdt_row['mt_idx'],
+                    'profile_image' => $_SESSION['_mt_file1'],
+                    'nickname' => $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'],
+                ],
+                'group_members' => [],
+                'sgt_cnt' => $sgt_cnt,
+            ];
+
+            if ($row_sgdt) {
+                $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
+                $DB->where('sgt_show', 'Y');
+                $DB->orderBy("sgt_udate", "desc");
+                $DB->orderBy("sgt_idx", "asc");
+                $list_sgt = $DB->get('smap_group_t');
+
+                if ($list_sgt) {
+                    foreach ($list_sgt as $row_sgt) {
+                        $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
+                        $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
+
+                        if ($invite_cnt || $list_sgdt['data']) {
+                            if ($list_sgdt['data']) {
+                                foreach ($list_sgdt['data'] as $val) {
+                                    $data['group_members'][] = [
+                                        'sgt_idx' => $row_sgt['sgt_idx'],
+                                        'sgdt_idx' => $val['sgdt_idx'],
+                                        'profile_image' => $val['mt_file1_url'],
+                                        'nickname' => $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'],
+                                        'mt_idx' => $val['mt_idx']
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // 캐시 디렉토리가 없으면 생성
+    if (!is_dir($_SERVER['DOCUMENT_ROOT'] . '/cache/')) {
+        mkdir($_SERVER['DOCUMENT_ROOT'] . '/cache/', 0755, true);
+    }
+    file_put_contents($cache_file, json_encode($data));
+    return $data;
+}
+
 function get_sgdt_member_list($sgt_idx)
 {
     global $DB, $_SESSION;
@@ -2438,7 +2731,7 @@ function get_sgdt_member_list($sgt_idx)
                 }
             }
             if ($row_sgdt['sgdt_group_chk'] == 'Y') {
-                $row_sgdt['sgdt_adate'] = translate('무기한', $userLang);
+                $row_sgdt['sgdt_adate'] = '무기한';
             } elseif ($row_sgdt['sgdt_group_chk'] == 'N') {
                 // 오늘 날짜
                 $today = new DateTime();

@@ -1,177 +1,92 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
-if ($_POST['act'] == "list") {
+if ($_POST['act'] == "list" || $_POST['act'] == "invite_list" ) {
+    $data = [
+        'groups' => [],
+        'action' => $_POST['act'] // 액션 정보 추가
+    ];
+
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
     $DB->where('sgdt_show', 'Y');
     $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
 
-    unset($list_sgt);
-    $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
-    $DB->where('sgt_show', 'Y');
-    $DB->orderBy("sgt_idx", "asc");
-    $DB->orderBy("sgt_udate", "desc");
-    $list_sgt = $DB->get('smap_group_t');
-    ?>
-    <div class="mt_85 pt_20 pb_100">
-        <?php
+    if ($row_sgdt) {
+        $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
+        $DB->where('sgt_show', 'Y');
+        if ($_POST['act'] == "list") {
+            $DB->orderBy("sgt_idx", "asc");
+            $DB->orderBy("sgt_udate", "desc");
+        } else {
+            $DB->orderBy("sgt_udate", "desc");
+            $DB->orderBy("sgt_idx", "asc");
+        }
+        $list_sgt = $DB->get('smap_group_t');
+
         if ($list_sgt) {
             foreach ($list_sgt as $row_sgt) {
-                $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
-        ?>
-                <div class="border bg-white rounded-lg mb-3">
-                    <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'">
-                        <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3"><?= $row_sgt['sgt_title'] ?><span class="ml-2">(<?= $member_cnt_t ?>)</span></p>
-                        <i class="fs_15 text_gray xi-angle-right-min"></i>
-                    </div>
-                    <?php
-                    unset($list_sgdt);
-                    $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-                    $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
-                    if ($invite_cnt || $list_sgdt['data']) { ?>
-                        <div class="group-body px_16 py_04">
-                            <?
-                            if ($invite_cnt) {
-                            ?>
-                                <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-                                    <?= number_format($invite_cnt) ?>명 초대중
-                                </p>
-                                <?php
+                $groupData = [
+                    'sgt_idx' => $row_sgt['sgt_idx'],
+                    'sgt_title' => $row_sgt['sgt_title'],
+                    'member_cnt' => get_group_member_cnt($row_sgt['sgt_idx']),
+                    'invites' => [],
+                    'members' => []
+                ];
+
+                if ($_POST['act'] == "invite_list") {
+                    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+                    $DB->where('sgt_idx', $row_sgt['sgt_idx']);
+                    $DB->where('sgdt_discharge', 'N');
+                    $DB->where('sgdt_exit', 'N');
+                    $DB->where('sgdt_show', 'Y');
+                    $sgdt_row = $DB->getone('smap_group_detail_t');
+                    $groupData['sgdt_idx'] = $sgdt_row['sgdt_idx'];
+                }
+
+                $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
+                $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
+
+                if ($invite_cnt) {
+                    $groupData['invites'][] = [
+                        'count' => $invite_cnt
+                    ];
+                }
+
+                if ($list_sgdt['data']) {
+                    foreach ($list_sgdt['data'] as $key => $val) {
+                        if (DateTime::createFromFormat('Y-m-d H:i:s', $val['sgdt_adate']) !== false) { // 날짜 형식 확인
+                            // 오늘 날짜
+                            $today = new DateTime();
+                            $date = new DateTime($val['sgdt_adate']);
+                    
+                            // 날짜 차이 계산 (음수 포함)
+                            $remainingDays = floor(($date->getTimestamp() - $today->getTimestamp()) / (60 * 60 * 24)) + 1;
+                            if ($remainingDays > 0) {
+                                $sgdt_adate = $remainingDays . '일 전';
+                            } else {
+                                $sgdt_adate = '만료';
                             }
-                            if ($list_sgdt['data']) {
-                                foreach ($list_sgdt['data'] as $key => $val) {
-                                ?>
-                                    <div class="d-flex align-items-center justify-content-between py_12 group_list">
-                                        <div class="w_fit">
-                                            <a href="#" class="d-flex align-items-center">
-                                                <div class="prd_img flex-shrink-0 mr_12">
-                                                    <div class="rect_square rounded_14">
-                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
-                                                    <div class="d-flex align-items-center flex-wrap ">
-                                                        <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
-                                                        <? } ?>
-                                                        <? if ($val['sgdt_adate']) { ?>
-                                                            <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                                <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
-                                                            <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
-                                                        <? } ?>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                            <?php
-                                }
-                            }
-                            ?>
-                        </div>
-                    <?
+                        } else {
+                            $sgdt_adate = $val['sgdt_adate']; // 날짜 형식이 아닌 경우 값을 그대로 사용
+                        }
+                    
+                        $groupData['members'][] = [
+                            'mt_file1_url' => $val['mt_file1_url'],
+                            'nickname' => $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'],
+                            'sgdt_owner_leader_chk_t' => translate($val['sgdt_owner_leader_chk_t'], $userLang),
+                            'sgdt_adate' => translate($sgdt_adate, $userLang),
+                        ];
                     }
-                    ?>
-                </div>
-        <?php
+                }
+                $data['groups'][] = $groupData;
             }
         }
-        ?>
-    </div>
-<?php
-} elseif ($_POST['act'] == "invite_list") {
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $DB->where('sgdt_show', 'Y');
-    $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
+    }
 
-    unset($list_sgt);
-    $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
-    $DB->where('sgt_show', 'Y');
-    $DB->orderBy("sgt_udate", "desc");
-    $DB->orderBy("sgt_idx", "asc");
-    $list_sgt = $DB->get('smap_group_t');
-    ?>
-    <div class="mt_85 pt_20 pb_100">
-        <?php
-        if ($list_sgt) {
-            foreach ($list_sgt as $row_sgt) {
-
-                $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
-                $DB->where('mt_idx', $_SESSION['_mt_idx']);
-                $DB->where('sgt_idx', $row_sgt['sgt_idx']);
-                $DB->where('sgdt_discharge', 'N');
-                $DB->where('sgdt_exit', 'N');
-                $DB->where('sgdt_show', 'Y');
-                $sgdt_row = $DB->getone('smap_group_detail_t');
-        ?>
-                <div class="border bg-white rounded-lg mb-3">
-                    <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer">
-                        <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3"><?= $row_sgt['sgt_title'] ?><span class="ml-2">(<?= $member_cnt_t ?>)</span></p>
-                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');"><?= translate('그룹나가기', $userLang)?></button>
-                    </div>
-                    <?php
-                    unset($list_sgdt);
-                    $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-                    $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
-                    if ($list_sgdt['data'] || $invite_cnt) { ?>
-                        <div class="group-body px_16 py_04">
-                            <? if ($invite_cnt) {
-                            ?>
-                                <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-                                    <?= number_format($invite_cnt) ?><?= translate('명 초대중', $userLang) ?>
-                                </p>
-                                <?php
-                            }
-
-                            if ($list_sgdt['data']) {
-                                foreach ($list_sgdt['data'] as $key => $val) {
-                                ?>
-                                    <div class="d-flex align-items-center justify-content-between py_12 group_list">
-                                        <div class="w_fit">
-                                            <a href="#" class="d-flex align-items-center">
-                                                <div class="prd_img flex-shrink-0 mr_12">
-                                                    <div class="rect_square rounded_14">
-                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
-                                                    <div class="d-flex align-items-center flex-wrap ">
-                                                        <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
-                                                        <? } ?>
-                                                        <? if ($val['sgdt_adate']) { ?>
-                                                            <? if ($val['sgdt_owner_leader_chk_t']) { ?>
-                                                                <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
-                                                            <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
-                                                        <? } ?>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                            <?php
-                                }
-                            }
-                            ?>
-                        </div>
-                    <?
-                    }
-                    ?>
-                </div>
-        <?php
-            }
-        }
-        ?>
-    </div>
-    <?php
+    echo json_encode(['result' => 'success', 'data' => $data]);
+    exit;
 } else if ($_POST['act'] == "list_info") {
     $DB->where('sgt_idx', $_POST['sgt_idx']);
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -184,7 +99,7 @@ if ($_POST['act'] == "list") {
 
     if ($list_sgdt['data']) {
         foreach ($list_sgdt['data'] as $key => $val) {
-    ?>
+?>
             <div class="py_16 d-flex align-items-center justify-content-between border-bottom group_info_member" data-sgdt-idx="<?= $val['sgdt_idx'] ?>">
                 <div class="w_fit">
                     <a href="#" class="d-flex align-items-center">
@@ -203,7 +118,7 @@ if ($_POST['act'] == "list") {
                                     <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <? } ?>
-                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= $val['sgdt_adate'] ?></p>
+                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate('남은기간', $userLang) ?> : <?= translate($val['sgdt_adate'], $userLang) ?></p>
                                 <? } ?>
                             </div>
                         </div>
@@ -211,7 +126,7 @@ if ($_POST['act'] == "list") {
                 </div>
                 <button type="button" class="btn h-auto w-auto p-3 fc_gray" data-toggle="modal" onclick="moreButtonClick('<?= $val['sgdt_leader_chk'] ?>','<?= $val['sgdt_idx'] ?>', '<?= $val['mt_name'] ?>')"><i class=" xi-ellipsis-v"></i></button>
             </div>
-    <?php
+<?php
         }
     }
 } elseif ($_POST['act'] == "group_member_order") {
@@ -319,7 +234,7 @@ if ($_POST['act'] == "list") {
     $plt_title =  "리더 해제알림 🚫";
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더에서 해제되었습니다.';
 
-    $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content); 
+    $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
     /*     $DB->where('sgt_idx', $row_sgdt['sgt_idx']);
     $DB->where('sgt_show', 'Y');
     $row_sgt = $DB->getone('smap_group_t');
@@ -388,7 +303,7 @@ if ($_POST['act'] == "list") {
     $plt_content =  '\'' . $group_name . '\' 그룹의 리더로 등록되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
-/*     $DB->where('sgt_idx', $row_sgdt['sgt_idx']);
+    /*     $DB->where('sgt_idx', $row_sgdt['sgt_idx']);
     $DB->where('sgt_show', 'Y');
     $row_sgt = $DB->getone('smap_group_t');
 
@@ -771,16 +686,16 @@ if ($_POST['act'] == "list") {
             $DB->where('sgdt_show', 'Y');
             $sgdt_list = $DB->get('smap_group_detail_t');
             $sgdt_count = count($sgdt_list);
-            if($sgdt_count > 0){
+            if ($sgdt_count > 0) {
                 //이미 다른그룹에 속해있음
                 echo ('J');
-            }else{
+            } else {
                 // 그룹오너 등급 확인하기
                 $DB->where('mt_idx', $sgt_row['mt_idx']);
                 $owner_row = $DB->getone('member_t');
-                if($owner_row['mt_level'] == '5'){ //오너가 유료회원이면
+                if ($owner_row['mt_level'] == '5') { //오너가 유료회원이면
                     $group_count = 10;
-                }else {
+                } else {
                     $group_count = 4;
                 }
                 // 해당 그룹 인원 확인
@@ -825,7 +740,7 @@ if ($_POST['act'] == "list") {
                         "slmt_wdate" => $DB->now(),
                     );
                     $_last_idx = $DB->insert('smap_location_member_t', $arr_query);
-                    
+
                     # 2024.05.22 그룹 가입 시 그룹오너/리더에게 푸시메세지 전송
                     unset($mem_row);
                     $mem_row = get_member_t_info($_SESSION['_mt_idx']); // 그룹원 회원 정보
@@ -850,7 +765,7 @@ if ($_POST['act'] == "list") {
                         }
                     }
 
-                    echo('Y');
+                    echo ('Y');
                 }
             }
         } else {

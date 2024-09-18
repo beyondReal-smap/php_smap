@@ -17,55 +17,6 @@ if ($_SESSION['_mt_idx'] == '') {
         alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
     }
 }
-
-// //오너인 그룹수
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->where('sgt_show', 'Y');
-// $row = $DB->getone('smap_group_t', 'count(*) as cnt');
-// $sgt_cnt = $row['cnt'];
-
-// //리더인 그룹수
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->where('sgdt_owner_chk', 'N');
-// $DB->where('sgdt_leader_chk', 'Y');
-// $DB->where('sgdt_show', 'Y');
-// $DB->where('sgdt_discharge', 'N');
-// $DB->where('sgdt_exit', 'N');
-// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-// $sgdt_leader_cnt = $row['cnt'];
-
-// //초대된 그룹수
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->where('sgdt_owner_chk', 'N');
-// $DB->where('sgdt_show', 'Y');
-// $DB->where('sgdt_discharge', 'N');
-// $DB->where('sgdt_exit', 'N');
-// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-// $sgdt_cnt = $row['cnt'];
-
-// //그룹활동기한 설정여부
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->where('sgdt_owner_chk', 'N');
-// $DB->where('sgdt_discharge', 'N');
-// $DB->where('sgdt_show', 'Y');
-// $DB->where('sgdt_exit', 'N');
-// $DB->where('sgdt_group_chk', 'D');
-// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-// $gapt_cnt = $row['cnt'];
-
-// //오너제외한 그룹원 수
-// $DB->where('mt_idx', $_SESSION['_mt_idx']);
-// $DB->where('sgt_show', 'Y');
-// $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
-
-// $DB->where('sgt_idx', $row_sgt['sgt_idx']);
-// $DB->where('sgdt_owner_chk', 'N');
-// $DB->where('sgdt_show', 'Y');
-// $DB->where('sgdt_discharge', 'N');
-// $DB->where('sgdt_exit', 'N');
-// $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-// $expt_cnt = $row['cnt'];
-
 $mt_idx = $_SESSION['_mt_idx'];
 
 $query = "
@@ -112,7 +63,7 @@ if ($result) {
         $sgdt_cnt = $row['sgdt_cnt'];
         $gapt_cnt = $row['gapt_cnt'];
         $expt_cnt = $row['expt_cnt'];
-        }
+    }
 } else {
     // 기본값 설정 또는 오류 메시지 표시
     $sgt_cnt = $sgdt_leader_cnt = $sgdt_cnt = $gapt_cnt = $expt_cnt = 0;
@@ -286,7 +237,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                     $DB->where('sgdt_show', 'Y');
                                     $sgdt_row = $DB->getone('smap_group_detail_t');
                                     if ($sgdt_row['sgdt_group_chk'] == 'Y') {
-                                        $sgdt_row['sgdt_adate'] = translate("무기한", $userLang);
+                                        $sgdt_row['sgdt_adate'] = "무기한";
                                     } else if ($sgdt_row['sgdt_group_chk'] == 'N') {
                                         // 오늘 날짜
                                         $today = new DateTime();
@@ -311,7 +262,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <?php }
                                     if ($sgdt_leader_cnt  > 0 || $sgdt_cnt > 0) { ?>
-                                        <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate("남은기간", $userLang) ?> : <?= $sgdt_row['sgdt_adate'] ?></p>
+                                        <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= translate("남은기간", $userLang) ?> : <?= translate($sgdt_row['sgdt_adate'], $userLang) ?></p>
                                 <?php }
                                 } ?>
                             </div>
@@ -321,337 +272,368 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
             </div>
             <div class="bargray_fluid"></div>
         </div>
-        <?php
-        if ($sgt_cnt > 0) {
-        ?>
-            <form method="post" name="frm_list" id="frm_list" onsubmit="return false;">
-                <input type="hidden" name="act" id="act" value="list" />
-                <input type="hidden" name="obj_list" id="obj_list" value="group_list_box" />
-                <input type="hidden" name="obj_frm" id="obj_frm" value="frm_list" />
-                <input type="hidden" name="obj_uri" id="obj_uri" value="./group_update" />
-                <input type="hidden" name="obj_pg" id="obj_pg" value="1" />
-                <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-                <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-            </form>
-            <script>
-                $(document).ready(function() {
-                    f_get_box_list();
-                });
-            </script>
-            <div id="group_list_box"></div>
-            <!-- 새로 추가되는 채팅 인터페이스 -->
-            <style>
-                .chat-container {
-                    height: 200px;
-                }
-            </style>
-            <!-- <div class="container mx-auto p-4">
-                <h1 class="text-2xl font-bold mb-4">Anthropic API Chat Interface</h1>
-                <div id="chatBox" class="bg-white p-4 rounded-lg shadow-md mb-4 overflow-y-auto chat-container"></div>
-                <form id="chatForm" class="flex">
-                    <input type="text" id="userInput" class="flex-grow p-2 border rounded-l-lg" placeholder="Type your message here...">
-                    <button type="submit" class="bg-blue-500 text-white p-2 rounded-r-lg">Send</button>
-                </form>
-            </div> -->
+        <script>
+            $(document).ready(function() {
+                f_get_box_list();
+            });
+        </script>
+        <div id="invite_group_list_box"></div>
     </div>
-    <!-- <button type="button" class="btn w-100 floating_btn rounded" onclick="location.href='./group_create'"><i class="xi-plus-min mr-3"></i> 그룹 추가하기</button> -->
-<?php
-        }
-        if ($sgdt_cnt > 0) {
-?>
-    <form method="post" name="frm_list" id="frm_list" onsubmit="return false;">
-        <input type="hidden" name="act" id="act" value="invite_list" />
-        <input type="hidden" name="obj_list" id="obj_list" value="invite_group_list_box" />
-        <input type="hidden" name="obj_frm" id="obj_frm" value="frm_list" />
-        <input type="hidden" name="obj_uri" id="obj_uri" value="./group_update" />
-        <input type="hidden" name="obj_pg" id="obj_pg" value="1" />
-        <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-        <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-    </form>
+
+
+    <? if ($sgt_cnt < 1 && $sgdt_cnt < 1) { ?>
+        <div class="floating_wrap on">
+            <div class="flt_inner">
+                <div class="flt_head">
+                    <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹만들기", $userLang) ?></span></p>
+                </div>
+                <div class="flt_body pb-5 pt-3">
+                    <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("친구들과 함께하는", $userLang) ?>
+                        <span class="text-primary"><?= translate("그룹", $userLang) ?></span>을 <?= translate("만들어보세요!", $userLang) ?>
+                    </p>
+                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹을 통해 친구들과 실시간 위치와 일정을 공유해보세요.", $userLang) ?></p>
+                </div>
+                <div class="flt_footer">
+                    <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?= translate("다음", $userLang) ?></button>
+                </div>
+            </div>
+        </div>
+    <? } ?>
+
+    <? if ($sgt_cnt == 1 && $expt_cnt < 1) { ?>
+        <div class="floating_wrap on">
+            <div class="flt_inner">
+                <div class="flt_head">
+                    <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹원 초대하기", $userLang) ?></span></p>
+                </div>
+                <div class="flt_body pb-5 pt-3">
+                    <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("그룹이 생성되었습니다.", $userLang) ?>
+                        <?= translate("이제 함께할", $userLang) ?> <span class="text-primary"><?= translate("그룹원", $userLang) ?></span>을 <?= translate("초대해볼까요?", $userLang) ?>
+                    </p>
+                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹원을 초대하고 함께 위치와 일정을 공유해보세요!", $userLang) ?></p>
+                </div>
+                <div class="flt_footer">
+                    <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'"><?= translate("초대하러 가기", $userLang) ?></button>
+                </div>
+            </div>
+        </div>
+    <? } ?>
+
+    <? if ($gapt_cnt > 0) {
+        $DB->where('mt_idx', $_SESSION['_mt_idx']);
+        $DB->where('sgdt_owner_chk', 'N');
+        $DB->where('sgdt_show', 'Y');
+        $DB->where('sgdt_group_chk', 'D');
+        $row = $DB->getone('smap_group_detail_t');
+
+        $DB->where('sgt_idx', $row['sgt_idx']);
+        $sgt_row = $DB->getone('smap_group_t');
+    ?>
+        <!-- 그룹만들기 플러팅 : 그룹 활동기한 설정-->
+        <div class="floating_wrap on">
+            <div class="flt_inner">
+                <div class="flt_head">
+                    <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹 활동기한 설정", $userLang) ?></span></p>
+                </div>
+                <div class="flt_body pb-5 pt-3">
+                    <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("반가워요!", $userLang) ?>
+                        <?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한 설정이 필요하신가요?", $userLang) ?>
+                    </p>
+                    <p class="text_dynamic line_h1_3 text_gray fs_14 fw_500 mt-3"><?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한은 개인 정보 보호를 위해\n설정한 시간 동안만 위치를 공유하게 해줍니다.", $userLang) ?>
+                    </p>
+                </div>
+                <div class="flt_footer flt_footer_b">
+                    <div class="d-flex align-items-center w-100 mx-0 my-0">
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 flt_close" onclick="group_activity_chk('<?= $row['sgdt_idx'] ?>')"><?= translate("아니요", $userLang) ?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./group_act_period?sgdt_idx=<?= $row['sgdt_idx'] ?>'"><?= translate("네", $userLang) ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <? } ?>
+    <!-- E-4 그룹 나가기 -->
+    <div class="modal fade" id="group_out_modal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <input type="hidden" name="group_out_modal_sgdt_idx" id="group_out_modal_sgdt_idx" value="" />
+                <div class="modal-body pt_40 pb_27 px-3 ">
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= translate("그룹에서 나가시겠어요?", $userLang) ?></p>
+                </div>
+                <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
+                    <div class="d-flex align-items-center w-100 mx-0 my-0">
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate("아니요", $userLang) ?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();"><?= translate("나가기", $userLang) ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- E-13 멤버 초대 -->
+    <div class="modal btn_sheeet_wrap fade" id="link_modal" tabindex="-1">
+        <div class="modal-dialog btm_sheet">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <div class="d-inline-block w-100 text-right">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" width="24px"></button>
+                    </div>
+                    <p class="fs_18 fw_700 text_dynamic line_h1_2"><?= translate("초대장은 어떻게 보낼까요?", $userLang) ?></p>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li>
+                            <a href="javascript:;" onclick="f_share_link('kakao');" class="d-flex align-items-center justify-content-between py_07">
+                                <div class="d-flex align-items-center">
+                                    <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="<?= translate("카카오톡 열기", $userLang) ?>" width="40px" class="mr_12" id="kakao_image" />
+                                    <p class="fs_15 fw_500 gray_900" id="kakao_text"><?= translate("카카오톡 열기", $userLang) ?></p>
+                                </div>
+                                <i class=" xi-angle-right-min fs_15 text_gray"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" onclick="f_share_link('clipboard');" class="d-flex align-items-center justify-content-between py_07 btn_copy">
+                                <div class="d-flex align-items-center">
+                                    <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="<?= translate("초대 링크 복사", $userLang) ?>" width="40px" class="mr_12" />
+                                    <p class="fs_15 fw_500 gray_900"><?= translate("초대 링크 복사", $userLang) ?></p>
+                                </div>
+                                <i class="xi-angle-right-min fs_15 text_gray"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" onclick="f_share_link('contact');" class="d-flex align-items-center justify-content-between py_07">
+                                <div class="d-flex align-items-center">
+                                    <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="<?= translate("연락처 열기", $userLang) ?>" width="40px" class="mr_12" />
+                                    <p class="fs_15 fw_500 gray_900"><?= translate("연락처 열기", $userLang) ?></p>
+                                </div>
+                                <i class="xi-angle-right-min fs_15 text_gray"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         $(document).ready(function() {
-            f_get_box_list();
+            createGroupMember();
+            if (isAndroid()) {
+                // $('#kakao_text').text('카카오톡 열기');
+                // document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_kakao.png";
+                $('#kakao_text').text('공유하기');
+                document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
+            } else if (isiOS()) {
+                $('#kakao_text').text('공유하기');
+                document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
+            }
         });
-    </script>
-    <div id="invite_group_list_box"></div>
-</div>
-<!-- <div class="container sub_pg bg_main">
-    <div class="mt_20">
-        <div class="fixed_top bg_main">
-            <div class="py_20 px_16">
-            </div>
-        </div>
-    </div>
-</div> -->
-<?php
-        }
-?>
 
-<? if ($sgt_cnt < 1 && $sgdt_cnt < 1) { ?>
-    <div class="floating_wrap on">
-        <div class="flt_inner">
-            <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹만들기", $userLang) ?></span></p>
-            </div>
-            <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("친구들과 함께하는", $userLang) ?>
-                    <span class="text-primary"><?= translate("그룹", $userLang) ?></span>을 <?= translate("만들어보세요!", $userLang) ?>
-                </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹을 통해 친구들과 실시간 위치와 일정을 공유해보세요.", $userLang) ?></p>
-            </div>
-            <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?= translate("다음", $userLang) ?></button>
-            </div>
-        </div>
-    </div>
-<? } ?>
+        const chatBox = document.getElementById('chatBox');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
 
-<? if ($sgt_cnt == 1 && $expt_cnt < 1) { ?>
-    <div class="floating_wrap on">
-        <div class="flt_inner">
-            <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹원 초대하기", $userLang) ?></span></p>
-            </div>
-            <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("그룹이 생성되었습니다.", $userLang) ?> 
-                    <?= translate("이제 함께할", $userLang) ?> <span class="text-primary"><?= translate("그룹원", $userLang) ?></span>을 <?= translate("초대해볼까요?", $userLang) ?>
-                </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate("그룹원을 초대하고 함께 위치와 일정을 공유해보세요!", $userLang) ?></p>
-            </div>
-            <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'"><?= translate("초대하러 가기", $userLang) ?></button>
-            </div>
-        </div>
-    </div>
-<? } ?>
-
-<? if ($gapt_cnt > 0) {
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_owner_chk', 'N');
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_group_chk', 'D');
-    $row = $DB->getone('smap_group_detail_t');
-
-    $DB->where('sgt_idx', $row['sgt_idx']);
-    $sgt_row = $DB->getone('smap_group_t');
-?>
-    <!-- 그룹만들기 플러팅 : 그룹 활동기한 설정-->
-    <div class="floating_wrap on">
-        <div class="flt_inner">
-            <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate("그룹 활동기한 설정", $userLang) ?></span></p>
-            </div>
-            <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate("반가워요!", $userLang) ?>
-                    <?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한 설정이 필요하신가요?", $userLang) ?>
-                </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 fw_500 mt-3"><?= $sgt_row['sgt_title'] ?> <?= translate("그룹 활동 기한은 개인 정보 보호를 위해\n설정한 시간 동안만 위치를 공유하게 해줍니다.", $userLang) ?>
-                </p>
-            </div>
-            <div class="flt_footer flt_footer_b">
-                <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 flt_close" onclick="group_activity_chk('<?= $row['sgdt_idx'] ?>')"><?= translate("아니요", $userLang) ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./group_act_period?sgdt_idx=<?= $row['sgdt_idx'] ?>'"><?= translate("네", $userLang) ?></button>
-                </div>
-            </div>
-        </div>
-    </div>
-<? } ?>
-<!-- E-4 그룹 나가기 -->
-<div class="modal fade" id="group_out_modal" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <input type="hidden" name="group_out_modal_sgdt_idx" id="group_out_modal_sgdt_idx" value="" />
-            <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= translate("그룹에서 나가시겠어요?", $userLang) ?></p>
-            </div>
-            <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
-                <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate("아니요", $userLang) ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();"><?= translate("나가기", $userLang) ?></button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- E-13 멤버 초대 -->
-<div class="modal btn_sheeet_wrap fade" id="link_modal" tabindex="-1">
-    <div class="modal-dialog btm_sheet">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <div class="d-inline-block w-100 text-right">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" width="24px"></button>
-                </div>
-                <p class="fs_18 fw_700 text_dynamic line_h1_2"><?= translate("초대장은 어떻게 보낼까요?", $userLang) ?></p>
-            </div>
-            <div class="modal-body">
-                <ul>
-                    <li>
-                        <a href="javascript:;" onclick="f_share_link('kakao');" class="d-flex align-items-center justify-content-between py_07">
-                            <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="<?= translate("카카오톡 열기", $userLang) ?>" width="40px" class="mr_12" id="kakao_image" />
-                                <p class="fs_15 fw_500 gray_900" id="kakao_text"><?= translate("카카오톡 열기", $userLang) ?></p>
-                            </div>
-                            <i class=" xi-angle-right-min fs_15 text_gray"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="javascript:;" onclick="f_share_link('clipboard');" class="d-flex align-items-center justify-content-between py_07 btn_copy">
-                            <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="<?= translate("초대 링크 복사", $userLang) ?>" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900"><?= translate("초대 링크 복사", $userLang) ?></p>
-                            </div>
-                            <i class="xi-angle-right-min fs_15 text_gray"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="javascript:;" onclick="f_share_link('contact');" class="d-flex align-items-center justify-content-between py_07">
-                            <div class="d-flex align-items-center">
-                                <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="<?= translate("연락처 열기", $userLang) ?>" width="40px" class="mr_12" />
-                                <p class="fs_15 fw_500 gray_900"><?= translate("연락처 열기", $userLang) ?></p>
-                            </div>
-                            <i class="xi-angle-right-min fs_15 text_gray"></i>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    $(document).ready(function() {
-        if (isAndroid()) {
-            // $('#kakao_text').text('카카오톡 열기');
-            // document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_kakao.png";
-            $('#kakao_text').text('공유하기');
-            document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
-        } else if (isiOS()) {
-            $('#kakao_text').text('공유하기');
-            document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
-        }
-    });
-
-    const chatBox = document.getElementById('chatBox');
-    const chatForm = document.getElementById('chatForm');
-    const userInput = document.getElementById('userInput');
-
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const userMessage = userInput.value.trim();
-        if (!userMessage) return;
-
-        // Display user message
-        appendMessage('User', userMessage);
-        userInput.value = '';
-
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: userMessage }),
-            });
-
-            if (!response.ok) {
-                throw new Error('API request failed');
+        function createGroupMember() {
+            var form_data = new FormData();
+            if (<?= $sgdt_cnt ?> > 0) {
+                form_data.append("act", "invite_list");
+            } else {
+                form_data.append("act", "list");
             }
 
-            const data = await response.json();
-            appendMessage('Assistant', data.response);
-        } catch (error) {
-            console.error('Error:', error);
-            appendMessage('System', 'An error occurred while processing your request.');
-        }
-    });
-
-    function appendMessage(sender, message) {
-        const messageElement = document.createElement('div');
-        messageElement.className = 'mb-2';
-        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function appendMessage(sender, message) {
-        const messageElement = document.createElement('div');
-        messageElement.className = 'mb-2';
-        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function f_modal_out_group(i) {
-        if (i) {
-            $('#group_out_modal_sgdt_idx').val(i);
+            $.ajax({
+                url: "./group_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 10000,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.result === 'success') {
+                        renderGroupList(response.data);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(err) {
+                    console.log(err);
+                },
+            });
         }
 
-        $('#group_out_modal').modal('show');
-    }
+        function renderGroupList(data) {
+            const inviteGroupListBox = $('#invite_group_list_box');
+            inviteGroupListBox.empty();
 
-    function f_out_group() {
-        var form_data = new FormData();
-        form_data.append("act", "group_out");
-        form_data.append("sgdt_idx", $('#group_out_modal_sgdt_idx').val());
+            let grouOut = '<?= translate('그룹나가기', $userLang) ?>';
+            let outerDiv = '<div class="mt_85 pt_20 pb_100">';
 
-        $.ajax({
-            url: "./group_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 5000,
-            success: function(data) {
-                console.log(data);
-                if (data == 'Y') {
-                    document.location.href = './group';
-                }
-            },
-            error: function(err) {
-                console.log(err);
-            },
-        });
+            if (data.groups.length > 0) {
+                data.groups.forEach(group => {
+                    let groupHeaderHtml = `
+        <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=${group.sgt_idx}'">
+          <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3">${group.sgt_title}<span class="ml-2">(${group.member_cnt})</span></p>
+      `;
 
-        return false;
-    }
+                    if (data.action === 'list') {
+                        groupHeaderHtml += `<i class="fs_15 text_gray xi-angle-right-min"></i>`;
+                    } else if (data.action === 'invite_list') {
+                        groupHeaderHtml += `<button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('${group.sgdt_idx}');">${grouOut}</button>`;
+                    }
 
-    // 그룹활동기한 설정 안할 시 무기한으로 지정
-    function group_activity_chk(idx) {
-        var form_data = new FormData();
-        form_data.append("act", "group_activity_period");
-        form_data.append("sgdt_idx", idx);
+                    groupHeaderHtml += `</div>`;
 
-        $.ajax({
-            url: "./group_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 5000,
-            success: function(data) {
-                console.log(data);
-                if (data == 'Y') {
-                    document.location.href = './group';
-                }
-            },
-            error: function(err) {
-                console.log(err);
-            },
-        });
+                    let groupHtml = `
+        <div class="border bg-white rounded-lg mb-3">
+          ${groupHeaderHtml}
+      `;
 
-        return false;
-    }
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<?php
-include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
-include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
-?>
+                    if (group.invites.length > 0 || group.members.length > 0) {
+                        groupHtml += `<div class="group-body px_16 py_04">`;
+
+                        group.invites.forEach(invite => {
+                            groupHtml += `
+            <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
+              ${invite.count}명 초대중
+            </p>
+          `;
+                        });
+
+                        group.members.forEach(member => {
+                            groupHtml += `
+            <div class="d-flex align-items-center justify-content-between py_12 group_list">
+              <div class="w_fit">
+                <a href="#" class="d-flex align-items-center">
+                  <div class="prd_img flex-shrink-0 mr_12">
+                    <div class="rect_square rounded_14">
+                      <img src="${member.mt_file1_url}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
+                    </div>
+                  </div>
+                  <div>
+                    <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2">${member.nickname}</p>
+                    <div class="d-flex align-items-center flex-wrap ">`;
+
+                            if (member.sgdt_owner_leader_chk_t) {
+                                groupHtml += `<p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1">${member.sgdt_owner_leader_chk_t}</p>`;
+                            }
+
+                            if (member.sgdt_adate) {
+                                if (member.sgdt_owner_leader_chk_t) {
+                                    groupHtml += `<p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>`;
+                                }
+                                groupHtml += `<p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">${'<?= translate('남은기간', $userLang) ?>'} : ${member.sgdt_adate}</p>`;
+                            }
+
+                            groupHtml += `
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          `;
+                        });
+                        groupHtml += `</div>`; // group-body 닫기
+                    }
+
+                    groupHtml += `</div>`; // border bg-white rounded-lg mb-3 닫기
+                    outerDiv += groupHtml; // outerDiv에 groupHtml 추가
+                });
+
+                outerDiv += '</div>'; // mt_85 pt_20 pb_100 닫기
+                inviteGroupListBox.append(outerDiv);
+            } else {
+                inviteGroupListBox.append('<p>등록된 그룹이 없습니다.</p>');
+            }
+        }
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'mb-2';
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'mb-2';
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function f_modal_out_group(i) {
+            if (i) {
+                $('#group_out_modal_sgdt_idx').val(i);
+            }
+
+            $('#group_out_modal').modal('show');
+        }
+
+        function f_out_group() {
+            var form_data = new FormData();
+            form_data.append("act", "group_out");
+            form_data.append("sgdt_idx", $('#group_out_modal_sgdt_idx').val());
+
+            $.ajax({
+                url: "./group_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 5000,
+                success: function(data) {
+                    console.log(data);
+                    if (data == 'Y') {
+                        document.location.href = './group';
+                    }
+                },
+                error: function(err) {
+                    console.log(err);
+                },
+            });
+
+            return false;
+        }
+
+        // 그룹활동기한 설정 안할 시 무기한으로 지정
+        function group_activity_chk(idx) {
+            var form_data = new FormData();
+            form_data.append("act", "group_activity_period");
+            form_data.append("sgdt_idx", idx);
+
+            $.ajax({
+                url: "./group_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 5000,
+                success: function(data) {
+                    console.log(data);
+                    if (data == 'Y') {
+                        document.location.href = './group';
+                    }
+                },
+                error: function(err) {
+                    console.log(err);
+                },
+            });
+
+            return false;
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <?php
+    include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
+    include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
+    ?>

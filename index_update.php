@@ -125,7 +125,7 @@ if ($_POST['act'] == "weather_get") {
     if ($get_weather_t == 'Y') {
 ?>
         <div class="d-flex align-items-center p_address">
-            <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area1'] ?> ·</p>
+            <!-- <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area1'] ?>·</p> -->
             <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area3'] ?></p>
         </div>
         <div class="d-flex align-items-center justify-content-between flex-wrap">

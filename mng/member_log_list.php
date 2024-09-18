@@ -183,7 +183,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
 
                         function f_member_location_info(i) {
                             $.post("./member_log_update", {
-                                act: "get_line",
+                                act: "get_line2",
                                 sst_idx: i
                             }, function(data) {
                                 var json_data = JSON.parse(data);
@@ -194,6 +194,8 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
 
                                     st_lat = json_data.data.map_gps[0];
                                     st_lng = json_data.data.map_gps[1];
+                                    // st_lat = data.my_lat;
+                                    // st_lng = data.mt_long;
 
                                     var map = new naver.maps.Map("naver_map", {
                                         center: new naver.maps.LatLng(st_lat, st_lng),

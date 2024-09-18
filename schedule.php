@@ -31,7 +31,7 @@ $numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT);
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
-$calendar_date_title = $numYear . "." . " " . $numMonth2;
+$calendar_date_title = $numYear . "." . $numMonth2;
 $now_month_year = $numYear . "-" . $numMonth;
 
 //오너인 그룹수

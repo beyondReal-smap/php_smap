@@ -31,7 +31,7 @@ $numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT);
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
-$calendar_date_title = $numYear . "." . " " . $numMonth2;
+$calendar_date_title = $numYear . "." . $numMonth2;
 $now_month_year = $numYear . "-" . $numMonth;
 
 $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -113,18 +113,89 @@ $expt_cnt = $row['cnt'];
         min-height: 100% !important;
     }
 
-    .log_pg_div {
-        position: relative;
+    /* 로딩 화면 스타일 */
+    #map-loading {
+        position: absolute;
         top: 0;
         left: 0;
-        bottom: 0;
         width: 100%;
-        overflow: hidden;
         height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     }
+
+    .dots-spinner {
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #0046FE;
+        border-radius: 50%;
+        animation: dot-bounce 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes dot-bounce {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.5);
+        }
+    }
+
+    /* 새로운 스피너 스타일을 추가 */
+    /* .mt-2.mb-3.px_16 {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+        /* 필요한 높이로 조정 */
+    }
+
+    .mt-2.mb-3.px_16 .dots-spinner {
+        display: flex;
+        gap: 10px;
+    }
+
+    .mt-2.mb-3.px_16 .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #0046FE;
+        /* 기본색 */
+        border-radius: 50%;
+        animation: dot-bounce 1s infinite ease-in-out;
+    }
+
+    .mt-2.mb-3.px_16 .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .mt-2.mb-3.px_16 .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    */
 </style>
+<div id="loading">
+    <div class="loading-spinner"></div>
+</div>
 <div class="container sub_pg log_wrap px-0">
     <!-- 달력 -->
     <section class="sch_cld_wrap bg-white ">
@@ -149,32 +220,28 @@ $expt_cnt = $row['cnt'];
                 </div>
                 <button type="button" class="btn h-auto swiper-button-next"><i class="xi-angle-right-min"></i></button>
             </div>
-            <!-- <div class="cld_head fs_12">
-                <ul>
-                    <li class="sun">일</li>
-                    <li>월</li>
-                    <li>화</li>
-                    <li>수</li>
-                    <li>목</li>
-                    <li>금</li>
-                    <li class="sat">토</li>
-                </ul>
-            </div> -->
         </div>
         <div id="schedule_calandar_box" class="cld_date_wrap"></div>
-        <!-- <div id="location_info_box"></div> -->
     </section>
     <!-- 지도 -->
     <section class="log_map_wrap" id="map">
+        <!-- 로딩 화면 추가 -->
+        <div id="map-loading" style="display: none;">
+            <div class="dots-spinner">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
     </section>
     <!-- 로그 -->
     <?
     if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) {
         // $translateY = 70;
-        $translateY = 60;
+        $translateY = 69;
     } else {
         // $translateY = 54;
-        $translateY = 70;
+        $translateY = 46;
     }
     ?>
     <? if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) {
@@ -196,133 +263,26 @@ $expt_cnt = $row['cnt'];
                 <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="탑업" />
             </div>
             <div>
+                <!-- 위치조정슬라이더 자리 -->
                 <div class="px_16 mb-3">
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <!-- 위치조정 슬라이드 -->
-                        <div class="border-bottom loc_rog_adj pb-4">
+                    <div class="border bg-white rounded-lg px_16 py_12">
+                        <div class="loc_rog_adj">
                             <p class="fs_16 fw_600"><?= translate('이동경로 따라가기', $userLang); ?></p>
                             <div class="pt-4">
                                 <input type="range" class="custom-range" id="timeSlider" min='1' max='1' value='1'>
                             </div>
                         </div>
-                        <div>
-                            <div style="padding-top: 1.6rem;">
-                                <p class="fs_16 fw_600 mb-3"><?= translate('그룹원', $userLang); ?></p>
-                                <!--프로필 tab_scroll scroll_bar_x-->
-                                <!-- <div class="" id="location_member_box"></div> -->
-                                <div class="mem_wrap swiper mem_swiper">
-                                    <div class="swiper-wrapper d-flex ">
-                                        <div class="swiper-slide checks mem_box">
-                                            <label>
-                                                <input type="radio" name="member_r1" id="member_r1_<?= $_SESSION['_mt_idx'] ?>" value="<?= $_SESSION['_mt_idx'] ?>" checked />
-                                                <div class="prd_img mx-auto" onclick="f_profile_click('<?= $_SESSION['_mt_idx'] ?>','<?= $sgdt_row['sgdt_idx'] ?>');">
-                                                    <!-- 알림왔을 때 on_arm 추가 -->
-                                                    <div class="rect_square rounded_14">
-                                                        <img src="<?= $_SESSION['_mt_file1'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
-                                                    </div>
-                                                </div>
-                                                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic" onclick="f_profile_click('<?= $_SESSION['_mt_idx'] ?>','<?= $sgdt_row['sgdt_idx'] ?>');"><?= $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'] ?></p>
-                                            </label>
-                                        </div>
-                                        <?php
-                                        if ($list_sgt) {
-                                            foreach ($list_sgt as $row_sgt) {
-                                                $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
-                                                unset($list_sgdt);
-                                                $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-                                                $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
-                                                if ($invite_cnt || $list_sgdt['data']) {
-                                                    if ($list_sgdt['data']) {
-                                                        foreach ($list_sgdt['data'] as $key => $val) {
-                                        ?>
-                                                            <div class="swiper-slide checks mem_box">
-                                                                <label>
-                                                                    <input type="radio" name="member_r1" id="member_r1_<?= $val['mt_idx'] ?>" value="<?= $val['mt_idx'] ?>" />
-                                                                    <div class="prd_img mx-auto" onclick="f_profile_click('<?= $val['mt_idx'] ?>','<?= $val['sgdt_idx'] ?>');">
-                                                                        <!-- 알림왔을 때 on_arm 추가 -->
-                                                                        <div class="rect_square rounded_14">
-                                                                            <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic" onclick="f_profile_click('<?= $val['mt_idx'] ?>','<?= $val['sgdt_idx'] ?>');"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
-                                                                </label>
-                                                            </div>
-                                        <?
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        ?>
-                                        <!-- 그룹원 추가 -->
-                                        <?php if ($sgt_cnt > 0) { ?>
-                                            <div class="swiper-slide mem_box add_mem_box" onclick="location.href='./group'">
-                                                <button class="btn mem_add">
-                                                    <i class="xi-plus-min fs_20"></i>
-                                                </button>
-                                                <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
-                                            </div>
-                                        <?php } else { ?>
-                                            <div class="swiper-slide mem_box add_mem_box" style="visibility: hidden;">
-                                                <button class="btn mem_add">
-                                                    <i class="xi-plus-min fs_20"></i>
-                                                </button>
-                                                <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
-                                            </div>
-                                        <?php } ?>
-
-                                    </div>
-                                </div>
-                                <script>
-                                    //프로필 슬라이더
-                                    let mem_swiper = new Swiper(".mem_swiper", {
-                                        slidesPerView: 'auto',
-                                        spaceBetween: 12,
-                                    });
-                                </script>
-                            </div>
-                        </div>
                     </div>
                 </div>
-                <!-- <div class="grp_wrap">
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mb-3">그룹원</p>
-                        <form method="post" name="frm_group_list" id="frm_group_list" onsubmit="return false;">
-                            <input type="hidden" name="act" id="act" value="group_member_list" />
-                            <input type="hidden" name="obj_list2" id="obj_list2" value="group_member_list_box" />
-                            <input type="hidden" name="obj_frm2" id="obj_frm2" value="frm_group_list" />
-                            <input type="hidden" name="obj_uri2" id="obj_uri2" value="./location_update" />
-                            <input type="hidden" name="obj_pg2" id="obj_pg2" value="1" />
-                            <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
-                            <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
-                            <input type="hidden" name="group_sgdt_idx" id="group_sgdt_idx" value="<?= $sgdt_row['sgdt_idx'] ?>" />
-                        </form>
-                        <div id="group_member_list_box"></div>
-                    </div>
-                </div> -->
+                <!-- 그룹원 자리 -->
+                <div class="grp_wrap"></div>
+                <!-- 위치기록 보여주는 자리 -->
                 <div class="mt-2 mb-3 px_16">
-                    <!-- 위치기록 요약 -->
-                    <div class="border bg-white rounded-lg px_16 py_16">
-                        <p class="fs_16 fw_600 mt-2"><?= translate('위치기록 요약', $userLang); ?></p>
-                        <ul class="loc_rog_ul d-flex align-item-center justify-content-between py-4" id="location_log_box">
-                            <li class="text-center border-right flex-fill loc_rog_ul_l11">
-                                <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('일정개수', $userLang); ?></p>
-                                <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic">0<span> <?= translate('개', $userLang); ?></span></p>
-                            </li>
-                            <li class="text-center border-right flex-fill loc_rog_ul_l12">
-                                <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동거리', $userLang); ?></p>
-                                <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic">0m</p>
-                            </li>
-                            <li class="text-center border-right flex-fill loc_rog_ul_l13">
-                                <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동시간', $userLang); ?></p>
-                                <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic">0 <?= translate('분', $userLang); ?></p>
-                            </li>
-                            <li class="text-center flex-fill loc_rog_ul_l14">
-                                <p class="fs_13 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('걸음수', $userLang); ?></p>
-                                <p class="fs_16 fw_600 mt-2 line_h1_3 text_dynamic">0 <?= translate('걸음', $userLang); ?></p>
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- <div class="dots-spinner">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div> -->
                 </div>
             <? } else { ?>
                 <section class="opt_bottom" style="transform: translateY(<?= $translateY ?>%);">
@@ -331,9 +291,9 @@ $expt_cnt = $row['cnt'];
                         <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="탑업" />
                     </div>
                     <div>
+                        <!-- 위치조정슬라이더 자리 -->
                         <div class="px_16 mb-3">
                             <div class="border bg-white rounded-lg px_16 py_16">
-                                <!-- 위치조정 슬라이드 -->
                                 <div class="loc_rog_adj pb-4">
                                     <p class="fs_16 fw_600"><?= translate('이동경로 따라가기', $userLang); ?></p>
                                     <div class="pt-4">
@@ -341,6 +301,14 @@ $expt_cnt = $row['cnt'];
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <!-- 위치기록 보여주는 자리 -->
+                        <div class="mt-2 mb-3 px_16">
+                            <!-- <div class="dots-spinner">
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div> -->
                         </div>
                     </div>
                 <? } ?>
@@ -467,6 +435,9 @@ $expt_cnt = $row['cnt'];
     let currentLat;
     let currentLng;
     const timeSlider = document.getElementById('timeSlider');
+    const loadingElement = document.getElementById('map-loading');
+    // optBottom 이벤트 리스너 저장
+    let optBottomTouchStartListener, optBottomTouchMoveListener, optBottomMouseDownListener, optBottomMouseMoveListener, optBottomMouseUpListener;
 </script>
 <?php
 if ($userLang === 'ko') {
@@ -1500,9 +1471,11 @@ if ($userLang === 'ko') {
 <script>
     $(document).ready(function() {
         // 함수 호출
+        createGroupMember(<?= $sgdt_row['sgdt_idx'] ?>);
         f_calendar_log_init('today'); // 달력 스케줄
         f_get_log_location(sgdtMtIdx); // 위치 기록 요약
         initMapAndData(); // 지도 및 데이터 초기화
+        // debugLoading();
 
         // initMapAndData 함수를 사용하여 중복 실행을 방지하고 초기화 로직을 하나로 통합
         async function initMapAndData() {
@@ -1524,6 +1497,125 @@ if ($userLang === 'ko') {
         } else {
             throw new Error('지도 API를 초기화할 수 없습니다.');
         }
+    }
+
+    function createGroupMember(sgdt_idx) {
+        // sessionStorage에서 데이터를 먼저 확인
+        let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
+        if (cachedData) {
+            // 캐싱된 데이터가 있으면 사용
+            let response = JSON.parse(cachedData);
+            if (response.result === 'success') {
+                renderMemberList(response.data);
+                return; // 함수 종료
+            }
+        }
+        var form_data = new FormData();
+        form_data.append("act", "group_member_list");
+        form_data.append("group_sgdt_idx", sgdt_idx);
+
+        $.ajax({
+            url: "./location_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 10000,
+            dataType: 'json',
+            success: function(response) {
+                if (response.result === 'success') {
+                    // sessionStorage에 데이터 저장
+                    sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
+                    renderMemberList(response.data);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            },
+        });
+    }
+
+    function renderMemberList(data) {
+        const grpWrap = $('.grp_wrap');
+        grpWrap.empty(); // 기존 내용 삭제
+
+        // 전체 HTML 구조 생성
+        const html = `
+        <div class="border bg-white rounded-lg px_16 py_16">
+            <p class="fs_16 fw_600 mb-3">${'<?= translate('그룹원', $userLang) ?>'}</p>
+            <div id="group_member_list_box">
+                <div class="mem_wrap mem_swiper">
+                    <div class="swiper-wrapper d-flex">
+                        ${generateMemberItems(data)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+        grpWrap.html(html);
+
+        // Swiper 다시 초기화
+        mem_swiper = new Swiper(".mem_swiper", {
+            slidesPerView: 'auto',
+            spaceBetween: 12,
+        });
+    }
+
+    // 멤버 아이템 생성 함수
+    function generateMemberItems(data) {
+        let html = '';
+
+        // 본인 정보 추가
+        html += `
+        <div class="swiper-slide checks mem_box">
+            <label>
+                <input type="radio" name="rd2" checked onclick="f_profile_click(${data.my_info.mt_idx}, ${data.my_info.sgdt_idx});">
+                <div class="prd_img mx-auto">
+                    <div class="rect_square rounded_14">
+                        <img src="${data.my_info.profile_image}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                    </div>
+                </div>
+                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.my_info.nickname}</p>
+            </label>
+        </div>
+    `;
+
+        // 그룹 멤버 정보 추가
+        data.group_members.forEach(member => {
+            html += `
+            <div class="swiper-slide checks mem_box">
+                <label>
+                    <input type="radio" name="rd2" onclick="f_profile_click(${member.mt_idx}, ${member.sgdt_idx});">
+                    <div class="prd_img mx-auto"> 
+                        <div class="rect_square rounded_14">
+                            <img src="${member.profile_image}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                        </div>
+                    </div>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.nickname}</p>
+                </label>
+            </div>
+        `;
+        });
+
+        // 그룹원추가 버튼 추가
+        html += `
+        <div class="swiper-slide mem_box add_mem_box" ${data.sgt_cnt > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
+            <button class="btn mem_add">
+                <i class="xi-plus-min fs_20"></i>
+            </button>
+            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" style="word-break: break-all; line-height:0.7;">
+                ${'<?= translate(' 그룹원 ', $userLang) ?>'}<br>
+                ${'<?= translate(' 추가 ', $userLang) ?>'}
+            </p>
+        </div>
+    `;
+
+        return html;
     }
 
     function createGradient(steps) {
@@ -1558,6 +1650,69 @@ if ($userLang === 'ko') {
         }
 
         return gradientColors;
+    }
+
+    // 로딩 화면을 보이게 하는 함수
+    function showMapLoading(center = true) {
+        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
+
+        // 랜덤 색상 적용
+        const randomColor = generateSpinnerColor();
+
+        // 두 스피너의 색상 변경
+        spinnerDots.forEach(dot => {
+            dot.style.backgroundColor = randomColor;
+        });
+        // otherSpinnerDots.forEach(dot => {
+        //     dot.style.backgroundColor = randomColor;
+        // });
+
+        if (optBottom) {
+            var transformY = optBottom.style.transform;
+            if (transformY == 'translateY(0px)') {
+                // 화면 중앙에서 180px 위로 이동
+                // loadingElement.style.top = 'calc(50% - 180px)';
+                loadingElement.style.transform = 'translate(0, -35%)';
+            } else {
+                loadingElement.style.transform = 'translate(0, -10%)';
+            }
+
+            loadingElement.style.display = 'flex'; // 로딩바 표시
+            // document.querySelector('.mt-2.mb-3.px_16').style.display = 'flex'; // .mt-2.mb-3.px_16 스피너 표시
+        }
+        // optBottom 이벤트 비활성화
+        optBottom.ontouchstart = null;
+        optBottom.ontouchmove = null;
+        optBottom.onmousedown = null;
+        document.onmousemove = null;
+        document.onmouseup = null;
+    }
+
+    // 로딩 화면을 숨기는 함수
+    function hideMapLoading() {
+        document.getElementById("map-loading").style.display = 'none';
+        // document.querySelector('.mt-2.mb-3.px_16').style.display = 'none'; // .mt-2.mb-3.px_16 스피너 숨기기
+
+        // optBottom 이벤트 활성화
+        optBottom.ontouchstart = optBottomTouchStartListener;
+        optBottom.ontouchmove = optBottomTouchMoveListener;
+        optBottom.onmousedown = optBottomMouseDownListener;
+        document.onmousemove = optBottomMouseMoveListener;
+        document.onmouseup = optBottomMouseUpListener;
+    }
+
+    function generateSpinnerColor() {
+        const colorSets = [
+            '#FF0000', // 빨간색
+            '#FFA500', // 주황색
+            '#0000FF', // 파란색
+            '#000080', // 남색
+            '#800080', // 보라색
+        ];
+
+        const randomIndex = Math.floor(Math.random() * colorSets.length);
+        return colorSets[randomIndex];
     }
 
     function clearAllMapElements() {
@@ -1624,15 +1779,31 @@ if ($userLang === 'ko') {
 
     function updateMemberLocationInfo() {
         return new Promise((resolve, reject) => {
+            showMapLoading();
+
+            // sessionStorage 키 생성 (날짜 포함)
+            let cacheKey = 'memberLineData_' + $('#sgdt_idx').val() + '_' + currentSelectedDate;
+            let cachedData = sessionStorage.getItem(cacheKey);
+
+            if (cachedData) {
+                // 캐싱된 데이터가 있으면 사용
+                let response = JSON.parse(cachedData);
+                if (response) {
+                    initializeMapAndMarkers(response, $('#sgdt_idx').val());
+                    highlightSelectedDate();
+                    updateTimeSlider(response.log_count);
+                    resolve(response);
+                    hideMapLoading();
+                    return; // 함수 종료
+                }
+            }
+
             let form_data = new FormData();
             form_data.append("act", "get_line");
             form_data.append("sgdt_mt_idx", $('#sgdt_mt_idx').val());
             form_data.append("sgdt_idx", $('#sgdt_idx').val());
             form_data.append("event_start_date", currentSelectedDate);
             let ad_data = fetchAdDisplayStatus();
-
-            // 로딩 인디케이터 표시
-            showLoadingIndicator();
 
             $.ajax({
                 url: "./location_update",
@@ -1647,13 +1818,13 @@ if ($userLang === 'ko') {
                 dataType: 'json',
                 success: function(data) {
                     if (data) {
+                        // sessionStorage에 데이터 저장 (날짜 포함 키 사용)
+                        sessionStorage.setItem(cacheKey, JSON.stringify(data));
                         // 데이터 처리를 비동기적으로 수행
-                        setTimeout(() => {
-                            initializeMapAndMarkers(data, $('#sgdt_idx').val());
-                            highlightSelectedDate();
-                            updateTimeSlider(data.log_count);
-                            resolve(data);
-                        }, 0);
+                        initializeMapAndMarkers(data, $('#sgdt_idx').val());
+                        highlightSelectedDate();
+                        updateTimeSlider(data.log_count);
+                        resolve(data);
                     } else {
                         console.log('No data received');
                         reject('No data received');
@@ -1665,8 +1836,8 @@ if ($userLang === 'ko') {
                     reject(err);
                 },
                 complete: function() {
-                    // AJAX 요청 완료 후 로딩 인디케이터 숨기기
-                    hideLoadingIndicator();
+                    // AJAX 요청 및 데이터 처리가 완료된 후 로딩 인디케이터 숨기기
+                    hideMapLoading();
                 }
             });
         });
@@ -1683,41 +1854,21 @@ if ($userLang === 'ko') {
         timeSlider.value = 0;
     }
 
-    // 로딩 인디케이터 표시/숨기기 함수
-    function showLoadingIndicator() {
-        // 로딩 UI 요소를 표시하는 로직
-        $('#loadingIndicator').show();
-    }
+    async function f_profile_click(mt_idx, sgdt_idx) {
+        try {
+            $('#sgdt_mt_idx').val(mt_idx);
+            $('#sgdt_idx').val(sgdt_idx);
 
-    function hideLoadingIndicator() {
-        // 로딩 UI 요소를 숨기는 로직
-        $('#loadingIndicator').hide();
-    }
+            // await f_calendar_log_init();
+            await f_calendar_log_init('today'); // 달력 스케줄
+            await f_get_log_location(mt_idx);
 
-    async function f_profile_click(i, sgdt_idx) {
-        $('#sgdt_mt_idx').val(i);
-        $('#sgdt_idx').val(sgdt_idx);
-
-        // f_calendar_log_init('today');
-        f_get_log_location(i);
-
-        // 로딩 인디케이터 표시
-        showLoadingIndicator();
-
-        // updateMemberLocationInfo를 비동기적으로 실행
-        updateMemberLocationInfo()
-            .then(data => {
-                // 업데이트된 위치 정보로 지도 이동
-                map_panto(data.my_lat, data.mt_long);
-            })
-            .catch(error => {
-                console.error("AJAX 오류:", error);
-                showErrorMessage("위치 정보를 업데이트하는 데 문제가 발생했습니다.");
-            })
-            .finally(() => {
-                // 로딩 인디케이터 숨기기
-                hideLoadingIndicator();
-            });
+            const data = await updateMemberLocationInfo();
+            map_panto(data.my_lat, data.mt_long);
+        } catch (error) {
+            console.error("오류 발생:", error);
+            alert("처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
+        }
     }
 
     function f_day_click(sdate) {
@@ -1746,13 +1897,13 @@ if ($userLang === 'ko') {
             .catch(error => {
                 // AJAX 요청 실패 시 에러 처리
                 console.error("AJAX 오류:", error);
-            });
+            })
     }
 
     function f_get_log_location(i, s = "") {
-        // $('#splinner_modal').modal('toggle');
         let form_data = new FormData();
         form_data.append("act", "location_log");
+
         if (s) {
             form_data.append("event_start_date", s);
         } else {
@@ -1776,14 +1927,85 @@ if ($userLang === 'ko') {
             timeout: 5000,
             success: function(data) {
                 if (data) {
-                    $('#location_log_box').html(data);
+                    // 위치기록 요약 데이터를 JSON 형태로 파싱
+                    const locationLogData = JSON.parse(data);
+
+                    // 기존 요소 찾기
+                    const grpWrap = document.querySelector('.mt-2.mb-3.px_16');
+
+                    if (grpWrap) {
+                        // 기존 newUl 요소 찾기
+                        let newUl = grpWrap.querySelector('#location_log_box_dynamic');
+
+                        // newUl이 없으면 새로 생성
+                        if (!newUl) {
+                            const newDiv2 = document.createElement('div');
+                            newDiv2.className = 'border bg-white rounded-lg px_16 py_16';
+
+                            const newP = document.createElement('p');
+                            newP.className = 'fs_16 fw_600 mt-2';
+                            newP.textContent = "<?= translate('위치기록 요약', $userLang) ?>";
+
+                            newUl = document.createElement('ul');
+                            newUl.className = 'loc_rog_ul d-flex align-item-center justify-content-between py-4';
+                            newUl.id = 'location_log_box_dynamic';
+
+                            newP.appendChild(newUl);
+                            newDiv2.appendChild(newP);
+                            grpWrap.appendChild(newDiv2);
+                        }
+
+                        // newUl 내용 업데이트
+                        newUl.innerHTML = `
+                            <li class="text-center border-right flex-fill loc_rog_ul_l12">
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동거리', $userLang) ?></p>
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.distance}</p>
+                            </li>
+                            <li class="text-center border-right flex-fill loc_rog_ul_l13">
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동시간', $userLang) ?></p>
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.duration}</p>
+                            </li>
+                            <li class="text-center flex-fill loc_rog_ul_l14">
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('걸음수', $userLang) ?></p>
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.steps.toLocaleString()} <?= translate(' 걸음', $userLang) ?></p>
+                            </li>
+                        `;
+                        // 위치슬라이더 그리기
+                        // addLocationAdjustmentSlider();
+                    } else {
+                        console.error("위치 요약을 표시할 요소를 찾을 수 없습니다.");
+                    }
                 }
-            },
-            error: function(err) {
-                console.log(err);
             },
         });
     }
+
+    // function addLocationAdjustmentSlider() {
+    //     const targetDiv = document.querySelector('.px_16.mb-3');
+    //     if (targetDiv) {
+    //         // targetDiv 내부에 이미 내용이 있는지 확인
+    //         if (targetDiv.innerHTML.trim() === '') {
+    //             // 내용이 비어있는 경우에만 새로운 요소 추가
+    //             const html = `
+    //             <div class="border bg-white rounded-lg px_16 py_16">
+    //                 <div class="loc_rog_adj pb-4">
+    //                     <p class="fs_16 fw_600">${'<?= translate('이동경로 따라가기', $userLang); ?>'}</p>
+    //                     <div class="pt-4">
+    //                         <input type="range" class="custom-range" id="timeSlider" min='1' max='1' value='1'>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         `;
+    //             const newDiv = document.createElement('div');
+    //             newDiv.innerHTML = html;
+    //             targetDiv.appendChild(newDiv);
+    //         } else {
+    //             console.log('targetDiv에 이미 내용이 있어 새로운 요소를 추가하지 않았습니다.');
+    //         }
+    //     } else {
+    //         console.error('.px_16.mb-3 요소를 찾을 수 없습니다.');
+    //     }
+    // }
 
     function checkAdCount() {
         let ad_data = fetchAdDisplayStatus();
@@ -2149,6 +2371,11 @@ if ($userLang === 'ko') {
         } else {
             console.error("요소를 찾을 수 없습니다.");
         }
+        optBottomTouchStartListener = optBottom.ontouchstart;
+        optBottomTouchMoveListener = optBottom.ontouchmove;
+        optBottomMouseDownListener = optBottom.onmousedown;
+        optBottomMouseMoveListener = document.onmousemove;
+        optBottomMouseUpListener = document.onmouseup;
     });
     // 실시간 마커 이동
     function marker_reload(sgdt_idx) {

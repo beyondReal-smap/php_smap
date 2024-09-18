@@ -117,11 +117,11 @@ $numDay = date('d', $tt);
 $numMonth = date('m', $tt);
 $numMonth2 = date('n', $tt);
 // 숫자가 1자리일 경우 앞에 0을 붙여주는 로직 추가
-$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT); 
+$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT);
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
-$calendar_date_title = $numYear . "." . " " . $numMonth2;
+$calendar_date_title = $numYear . "." . $numMonth2;
 $today_st = DateType($sdate, 20);
 $today_et = DateType($sdate, 20);
 
@@ -254,7 +254,7 @@ $time_now_et = get_time_format($row_sst['sst_edate']);
 <script type="text/javascript" src="<?= CDN_HTTP ?>/lib/anypicker/anypicker.js?v=<?= $v_txt ?>"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/anypicker@latest/dist/i18n/anypicker-i18n.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script type="text/javascript" src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/core-js-bundle@3.30.2/minified.js"></script>
 
 <script>
     (function($) {
@@ -263,12 +263,12 @@ $time_now_et = get_time_format($row_sst['sst_edate']);
             // Common
 
             headerTitle: "<?= translate("선택", $userLang) ?>",
-            setButton: "<?=  translate("설정", $userLang) ?>",
-            clearButton: "<?=  translate("지우기", $userLang) ?>",
-            nowButton: "<?=  translate("지금", $userLang) ?>",
-            cancelButton: "<?=  translate("취소", $userLang) ?>",
-            dateSwitch: "<?=  translate("날짜", $userLang) ?>",
-            timeSwitch: "<?=  translate("시간", $userLang) ?>",
+            setButton: "<?= translate("설정", $userLang) ?>",
+            clearButton: "<?= translate("지우기", $userLang) ?>",
+            nowButton: "<?= translate("지금", $userLang) ?>",
+            cancelButton: "<?= translate("취소", $userLang) ?>",
+            dateSwitch: "<?= translate("날짜", $userLang) ?>",
+            timeSwitch: "<?= translate("시간", $userLang) ?>",
 
             // DateTime
 
@@ -280,9 +280,9 @@ $time_now_et = get_time_format($row_sst['sst_edate']);
             numbers: "0_1_2_3_4_5_6_7_8_9".split("_"),
             meridiem: {
                 a: ["a", "p"],
-                aa: ["<?=  translate("오전", $userLang) ?>", "<?=  translate("오후", $userLang) ?>"],
+                aa: ["<?= translate("오전", $userLang) ?>", "<?= translate("오후", $userLang) ?>"],
                 A: ["A", "P"],
-                AA: ["<?=  translate("오전", $userLang) ?>", "<?=  translate("오후", $userLang) ?>"]
+                AA: ["<?= translate("오전", $userLang) ?>", "<?= translate("오후", $userLang) ?>"]
             },
             componentLabels: {
                 date: "Date",
@@ -513,7 +513,7 @@ $debug_t = 'hidden';
             <input type="<?= $debug_t ?>" name="sst_edate" id="sst_edate" value="<?= $row_sst['sst_edate'] ?>">
             <input type="hidden" name="swipe_init" id="swipe_init" value="N">
             <div class="ip_wr">
-                <input type="text" class="form-custom" name="sst_title" id="sst_title" value="<?= $row_sst['sst_title'] ?>" maxlength="30" data-length-id="sst_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?=  translate('일정 내용을 입력해주세요.', $userLang); ?>" <?= $readonly ?> <?= $disable ?>>
+                <input type="text" class="form-custom" name="sst_title" id="sst_title" value="<?= $row_sst['sst_title'] ?>" maxlength="30" data-length-id="sst_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('일정 내용을 입력해주세요.', $userLang); ?>" <?= $readonly ?> <?= $disable ?>>
                 <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_title_cnt">0</span>/15)</p>
             </div>
 
@@ -563,7 +563,7 @@ $debug_t = 'hidden';
                         <div class="col-6 text-center">
                             <div class="mt_13">
                                 <div class="sel_month d-inline-flex">
-                                    <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?=  translate("월 선택 아이콘", $userLang); ?>" style="width:1.6rem; "></a>
+                                    <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= translate("월 선택 아이콘", $userLang); ?>" style="width:1.6rem; "></a>
                                     <p class="fs_15 fw_600" id="calendar_date_title"><?= $calendar_date_title ?></p>
                                 </div>
                             </div>
@@ -574,13 +574,13 @@ $debug_t = 'hidden';
                     </div>
                     <div class="cld_head fs_12">
                         <ul>
-                            <li class="sun"><?=  translate('일', $userLang); ?></li>
-                            <li><?=  translate('월', $userLang); ?></li>
-                            <li><?=  translate('화', $userLang); ?></li>
-                            <li><?=  translate('수', $userLang); ?></li>
-                            <li><?=  translate('목', $userLang); ?></li>
-                            <li><?=  translate('금', $userLang); ?></li>
-                            <li class="sat"><?=  translate('토', $userLang); ?></li>
+                            <li class="sun"><?= translate('일', $userLang); ?></li>
+                            <li><?= translate('월', $userLang); ?></li>
+                            <li><?= translate('화', $userLang); ?></li>
+                            <li><?= translate('수', $userLang); ?></li>
+                            <li><?= translate('목', $userLang); ?></li>
+                            <li><?= translate('금', $userLang); ?></li>
+                            <li class="sat"><?= translate('토', $userLang); ?></li>
                         </ul>
                     </div>
                 </div>
@@ -663,681 +663,780 @@ $debug_t = 'hidden';
                             var csday = new Date(stdt);
                             var ceday = new Date(etdt);
 
-var shh = csday.getHours();
-var smm = csday.getMinutes();
-
-var srtn = get_time_format(shh, smm);
-
-$('#stime_txt').html(srtn);
-
-var ehh = ceday.getHours();
-var emm = ceday.getMinutes();
-
-var ertn = get_time_format(ehh, emm);
-
-$('#etime_txt').html(ertn);
-
-$('#sst_sdate').val(stdt);
-$('#sst_edate').val(etdt);
-});
-});
-</script>
-
-<div class="picker d-none-temp" id="stime_picker">
-<div class="vizor"></div>
-<div class="swiper-container stime_hours">
-<div class="swiper-wrapper">
-<?php
-$w = 0;
-for ($q = 0; $q < 24; $q++) {
-    if ($w < 10) {
-        $w = "0" . $w;
-    }
-?>
-    <div class="swiper-slide" data-hh="<?= $w ?>"><?= $w ?></div>
-<?php
-    $w++;
-}
-?>
-</div>
-<!-- <div class="swiper-pagination"></div> -->
-</div>
-<div class="swiper-container stime_minutes">
-<div class="swiper-wrapper">
-<?php
-$w = 0;
-for ($q = 0; $q < 12; $q++) {
-    if ($w < 10) {
-        $w = "0" . $w;
-    }
-?>
-    <div class="swiper-slide" data-mm="<?= $w ?>"><?= $w ?></div>
-<?php
-    $w += 5;
-}
-?>
-</div>
-<!-- <div class="swiper-pagination"></div> -->
-</div>
-</div>
-
-<div class="picker d-none-temp" id="etime_picker">
-<div class="vizor"></div>
-<div class="swiper-container etime_hours">
-<div class="swiper-wrapper">
-<?php
-$w = 0;
-for ($q = 0; $q < 24; $q++) {
-    if ($w < 10) {
-        $w = "0" . $w;
-    }
-?>
-    <div class="swiper-slide" data-hh="<?= $w ?>"><?= $w ?></div>
-<?php
-    $w++;
-}
-?>
-</div>
-<!-- <div class="swiper-pagination"></div> -->
-</div>
-<div class="swiper-container etime_minutes">
-<div class="swiper-wrapper">
-<?php
-$w = 0;
-for ($q = 0; $q < 12; $q++) {
-    if ($w < 10) {
-        $w = "0" . $w;
-    }
-?>
-    <div class="swiper-slide" data-mm="<?= $w ?>"><?= $w ?></div>
-<?php
-    $w += 5;
-}
-?>
-</div>
-<!-- <div class="swiper-pagination"></div> -->
-</div>
-</div>
-
-<script>
-$(document).ready(function() {
-    datetime_chk();
-});
-
-
-function get_time_format(hh_data, mm_data) {
-    if (hh_data > 12) {
-        var hh_t = "<?= translate("오후", $userLang) ?>";
-        hh_data = hh_data - 12;
-        hh_data = get_pad(hh_data);
-    } else {
-        if (hh_data == 12 && mm_data == 0) {
-            var hh_t = "<?= translate('정오', $userLang) ?>";
-        } else if (hh_data == 0 && mm_data == 0) {
-            var hh_t = "<?= translate('자정', $userLang) ?>";
-        } else {
-            var hh_t = "<?= translate('오전', $userLang) ?>";
-        }
-    }
-
-    return hh_t + ' ' + hh_data + ':' + mm_data;
-}
-
-function f_all_day() {
-var all_day_chk = $('#sst_all_day').prop("checked");
-
-if (all_day_chk) {
-$('.cal_time_box').hide();
-btn_class_active();
-$("#schedule_calandar_box").html('');
-$('#schedule_calandar_box_header').hide();
-} else {
-$('.cal_time_box').show();
-}
-}
-
-const btn_sdate_b = document.getElementById("btn_sdate");
-const btn_edate_b = document.getElementById("btn_edate");
-
-btn_sdate_b.addEventListener('click', (e) => {
-<? if ($readonly) {
-} else { ?>
-this.blur();
-e.preventDefault();
-btn_class_active();
-setTimeout(() => {
-    $('#btn_sdate').addClass('btn_active');
-}, 100);
-setTimeout(() => {
-    f_open_cal('stime');
-}, 100);
-<? } ?>
-// ttcc();
-});
-btn_edate_b.addEventListener('click', (e) => {
-<? if ($readonly) {
-} else { ?>
-this.blur();
-e.preventDefault();
-btn_class_active();
-setTimeout(() => {
-    $('#btn_edate').addClass('btn_active');
-}, 100);
-setTimeout(() => {
-    f_open_cal('etime');
-}, 100);
-<? } ?>
-
-// ttcc();
-});
-
-const btn_stime_b = document.getElementById("btn_stime");
-const btn_etime_b = document.getElementById("btn_etime");
-
-btn_stime_b.addEventListener('click', (e) => {
-<? if ($readonly) {
-} else { ?>
-this.blur();
-e.preventDefault();
-btn_class_active();
-setTimeout(() => {
-    $('#btn_stime').addClass('btn_active');
-}, 100);
-f_sopen_time('stime');
-<? } ?>
-// ttcc();
-});
-btn_etime_b.addEventListener('click', (e) => {
-<? if ($readonly) {
-} else { ?>
-this.blur();
-e.preventDefault();
-btn_class_active();
-setTimeout(() => {
-    $('#btn_etime').addClass('btn_active');
-}, 100);
-f_eopen_time('etime');
-<? } ?>
-
-// ttcc();
-});
-
-function body_scroll_lock() {
-document.getElementsByTagName('body')[0].style.overflow = 'hidden';
-}
-
-function body_scroll_visible() {
-document.getElementsByTagName('body')[0].style.overflow = 'visible';
-}
-
-function ttcc() {
-// $('#pick_time').val('etime');
-$('#datetimes').trigger("click");
-$('#datetimes').trigger("click");
-}
-
-function chg_ddt(d) {
-var cday = new Date(d);
-
-return cday.getDate() + "/" + (cday.getMonth() + 1) + "/" + cday.getFullYear();
-}
-
-function f_day_click(dct) {
-$('.c_id').removeClass('active');
-setTimeout(() => {
-$('#calendar_' + dct).addClass('active');
-}, 100);
-var pdt = $('#pick_time').val();
-
-var dwt = dateFormat_week(dct);
-
-if (pdt == 'stime') {
-$('#pick_sdate').val(dct);
-} else {
-$('#pick_edate').val(dct);
-}
-
-setTimeout(() => {
-datetime_chk();
-}, 100);
-}
-
-function dateFormat_week(d) {
-var today = new Date();
-var cday = new Date(d);
-
-var y = cday.getFullYear();
-var y2 = today.getFullYear();
-var m = cday.getMonth() + 1;
-var d = cday.getDate();
-var w = "<?= translate("일월화수목금토", $userLang) ?>".charAt(cday.getUTCDay());
-
-if (y == y2) {
-var rtn = m + "<?= translate("월", $userLang) ?>" + " " + d + "<?= translate("일", $userLang) ?>" + " (" + w + ")";
-} else {
-var rtn = y + "<?= translate("년", $userLang) ?>" + " " + m + "<?= translate("월", $userLang) ?>" + " " + d + "<?= translate("일", $userLang) ?>" + " (" + w + ")";
-}
-
-return rtn;
-}
-
-function btn_class_active() {
-$('.btn-c').addClass('btn-light');
-$('.btn-c').removeClass('btn-danger');
-$('.btn-c').removeClass('active');
-$('.btn-c').removeClass('btn_active');
-$('#schedule_calandar_box_header').hide();
-$("#schedule_calandar_box").html('');
-$('.picker').hide();
-}
-
-function f_open_cal(t) {
-$('#pick_time').val(t);
-$('#schedule_calandar_box_header').show();
-f_calendar_init();
-}
-
-function Unix_timestamp(t) {
-var date = new Date(t * 1000);
-var year = date.getFullYear();
-var month = "0" + (date.getMonth() + 1);
-var day = "0" + date.getDate();
-var hour = "0" + date.getHours();
-var minute = "0" + date.getMinutes();
-var second = "0" + date.getSeconds();
-return year + "-" + month.substr(-2) + "-" + day.substr(-2) + " " + hour.substr(-2) + ":" + minute.substr(-2) + ":" + second.substr(-2);
-}
-
-function f_sopen_time(t) {
-$('#pick_time').val(t);
-$('#' + t + '_picker').show();
-
-setTimeout(() => {
-var dStartD, dEndD;
-
-var defaults = {
-    pagination: {
-        el: ".swiper-pagination",
-        clickable: false
-    },
-    slidesPerView: "auto",
-    freeMode: {
-        enabled: true,
-        sticky: true,
-        momentumBounce: true,
-        momentum: true,
-        minimumVelocity: 0.05,
-        momentumBounceRatio: 0.05
-    },
-    loop: true,
-    direction: "vertical",
-    centeredSlides: true,
-    centeredSlidesBounds: true,
-    speed: 600,
-    breakpointsBase: 'container ',
-    init: false,
-};
-
-dStartD = new Date($('#sst_sdate').val());
-dEndD = new Date($('#sst_edate').val());
-
-console.log("dStartD " + dStartD);
-
-var shours = new Swiper(
-    ".swiper-container.stime_hours",
-    Object.assign({}, defaults)
-);
-
-var sminutes = new Swiper(
-    ".swiper-container.stime_minutes",
-    Object.assign({}, defaults)
-);
-
-var sdhh = dStartD.getHours();
-var sdmm = dStartD.getMinutes();
-
-shours.on("init", function() {
-    var shours_initialSlide;
-
-    $.each(shours.slides, function(index, value) {
-        if (sdhh == value.dataset.hh) {
-            shours_initialSlide = value.dataset.swiperSlideIndex;
-        }
-    });
-
-    shours.slideToLoop(shours_initialSlide, 500, $('#swipe_init').val('Y'));
-});
-
-shours.init();
-
-sminutes.on("init", function() {
-    var smin_initialSlide;
-
-    $.each(sminutes.slides, function(index, value) {
-        if (sdmm == value.dataset.mm) {
-            smin_initialSlide = value.dataset.swiperSlideIndex;
-        }
-    });
-    sminutes.slideToLoop(smin_initialSlide, 500, $('#swipe_init').val('Y'));
-});
-
-sminutes.init();
-
-shours.on("transitionEnd", function() {
-    setTimeout(() => {
-        var hh_data1 = $('.stime_hours .swiper-slide-active').data("hh");
-        var mm_data1 = $('.stime_minutes .swiper-slide-active').data("mm");
-
-        var rtn = sget_hh_mm_txt(hh_data1, mm_data1);
-    }, 0);
-});
-
-sminutes.on("transitionEnd", function() {
-    setTimeout(() => {
-        var hh_data2 = $('.stime_hours .swiper-slide-active').data("hh");
-        var mm_data2 = $('.stime_minutes .swiper-slide-active').data("mm");
-
-        var rtn = sget_hh_mm_txt(hh_data2, mm_data2);
-    }, 0);
-});
-
-shours.on("touchStart", function() {
-    // console.log('touchStart');
-    body_scroll_lock()
-});
-
-shours.on("touchEnd", function() {
-    // console.log('touchStart');
-    body_scroll_visible()
-});
-
-sminutes.on("touchStart", function() {
-    // console.log('touchStart');
-    body_scroll_lock()
-});
-
-sminutes.on("touchEnd", function() {
-    // console.log('touchStart');
-    body_scroll_visible()
-});
-}, 0);
-}
-
-function f_eopen_time(t) {
-$('#pick_time').val(t);
-$('#' + t + '_picker').show();
-
-setTimeout(() => {
-var dStartD, dEndD;
-
-var defaults = {
-    pagination: {
-        el: ".swiper-pagination",
-        clickable: false
-    },
-    slidesPerView: "auto",
-    freeMode: {
-        enabled: true,
-        sticky: true,
-        momentumBounce: true,
-        momentum: true,
-        minimumVelocity: 0.05,
-        momentumBounceRatio: 0.05
-    },
-    loop: true,
-    direction: "vertical",
-    centeredSlides: true,
-    centeredSlidesBounds: true,
-    speed: 600,
-    breakpointsBase: 'container ',
-    init: false,
-};
-
-dStartD = new Date($('#sst_sdate').val());
-dEndD = new Date($('#sst_edate').val());
-
-// console.log("dStartD " + dStartD);
-
-var ehours = new Swiper(
-    ".swiper-container.etime_hours",
-    Object.assign({}, defaults)
-);
-
-var eminutes = new Swiper(
-    ".swiper-container.etime_minutes",
-    Object.assign({}, defaults)
-);
-
-var edhh = dEndD.getHours();
-var edmm = dEndD.getMinutes();
-
-ehours.on("init", function() {
-    var ehours_initialSlide;
-
-    $.each(ehours.slides, function(index, value) {
-        if (edhh == value.dataset.hh) {
-            ehours_initialSlide = value.dataset.swiperSlideIndex;
-        }
-    });
-
-    ehours.slideToLoop(ehours_initialSlide, 500, $('#swipe_init').val('Y'));
-});
-
-ehours.init();
-
-eminutes.on("init", function() {
-    var emin_initialSlide;
-
-    $.each(eminutes.slides, function(index, value) {
-        if (edmm == value.dataset.mm) {
-            emin_initialSlide = value.dataset.swiperSlideIndex;
-        }
-    });
-
-    eminutes.slideToLoop(emin_initialSlide, 500, $('#swipe_init').val('Y'));
-});
-
-eminutes.init();
-
-ehours.on("transitionEnd", function() {
-    setTimeout(() => {
-        var hh_data3 = $('.etime_hours .swiper-slide-active').data("hh");
-        var mm_data3 = $('.etime_minutes .swiper-slide-active').data("mm");
-
-        var rtn = eget_hh_mm_txt(hh_data3, mm_data3);
-    }, 0);
-});
-
-eminutes.on("transitionEnd", function() {
-    setTimeout(() => {
-        var hh_data4 = $('.etime_hours .swiper-slide-active').data("hh");
-        var mm_data4 = $('.etime_minutes .swiper-slide-active').data("mm");
-
-        var rtn = eget_hh_mm_txt(hh_data4, mm_data4);
-    }, 0);
-});
-
-ehours.on("touchStart", function() {
-    // console.log('touchStart');
-    body_scroll_lock()
-});
-
-ehours.on("touchEnd", function() {
-    // console.log('touchStart');
-    body_scroll_visible()
-});
-
-eminutes.on("touchStart", function() {
-    // console.log('touchStart');
-    body_scroll_lock()
-});
-
-eminutes.on("touchEnd", function() {
-    // console.log('touchStart');
-    body_scroll_visible()
-});
-}, 0);
-}
-
-function sget_hh_mm_txt(hh_data, mm_data) {
-if ($('#swipe_init').val() == 'Y') {
-var rtn = get_time_format(hh_data, mm_data);
-
-$('#pick_stime').val(hh_data + ':' + mm_data + ':00');
-// $('#stime_txt').html(rtn);
-
-var rtn2 = datetime_chk();
-
-return rtn2;
-}
-}
-
-function eget_hh_mm_txt(hh_data, mm_data) {
-if ($('#swipe_init').val() == 'Y') {
-var rtn = get_time_format(hh_data, mm_data);
-
-$('#pick_etime').val(hh_data + ':' + mm_data + ':00');
-// $('#etime_txt').html(rtn);
-
-var rtn2 = datetime_chk();
-
-return rtn2;
-}
-}
-
-function get_hh_mm_txt(hh_data, mm_data) {
-var pick_time_tt = $('#pick_time').val();
-
-var rtn = get_time_format(hh_data, mm_data);
-
-$('#pick_' + pick_time_tt).val(hh_data + ':' + mm_data + ':00');
-$('#' + pick_time_tt + '_txt').html(rtn);
-
-var rtn2 = datetime_chk();
-
-return rtn2;
-}
-
-function set_date_time(sd, ed, st, et) {
-console.log("sd st " + sd + " " + st);
-console.log("ed et " + ed + " " + et);
-
-var sdhtml = dateFormat_week(sd);
-$('#sdate_txt').html(sdhtml);
-
-var edhtml = dateFormat_week(ed);
-$('#edate_txt').html(edhtml);
-
-var stsp = st.split(":");
-var sthtml = get_time_format(stsp[0], stsp[1]);
-$('#stime_txt').html(sthtml);
-
-// console.log("sthtml" + sthtml);
-
-var etsp = et.split(":");
-var ethtml = get_time_format(etsp[0], etsp[1]);
-$('#etime_txt').html(ethtml);
-
-// console.log("ethtml" + ethtml);
-
-$('#sst_sdate').val(sd + ' ' + st);
-$('#sst_edate').val(ed + ' ' + et);
-
-$('#pick_sdate').val(sd);
-$('#pick_edate').val(ed);
-$('#pick_stime').val(st);
-$('#pick_etime').val(et);
-}
-
-function datetime_chk() {
-var sd = $('#pick_sdate').val();
-var ed = $('#pick_edate').val();
-var st = $('#pick_stime').val();
-var et = $('#pick_etime').val();
-var pd = $('#pick_date').val();
-var pt = $('#pick_time').val();
-
-if (sd && ed && st && et) {
-var csdt = new Date(sd + ' ' + st);
-var cedt = new Date(ed + ' ' + et);
-
-console.log("csdt : " + csdt);
-console.log("cedt : " + cedt);
-// console.log(csdt > cedt);
-
-if (csdt == cedt) { //시작 == 마감
-    var usd = (csdt.getTime() / 1000);
-    var usc = Unix_timestamp(usd + 3600);
-    var syd = new Date(usc);
-
-    set_date_time(sd, ed, st, et);
-} else {
-    if (csdt < cedt) { //시작 < 마감
-        set_date_time(sd, ed, st, et);
-    } else { //시작 > 마감
-        console.log("pd pt " + pd + " " + pt);
-        if (pt == 'stime') { //시작 설정시
-            var usd = (csdt.getTime() / 1000);
-            var usc = Unix_timestamp(usd + 3600);
-            var syd = new Date(usc);
-
-            console.log(ed + et);
-
-            set_date_time(sd, ed, st, et);
-        } else { //마감 설정시
-            var ued = (cedt.getTime() / 1000);
-            var uec = Unix_timestamp(ued - 3600);
-            var eyd = new Date(uec);
-
-            set_date_time(sd, ed, st, et);
-        }
-    }
-}
-} else {
-$('#sst_sdate').val('');
-$('#sst_edate').val('');
-
-return 'edate_chg';
-}
-}
-</script>
-<div class="line_ip mt_25 d-none-temp">
-<div class="row">
-<div class="col col-auto line_tit">
-<h5><?=  translate('시작', $userLang); ?></h5>
-</div>
-<div class="col">
-
-<!-- value 안에 데이터 넣어 주세요 -->
-</div>
-</div>
-</div>
-<div class="line_ip mt_25 d-none-temp">
-<div class="row">
-<div class="col col-auto line_tit">
-<h5><?=  translate('종료', $userLang); ?></h5>
-</div>
-<div class="col">
-
-<!-- value 안에 데이터 넣어 주세요 -->
-</div>
-</div>
-</div>
-<!-- 반복 -->
-<div class="line_ip mt_25">
-<div class="row">
-<div class="col col-auto line_tit"><img src="<?= CDN_HTTP ?>/img/ip_ic_repeat.png" alt="<?=  translate('반복 아이콘', $userLang); ?>"></div>
-<div class="col">
-<input type="hidden" name="sst_repeat_json" id="sst_repeat_json" value='<?= $row_sst['sst_repeat_json'] ?>' />
-<input type="text" readonly class="form-none cursor_pointer" name="sst_repeat_json_v" id="sst_repeat_json_v" placeholder="<?=  translate('반복', $userLang); ?>" value="<?= $row_sst['sst_repeat_json_v'] ?>" <? if (!$readonly) { /*echo 'data-toggle="modal" data-target="#schedule_repeat"';*/
-                                                                                                                                                                                echo 'onclick="f_schedule_repeat_modal()"';
-                                                                                                                                                                            } ?>>
-<!-- value 안에 데이터 넣어 주세요 -->
-</div>
-</div>
-</div>
-</div>
-<!-- <div class="line_ip mt_25 d-none">
+                            var shh = csday.getHours();
+                            var smm = csday.getMinutes();
+
+                            var srtn = get_time_format(shh, smm);
+
+                            $('#stime_txt').html(srtn);
+
+                            var ehh = ceday.getHours();
+                            var emm = ceday.getMinutes();
+
+                            var ertn = get_time_format(ehh, emm);
+
+                            $('#etime_txt').html(ertn);
+
+                            $('#sst_sdate').val(stdt);
+                            $('#sst_edate').val(etdt);
+                        });
+                    });
+                </script>
+
+                <div class="picker d-none-temp" id="stime_picker">
+                    <div class="vizor"></div>
+                    <div class="swiper-container stime_hours">
+                        <div class="swiper-wrapper">
+                            <?php
+                            $w = 0;
+                            for ($q = 0; $q < 24; $q++) {
+                                if ($w < 10) {
+                                    $w = "0" . $w;
+                                }
+                            ?>
+                                <div class="swiper-slide" data-hh="<?= $w ?>"><?= $w ?></div>
+                            <?php
+                                $w++;
+                            }
+                            ?>
+                        </div>
+                        <!-- <div class="swiper-pagination"></div> -->
+                    </div>
+                    <div class="swiper-container stime_minutes">
+                        <div class="swiper-wrapper">
+                            <?php
+                            $w = 0;
+                            for ($q = 0; $q < 12; $q++) {
+                                if ($w < 10) {
+                                    $w = "0" . $w;
+                                }
+                            ?>
+                                <div class="swiper-slide" data-mm="<?= $w ?>"><?= $w ?></div>
+                            <?php
+                                $w += 5;
+                            }
+                            ?>
+                        </div>
+                        <!-- <div class="swiper-pagination"></div> -->
+                    </div>
+                </div>
+
+                <div class="picker d-none-temp" id="etime_picker">
+                    <div class="vizor"></div>
+                    <div class="swiper-container etime_hours">
+                        <div class="swiper-wrapper">
+                            <?php
+                            $w = 0;
+                            for ($q = 0; $q < 24; $q++) {
+                                if ($w < 10) {
+                                    $w = "0" . $w;
+                                }
+                            ?>
+                                <div class="swiper-slide" data-hh="<?= $w ?>"><?= $w ?></div>
+                            <?php
+                                $w++;
+                            }
+                            ?>
+                        </div>
+                        <!-- <div class="swiper-pagination"></div> -->
+                    </div>
+                    <div class="swiper-container etime_minutes">
+                        <div class="swiper-wrapper">
+                            <?php
+                            $w = 0;
+                            for ($q = 0; $q < 12; $q++) {
+                                if ($w < 10) {
+                                    $w = "0" . $w;
+                                }
+                            ?>
+                                <div class="swiper-slide" data-mm="<?= $w ?>"><?= $w ?></div>
+                            <?php
+                                $w += 5;
+                            }
+                            ?>
+                        </div>
+                        <!-- <div class="swiper-pagination"></div> -->
+                    </div>
+                </div>
+
+                <script>
+                    $(document).ready(function() {
+                        datetime_chk();
+                    });
+
+                    function get_time_format(hh_data, mm_data) {
+                        if (hh_data > 12) {
+                            var hh_t = "<?= translate("오후", $userLang) ?>";
+                            hh_data = hh_data - 12;
+                            hh_data = get_pad(hh_data);
+                        } else {
+                            if (hh_data == 12 && mm_data == 0) {
+                                var hh_t = "<?= translate('정오', $userLang) ?>";
+                            } else if (hh_data == 0 && mm_data == 0) {
+                                var hh_t = "<?= translate('자정', $userLang) ?>";
+                            } else {
+                                var hh_t = "<?= translate('오전', $userLang) ?>";
+                            }
+                        }
+
+                        return hh_t + ' ' + hh_data + ':' + mm_data;
+                    }
+
+                    function f_all_day() {
+                        var all_day_chk = $('#sst_all_day').prop("checked");
+
+                        if (all_day_chk) {
+                            $('.cal_time_box').hide();
+                            btn_class_active();
+                            $("#schedule_calandar_box").html('');
+                            $('#schedule_calandar_box_header').hide();
+                        } else {
+                            $('.cal_time_box').show();
+                        }
+                    }
+
+                    const btn_sdate_b = document.getElementById("btn_sdate");
+                    const btn_edate_b = document.getElementById("btn_edate");
+
+                    btn_sdate_b.addEventListener('click', (e) => {
+                        <? if ($readonly) {
+                        } else { ?>
+                            this.blur();
+                            e.preventDefault();
+                            btn_class_active();
+                            setTimeout(() => {
+                                $('#btn_sdate').addClass('btn_active');
+                            }, 100);
+                            setTimeout(() => {
+                                f_open_cal('stime');
+                            }, 100);
+                        <? } ?>
+                        // ttcc();
+                    });
+                    btn_edate_b.addEventListener('click', (e) => {
+                        <? if ($readonly) {
+                        } else { ?>
+                            this.blur();
+                            e.preventDefault();
+                            btn_class_active();
+                            setTimeout(() => {
+                                $('#btn_edate').addClass('btn_active');
+                            }, 100);
+                            setTimeout(() => {
+                                f_open_cal('etime');
+                            }, 100);
+                        <? } ?>
+
+                        // ttcc();
+                    });
+
+                    const btn_stime_b = document.getElementById("btn_stime");
+                    const btn_etime_b = document.getElementById("btn_etime");
+
+                    btn_stime_b.addEventListener('click', (e) => {
+                        <? if ($readonly) {
+                        } else { ?>
+                            this.blur();
+                            e.preventDefault();
+                            btn_class_active();
+                            setTimeout(() => {
+                                $('#btn_stime').addClass('btn_active');
+                            }, 100);
+                            f_sopen_time('stime');
+                        <? } ?>
+                        // ttcc();
+                    });
+                    btn_etime_b.addEventListener('click', (e) => {
+                        <? if ($readonly) {
+                        } else { ?>
+                            this.blur();
+                            e.preventDefault();
+                            btn_class_active();
+                            setTimeout(() => {
+                                $('#btn_etime').addClass('btn_active');
+                            }, 100);
+                            f_eopen_time('etime');
+                        <? } ?>
+
+                        // ttcc();
+                    });
+
+                    function body_scroll_lock() {
+                        document.getElementsByTagName('body')[0].style.overflow = 'hidden';
+                    }
+
+                    function body_scroll_visible() {
+                        document.getElementsByTagName('body')[0].style.overflow = 'visible';
+                    }
+
+                    function ttcc() {
+                        // $('#pick_time').val('etime');
+                        $('#datetimes').trigger("click");
+                        $('#datetimes').trigger("click");
+                    }
+
+                    function chg_ddt(d) {
+                        var cday = new Date(d);
+
+                        return cday.getDate() + "/" + (cday.getMonth() + 1) + "/" + cday.getFullYear();
+                    }
+
+                    function f_day_click(dct) {
+                        $('.c_id').removeClass('active');
+                        setTimeout(() => {
+                            $('#calendar_' + dct).addClass('active');
+                        }, 100);
+                        var pdt = $('#pick_time').val();
+
+                        var dwt = dateFormat_week(dct);
+
+                        if (pdt == 'stime') {
+                            $('#pick_sdate').val(dct);
+                        } else {
+                            $('#pick_edate').val(dct);
+                        }
+
+                        setTimeout(() => {
+                            datetime_chk();
+                        }, 100);
+                    }
+
+                    function dateFormat_week(d) {
+                        var today = new Date();
+                        var cday = new Date(d);
+
+                        var y = cday.getFullYear();
+                        var y2 = today.getFullYear();
+                        var m = cday.getMonth() + 1;
+                        var d = cday.getDate();
+                        var w = "<?= translate('일월화수목금토', $userLang) ?>".charAt(cday.getUTCDay());
+                        var rtn = '';
+
+                        switch ('<?= $userLang ?>') { // PHP 변수 사용
+                            case 'ko':
+                                rtn = (y == y2 ? '' : y + "<?= translate('년', $userLang) ?> ") + m + "<?= translate('월', $userLang) ?>" + " " + d + "<?= translate('일', $userLang) ?>" + " (" + w + ")";
+                                break;
+                            case 'en':
+                                rtn = cday.toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
+                                }); // Tue Sep 10 (Tue)
+                                break;
+                            case 'ja':
+                                rtn = (y == y2 ? '' : y + "年 ") + m + "月" + d + "日" + " (" + w + ")";
+                                break;
+                            case 'id':
+                                rtn = cday.toLocaleDateString('id-ID', {
+                                    weekday: 'short',
+                                    day: 'numeric',
+                                    month: 'short'
+                                }); // 10 Sep (Sel)
+                                break;
+                            case 'vi':
+                                rtn = d + " Tháng " + m + " (" + w + ")"; // 10 Tháng 9 (Thứ 3)
+                                break;
+                            case 'es':
+                                rtn = cday.toLocaleDateString('es-ES', {
+                                    weekday: 'short',
+                                    day: 'numeric',
+                                    month: 'short'
+                                }); // 10 Sep (mar)
+                                break;
+                            default:
+                                rtn = (y == y2 ? '' : y + "<?= translate('년', $userLang) ?> ") + m + "<?= translate('월', $userLang) ?>" + " " + d + "<?= translate('일', $userLang) ?>" + " (" + w + ")";
+                                break;
+                        }
+
+                        return rtn;
+                    }
+
+                    function btn_class_active() {
+                        $('.btn-c').addClass('btn-light');
+                        $('.btn-c').removeClass('btn-danger');
+                        $('.btn-c').removeClass('active');
+                        $('.btn-c').removeClass('btn_active');
+                        $('#schedule_calandar_box_header').hide();
+                        $("#schedule_calandar_box").html('');
+                        $('.picker').hide();
+                    }
+
+                    function f_open_cal(t) {
+                        $('#pick_time').val(t);
+                        $('#schedule_calandar_box_header').show();
+                        f_calendar_init();
+                    }
+
+                    function Unix_timestamp(t) {
+                        var date = new Date(t * 1000);
+                        var year = date.getFullYear();
+                        var month = "0" + (date.getMonth() + 1);
+                        var day = "0" + date.getDate();
+                        var hour = "0" + date.getHours();
+                        var minute = "0" + date.getMinutes();
+                        var second = "0" + date.getSeconds();
+                        return year + "-" + month.substr(-2) + "-" + day.substr(-2) + " " + hour.substr(-2) + ":" + minute.substr(-2) + ":" + second.substr(-2);
+                    }
+
+                    function f_sopen_time(t) {
+                        $('#pick_time').val(t);
+                        $('#' + t + '_picker').show();
+
+                        setTimeout(() => {
+                            var dStartD, dEndD;
+
+                            var defaults = {
+                                pagination: {
+                                    el: ".swiper-pagination",
+                                    clickable: false
+                                },
+                                slidesPerView: "auto",
+                                freeMode: {
+                                    enabled: true,
+                                    sticky: true,
+                                    momentumBounce: true,
+                                    momentum: true,
+                                    minimumVelocity: 0.05,
+                                    momentumBounceRatio: 0.05
+                                },
+                                loop: true,
+                                direction: "vertical",
+                                centeredSlides: true,
+                                centeredSlidesBounds: true,
+                                speed: 600,
+                                breakpointsBase: 'container ',
+                                init: false,
+                            };
+
+                            dStartD = new Date($('#sst_sdate').val());
+                            dEndD = new Date($('#sst_edate').val());
+
+                            console.log("dStartD " + dStartD);
+
+                            var shours = new Swiper(
+                                ".swiper-container.stime_hours",
+                                Object.assign({}, defaults)
+                            );
+
+                            var sminutes = new Swiper(
+                                ".swiper-container.stime_minutes",
+                                Object.assign({}, defaults)
+                            );
+
+                            var sdhh = dStartD.getHours();
+                            var sdmm = dStartD.getMinutes();
+
+                            shours.on("init", function() {
+                                var shours_initialSlide;
+
+                                $.each(shours.slides, function(index, value) {
+                                    if (sdhh == value.dataset.hh) {
+                                        shours_initialSlide = value.dataset.swiperSlideIndex;
+                                    }
+                                });
+
+                                shours.slideToLoop(shours_initialSlide, 500, $('#swipe_init').val('Y'));
+                            });
+
+                            shours.init();
+
+                            sminutes.on("init", function() {
+                                var smin_initialSlide;
+
+                                $.each(sminutes.slides, function(index, value) {
+                                    if (sdmm == value.dataset.mm) {
+                                        smin_initialSlide = value.dataset.swiperSlideIndex;
+                                    }
+                                });
+                                sminutes.slideToLoop(smin_initialSlide, 500, $('#swipe_init').val('Y'));
+                            });
+
+                            sminutes.init();
+
+                            shours.on("transitionEnd", function() {
+                                setTimeout(() => {
+                                    var hh_data1 = $('.stime_hours .swiper-slide-active').data("hh");
+                                    var mm_data1 = $('.stime_minutes .swiper-slide-active').data("mm");
+
+                                    var rtn = sget_hh_mm_txt(hh_data1, mm_data1);
+                                }, 0);
+                            });
+
+                            sminutes.on("transitionEnd", function() {
+                                setTimeout(() => {
+                                    var hh_data2 = $('.stime_hours .swiper-slide-active').data("hh");
+                                    var mm_data2 = $('.stime_minutes .swiper-slide-active').data("mm");
+
+                                    var rtn = sget_hh_mm_txt(hh_data2, mm_data2);
+                                }, 0);
+                            });
+
+                            shours.on("touchStart", function() {
+                                // console.log('touchStart');
+                                body_scroll_lock()
+                            });
+
+                            shours.on("touchEnd", function() {
+                                // console.log('touchStart');
+                                body_scroll_visible()
+                            });
+
+                            sminutes.on("touchStart", function() {
+                                // console.log('touchStart');
+                                body_scroll_lock()
+                            });
+
+                            sminutes.on("touchEnd", function() {
+                                // console.log('touchStart');
+                                body_scroll_visible()
+                            });
+                        }, 0);
+                    }
+
+                    function f_eopen_time(t) {
+                        $('#pick_time').val(t);
+                        $('#' + t + '_picker').show();
+
+                        setTimeout(() => {
+                            var dStartD, dEndD;
+
+                            var defaults = {
+                                pagination: {
+                                    el: ".swiper-pagination",
+                                    clickable: false
+                                },
+                                slidesPerView: "auto",
+                                freeMode: {
+                                    enabled: true,
+                                    sticky: true,
+                                    momentumBounce: true,
+                                    momentum: true,
+                                    minimumVelocity: 0.05,
+                                    momentumBounceRatio: 0.05
+                                },
+                                loop: true,
+                                direction: "vertical",
+                                centeredSlides: true,
+                                centeredSlidesBounds: true,
+                                speed: 600,
+                                breakpointsBase: 'container ',
+                                init: false,
+                            };
+
+                            dStartD = new Date($('#sst_sdate').val());
+                            dEndD = new Date($('#sst_edate').val());
+
+                            // console.log("dStartD " + dStartD);
+
+                            var ehours = new Swiper(
+                                ".swiper-container.etime_hours",
+                                Object.assign({}, defaults)
+                            );
+
+                            var eminutes = new Swiper(
+                                ".swiper-container.etime_minutes",
+                                Object.assign({}, defaults)
+                            );
+
+                            var edhh = dEndD.getHours();
+                            var edmm = dEndD.getMinutes();
+
+                            ehours.on("init", function() {
+                                var ehours_initialSlide;
+
+                                $.each(ehours.slides, function(index, value) {
+                                    if (edhh == value.dataset.hh) {
+                                        ehours_initialSlide = value.dataset.swiperSlideIndex;
+                                    }
+                                });
+
+                                ehours.slideToLoop(ehours_initialSlide, 500, $('#swipe_init').val('Y'));
+                            });
+
+                            ehours.init();
+
+                            eminutes.on("init", function() {
+                                var emin_initialSlide;
+
+                                $.each(eminutes.slides, function(index, value) {
+                                    if (edmm == value.dataset.mm) {
+                                        emin_initialSlide = value.dataset.swiperSlideIndex;
+                                    }
+                                });
+
+                                eminutes.slideToLoop(emin_initialSlide, 500, $('#swipe_init').val('Y'));
+                            });
+
+                            eminutes.init();
+
+                            ehours.on("transitionEnd", function() {
+                                setTimeout(() => {
+                                    var hh_data3 = $('.etime_hours .swiper-slide-active').data("hh");
+                                    var mm_data3 = $('.etime_minutes .swiper-slide-active').data("mm");
+
+                                    var rtn = eget_hh_mm_txt(hh_data3, mm_data3);
+                                }, 0);
+                            });
+
+                            eminutes.on("transitionEnd", function() {
+                                setTimeout(() => {
+                                    var hh_data4 = $('.etime_hours .swiper-slide-active').data("hh");
+                                    var mm_data4 = $('.etime_minutes .swiper-slide-active').data("mm");
+
+                                    var rtn = eget_hh_mm_txt(hh_data4, mm_data4);
+                                }, 0);
+                            });
+
+                            ehours.on("touchStart", function() {
+                                // console.log('touchStart');
+                                body_scroll_lock()
+                            });
+
+                            ehours.on("touchEnd", function() {
+                                // console.log('touchStart');
+                                body_scroll_visible()
+                            });
+
+                            eminutes.on("touchStart", function() {
+                                // console.log('touchStart');
+                                body_scroll_lock()
+                            });
+
+                            eminutes.on("touchEnd", function() {
+                                // console.log('touchStart');
+                                body_scroll_visible()
+                            });
+                        }, 0);
+                    }
+
+                    function sget_hh_mm_txt(hh_data, mm_data) {
+                        if ($('#swipe_init').val() == 'Y') {
+                            var rtn = get_time_format(hh_data, mm_data);
+
+                            $('#pick_stime').val(hh_data + ':' + mm_data + ':00');
+                            // $('#stime_txt').html(rtn);
+
+                            var rtn2 = datetime_chk();
+
+                            return rtn2;
+                        }
+                    }
+
+                    function eget_hh_mm_txt(hh_data, mm_data) {
+                        if ($('#swipe_init').val() == 'Y') {
+                            var rtn = get_time_format(hh_data, mm_data);
+
+                            $('#pick_etime').val(hh_data + ':' + mm_data + ':00');
+                            // $('#etime_txt').html(rtn);
+
+                            var rtn2 = datetime_chk();
+
+                            return rtn2;
+                        }
+                    }
+
+                    function get_hh_mm_txt(hh_data, mm_data) {
+                        var pick_time_tt = $('#pick_time').val();
+
+                        var rtn = get_time_format(hh_data, mm_data);
+
+                        $('#pick_' + pick_time_tt).val(hh_data + ':' + mm_data + ':00');
+                        $('#' + pick_time_tt + '_txt').html(rtn);
+
+                        var rtn2 = datetime_chk();
+
+                        return rtn2;
+                    }
+
+                    // function set_date_time(sd, ed, st, et) {
+                    //     console.log("sd st " + sd + " " + st);
+                    //     console.log("ed et " + ed + " " + et);
+
+                    //     var sdhtml = dateFormat_week(sd);
+                    //     $('#sdate_txt').html(sdhtml);
+
+                    //     var edhtml = dateFormat_week(ed);
+                    //     $('#edate_txt').html(edhtml);
+
+                    //     var stsp = st.split(":");
+                    //     var sthtml = get_time_format(stsp[0], stsp[1]);
+                    //     $('#stime_txt').html(sthtml);
+
+                    //     // console.log("sthtml" + sthtml);
+
+                    //     var etsp = et.split(":");
+                    //     var ethtml = get_time_format(etsp[0], etsp[1]);
+                    //     $('#etime_txt').html(ethtml);
+
+                    //     // console.log("ethtml" + ethtml);
+
+                    //     $('#sst_sdate').val(sd + ' ' + st);
+                    //     $('#sst_edate').val(ed + ' ' + et);
+
+                    //     $('#pick_sdate').val(sd);
+                    //     $('#pick_edate').val(ed);
+                    //     $('#pick_stime').val(st);
+                    //     $('#pick_etime').val(et);
+                    // }
+
+                    function set_date_time(sd, ed, st, et) {
+                        console.log("sd st " + sd + " " + st);
+                        console.log("ed et " + ed + " " + et);
+
+                        var sdhtml = dateFormat_week(sd);
+                        $('#sdate_txt').html(sdhtml);
+
+                        var edhtml = dateFormat_week(ed);
+                        $('#edate_txt').html(edhtml);
+
+                        // userLang 값에 따라 로케일 설정 (이전 답변에서 작성한 switch문 사용)
+                        let locale;
+                        switch ('<?= $userLang ?>') {
+                            case 'en':
+                                locale = 'en-US';
+                                break;
+                            case 'ja':
+                                locale = 'ja-JP';
+                                break;
+                            case 'vi':
+                                locale = 'vi-VN';
+                                break;
+                            case 'th':
+                                locale = 'th-TH';
+                                break;
+                            case 'fil':
+                                locale = 'fil-PH';
+                                break;
+                            case 'hi':
+                                locale = 'hi-IN';
+                                break;
+                            case 'id':
+                                locale = 'id-ID';
+                                break;
+                            case 'ko':
+                                locale = 'ko-KR';
+                                break;
+                            case 'es':
+                                locale = 'es-ES';
+                                break;
+                            default:
+                                locale = 'en-US'; // 기본 로케일 (영어)
+                                break;
+                        }
+
+                        // Date 객체를 사용하여 시간 설정
+                        const startDate = new Date(sd + ' ' + st);
+                        const endDate = new Date(ed + ' ' + et);
+
+                        // toLocaleTimeString() 함수 옵션 설정
+                        const options = {
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true // 12시간 형식 (AM/PM 표시)
+                        };
+
+                        // 시, 분만 표시
+                        $('#stime_txt').html(startDate.toLocaleTimeString(locale, options));
+                        $('#etime_txt').html(endDate.toLocaleTimeString(locale, options));
+
+                        $('#sst_sdate').val(sd + ' ' + st);
+                        $('#sst_edate').val(ed + ' ' + et);
+
+                        $('#pick_sdate').val(sd);
+                        $('#pick_edate').val(ed);
+                        $('#pick_stime').val(st);
+                        $('#pick_etime').val(et);
+                    }
+
+                    function datetime_chk() {
+                        var sd = $('#pick_sdate').val();
+                        var ed = $('#pick_edate').val();
+                        var st = $('#pick_stime').val();
+                        var et = $('#pick_etime').val();
+                        var pd = $('#pick_date').val();
+                        var pt = $('#pick_time').val();
+
+                        if (sd && ed && st && et) {
+                            var csdt = new Date(sd + ' ' + st);
+                            var cedt = new Date(ed + ' ' + et);
+
+                            console.log("csdt : " + csdt);
+                            console.log("cedt : " + cedt);
+                            // console.log(csdt > cedt);
+
+                            if (csdt == cedt) { //시작 == 마감
+                                var usd = (csdt.getTime() / 1000);
+                                var usc = Unix_timestamp(usd + 3600);
+                                var syd = new Date(usc);
+
+                                set_date_time(sd, ed, st, et);
+                            } else {
+                                if (csdt < cedt) { //시작 < 마감
+                                    set_date_time(sd, ed, st, et);
+                                } else { //시작 > 마감
+                                    console.log("pd pt " + pd + " " + pt);
+                                    if (pt == 'stime') { //시작 설정시
+                                        var usd = (csdt.getTime() / 1000);
+                                        var usc = Unix_timestamp(usd + 3600);
+                                        var syd = new Date(usc);
+
+                                        console.log(ed + et);
+
+                                        set_date_time(sd, ed, st, et);
+                                    } else { //마감 설정시
+                                        var ued = (cedt.getTime() / 1000);
+                                        var uec = Unix_timestamp(ued - 3600);
+                                        var eyd = new Date(uec);
+
+                                        set_date_time(sd, ed, st, et);
+                                    }
+                                }
+                            }
+                        } else {
+                            $('#sst_sdate').val('');
+                            $('#sst_edate').val('');
+
+                            return 'edate_chg';
+                        }
+                    }
+                </script>
+                <div class="line_ip mt_25 d-none-temp">
+                    <div class="row">
+                        <div class="col col-auto line_tit">
+                            <h5><?= translate('시작', $userLang); ?></h5>
+                        </div>
+                        <div class="col">
+
+                            <!-- value 안에 데이터 넣어 주세요 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="line_ip mt_25 d-none-temp">
+                    <div class="row">
+                        <div class="col col-auto line_tit">
+                            <h5><?= translate('종료', $userLang); ?></h5>
+                        </div>
+                        <div class="col">
+
+                            <!-- value 안에 데이터 넣어 주세요 -->
+                        </div>
+                    </div>
+                </div>
+                <!-- 반복 -->
+                <div class="line_ip mt_25">
+                    <div class="row">
+                        <div class="col col-auto line_tit"><img src="<?= CDN_HTTP ?>/img/ip_ic_repeat.png" alt="<?= translate('반복 아이콘', $userLang); ?>"></div>
+                        <div class="col">
+                            <input type="hidden" name="sst_repeat_json" id="sst_repeat_json" value='<?= $row_sst['sst_repeat_json'] ?>' />
+                            <input type="text" readonly class="form-none cursor_pointer" name="sst_repeat_json_v" id="sst_repeat_json_v" placeholder="<?= translate('반복', $userLang); ?>" value="<?= $row_sst['sst_repeat_json_v'] ?>" <? if (!$readonly) { /*echo 'data-toggle="modal" data-target="#schedule_repeat"';*/
+                                                                                                                                                                                                                                            echo 'onclick="f_schedule_repeat_modal()"';
+                                                                                                                                                                                                                                        } ?>>
+                            <!-- value 안에 데이터 넣어 주세요 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="line_ip mt_25 d-none">
 <div class="row">
 <div class="col col-auto line_tit"><img src="<?= CDN_HTTP ?>/img/ip_ic_member.png" alt="멤버 아이콘"></div>
 <div class="col">
@@ -1346,238 +1445,238 @@ return 'edate_chg';
 </div>
 </div>
 </div> -->
-<!-- 알림 -->
-<div class="mt_25">
-<div class="row line_ip mx-0 pl-0">
-<div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_notice.png" alt="<?=  translate('알림 아이콘', $userLang); ?>"></div>
-<div class="col pl-0" <? if (!$readonly) {
-                    echo 'onclick="openArmSettingModal()"';
-                } ?>>
-<input type="hidden" name="sst_schedule_alarm_chk" id="sst_schedule_alarm_chk" value="<?= $row_sst['sst_schedule_alarm_chk'] ?>" />
-<input type="hidden" name="sst_pick_type" id="sst_pick_type" value="<?= $row_sst['sst_pick_type'] ?>" />
-<input type="hidden" name="sst_pick_result" id="sst_pick_result" value="<?= $row_sst['sst_pick_result'] ?>" />
-<!-- <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="알림" value="<?= $row_sst['sst_alram_t'] ?>" data-toggle="modal" data-target="#schedule_notice"> -->
-<input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="<?=  translate('알림', $userLang); ?>" value="<?= $row_sst['sst_alram_t'] ? $row_sst['sst_alram_t'] : $_GET['sst_pick_result'] . $pick_type ?>">
-<!-- value 안에 데이터 넣어 주세요 -->
-</div>
-</div>
-<div class="row mx-0 pl-0">
-<div class="col col-auto line_tit pl-0"><span></span></div>
-<div class="col px-0 ">
-<p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?=  translate('일정 관련 알림 및 그룹원의 위치 변동 알림 설정을 입력해주세요.', $userLang); ?></p>
-</div>
-</div>
-</div>
-<!-- 알림설정 모달 창 -->
-<div class="modal fade" id="armSettingModal" tabindex="-1">
-<div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<p class="modal-title line1_text fs_20 fw_700"><?=  translate('알림', $userLang); ?></p>
-<div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
-</div>
-<div class="modal-body scroll_bar_y py-0">
-<!-- arm_setting 페이지를 띄울 iframe -->
-<iframe id="armSettingFrame" frameborder="0" width="100%" height="500px"></iframe>
-</div>
-</div>
-</div>
-</div>
-<script>
-// arm_setting 페이지를 모달로 띄우는 함수
-function openArmSettingModal() {
-var sst_schedule_alarm_chk = $('#sst_schedule_alarm_chk').val();
-var sst_pick_type = $('#sst_pick_type').val();
-var sst_pick_result = $('#sst_pick_result').val();
-
-var armSettingURL = './arm_setting?sst_schedule_alarm_chk=' + sst_schedule_alarm_chk + '&sst_pick_type=' + sst_pick_type + '&sst_pick_result=' + sst_pick_result;
-// console.log(armSettingURL);
-// 추가 데이터 필요시 추가
-// 모달 열기
-$('#armSettingModal').modal('show');
-// iframe에 arm_setting 페이지 로드
-$('#armSettingFrame').attr('src', armSettingURL);
-}
-
-// arm_setting 페이지에서 값이 전달될 때 실행되는 함수
-function onArmSettingComplete(data) {
-var timestamp;
-var pick_result;
-if (data.pick_type === 'day') {
-timestamp = data.pick_result + "<?= translate('일 전', $userLang) ?>";
-} else if (data.pick_type === 'minute') {
-timestamp = data.pick_result + "<?= translate('분 전', $userLang) ?>";
-} else if (data.pick_type === 'hour') {
-timestamp = data.pick_result + "<?= translate('시간 전', $userLang) ?>";
-} else {
-timestamp = "<?= translate('알림설정 안함', $userLang) ?>";
-}
-if (data.pick_result) {
-pick_result = data.pick_result;
-} else {
-pick_result = '';
-}
-// 전달받은 값으로 필요한 처리 수행
-// $('#sst_location_alarm').val(data.sst_location_alarm);
-$('#sst_schedule_alarm_chk').val(data.sst_schedule_alarm_chk);
-$('#sst_pick_type').val(data.pick_type);
-$('#sst_pick_result').val(pick_result);
-$('#sst_alram_t').val(timestamp);
-// 이후 필요한 처리 추가 가능
-closeArmSettingModal();
-}
-// 모달을 닫는 함수
-function closeArmSettingModal() {
-$('#armSettingModal').modal('hide');
-}
-</script>
-<!-- 장소 -->
-<div class="mt_25">
-<div class="row line_ip mx-0 pl-0">
-<div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_location.png" alt="<?=  translate('위치 아이콘', $userLang); ?>"></div>
-<div class="col pl-0">
-<div class="d-flex align-items-center">
-<!-- <span class="text-primary mr_12">KT&G</span> -->
-<!-- 별칭 출력 -->
-<input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="<?=  translate('장소', $userLang); ?>" value="<?= $row_sst['slt_idx_t'] ?>" <? if (!$readonly) {
-                                                                                                                                                                    echo 'onclick="f_modal_schedule_location();"';
-                                                                                                                                                                } ?>>
-</div>
-<!-- value 안에 데이터 넣어 주세요 -->
-<input type="hidden" name="slt_idx" id="slt_idx" value="<?= $row_sst['slt_idx'] ?>" />
-<input type="hidden" name="sst_location_alarm" id="sst_location_alarm" value="<?= $row_sst['sst_location_alarm'] ? $row_sst['sst_location_alarm'] : '4' ?>" />
-<input type="hidden" name="sst_location_title" id="sst_location_title" value="<?= $row_sst['sst_location_title'] ?>" />
-<input type="hidden" name="sst_location_add" id="sst_location_add" value="<?= $row_sst['sst_location_add'] ?>" />
-<input type="hidden" name="sst_location_lat" id="sst_location_lat" value="<?= $row_sst['sst_location_lat'] ?>" />
-<input type="hidden" name="sst_location_long" id="sst_location_long" value="<?= $row_sst['sst_location_long'] ?>" />
-</div>
-</div>
-<div class="row mx-0 pl-0">
-<div class="col col-auto line_tit pl-0"><span></span></div>
-<div class="col px-0">
-<p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?=  translate('일정이 진행될 장소를 입력해주세요.', $userLang); ?></p>
-</                   div>
-                </div>
-            </div>
-            <!-- 준비물 -->
+            <!-- 알림 -->
             <div class="mt_25">
                 <div class="row line_ip mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_material.png" alt="<?=  translate('준비물 아이콘', $userLang) ?> ?>"></div>
-                    <div class="col pl-0">
-                        <!-- <input type="text" class="form-none txt-cnt" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="준비물" value="<?= $row_sst['sst_supplies'] ?>" <?= $readonly ?> <?= $disable ?>> -->
-                        <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="<?=  translate('준비물', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_supplies'] ?></textarea>
-                    </div>
-                    <!-- value 안에 데이터 넣어 주세요 -->
-                </div>
-                <div class="row mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><span></span></div>
-                    <div class="col px-0 d-flex justify-content-between align-items-center">
-                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?=  translate('일정 진행에 필요한 준비물을 입력해주세요.', $userLang); ?></p>
-                        <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_supplies_cnt">0</span>/100)</p>
-                    </div>
-                </div>
-            </div>
-            <!-- 메모 -->
-            <div class="mt_25">
-                <div class="row line_ip mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_memo.png" alt="<?=  translate('메모 아이콘', $userLang); ?>"></div>
-                    <div class="col pl-0">
-                        <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_memo" id="sst_memo" maxlength="500" data-length-id="sst_memo_cnt" oninput="maxLengthCheck(this)" placeholder="<?=  translate('메모', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_memo'] ?></textarea>
+                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_notice.png" alt="<?= translate('알림 아이콘', $userLang); ?>"></div>
+                    <div class="col pl-0" <? if (!$readonly) {
+                                                echo 'onclick="openArmSettingModal()"';
+                                            } ?>>
+                        <input type="hidden" name="sst_schedule_alarm_chk" id="sst_schedule_alarm_chk" value="<?= $row_sst['sst_schedule_alarm_chk'] ?>" />
+                        <input type="hidden" name="sst_pick_type" id="sst_pick_type" value="<?= $row_sst['sst_pick_type'] ?>" />
+                        <input type="hidden" name="sst_pick_result" id="sst_pick_result" value="<?= $row_sst['sst_pick_result'] ?>" />
+                        <!-- <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="알림" value="<?= $row_sst['sst_alram_t'] ?>" data-toggle="modal" data-target="#schedule_notice"> -->
+                        <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="<?= translate('알림', $userLang); ?>" value="<?= $row_sst['sst_alram_t'] ? $row_sst['sst_alram_t'] : $_GET['sst_pick_result'] . $pick_type ?>">
+                        <!-- value 안에 데이터 넣어 주세요 -->
                     </div>
                 </div>
                 <div class="row mx-0 pl-0">
                     <div class="col col-auto line_tit pl-0"><span></span></div>
-                    <div class="col px-0 d-flex justify-content-between align-items-center">
-                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?=  translate('일정에 대한 추가 정보나 메모를 작성해주세요.', $userLang); ?></p>
-                        <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_memo_cnt">0</span>/500)</p>
+                    <div class="col px-0 ">
+                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정 관련 알림 및 그룹원의 위치 변동 알림 설정을 입력해주세요.', $userLang); ?></p>
                     </div>
                 </div>
             </div>
-            <!-- 연락처 -->
-            <div class="mt_25">
-                <div class="row line_ip mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_contact.png" alt="<?=  translate('연락처 아이콘', $userLang) ?> ?>"></div>
-                    <div class="col pl-0">
-                        <input type="text" readonly class="form-none cursor_pointer" placeholder="<?=  translate('연락처를 입력해주세요.', $userLang) ?>" value="" <? if (!$readonly) {
-                                                                                                                                echo 'data-toggle="modal"';
-                                                                                                                            } ?> data-target="#schedule_contact">
-                    </div>
-                </div>
-                <div class="row mx-0">
-                    <div class="col col-auto line_tit pl-0"><span></span></div>
-                    <div class="col px-0">
-                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?=  translate('연락처를 입력해주세요.', $userLang) ?></p>
-                    </div>
-                </div>
-                <!-- 연락처미입력시 ↑-->
-                <div class="row mx-0">
-                    <div class="col col-auto line_tit pl-0"><span></span></div>
-                    <div class="col px-0">
-                        <div class="contact_group fs_15 fc_gray_800 fw_600 mt-3">
-                            <ul id="contact_list_box" class="mt-3">
-                            </ul>
+            <!-- 알림설정 모달 창 -->
+            <div class="modal fade" id="armSettingModal" tabindex="-1">
+                <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <p class="modal-title line1_text fs_20 fw_700"><?= translate('알림', $userLang); ?></p>
+                            <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
+                        </div>
+                        <div class="modal-body scroll_bar_y py-0">
+                            <!-- arm_setting 페이지를 띄울 iframe -->
+                            <iframe id="armSettingFrame" frameborder="0" width="100%" height="500px"></iframe>
                         </div>
                     </div>
                 </div>
-                <!-- 연락처입력시 ↑-->
             </div>
-            <!-- 수정권한 -->
-            <div class="mt-5">
-                <p class="fs_15 fw_500"><?=  translate('수정권한을 선택해주세요', $userLang); ?></p>
-                <div class="checks_wr mt-3">
-                    <div class="checks">
-                        <label>
-                            <input type="checkbox" name="sst_update_chk" value="1" checked disabled>
-                            <span class="ic_box"><i class="xi-check-min"></i></span>
-                            <div class="chk_p">
-                                <p class="text_dynamic"><?=  translate('오너', $userLang); ?></p>
-                            </div>
-                        </label>
-                    </div>
-                    <div class="checks">
-                        <label>
-                            <input type="checkbox" name="sst_update_chk" value="2" <? if (!$_GET['sst_idx'] && ($sgt_cnt <= 0 || $sgdt_cnt > 0)) {
-                                                                                        echo 'checked disabled';
-                                                                                    } ?> <? if ($readonly) {
-                                                                                                echo 'disabled';
-                                                                                            } ?>>
-                            <span class="ic_box"><i class="xi-check-min"></i></span>
-                            <div class="chk_p">
-                                <p class="text_dynamic"><?=  translate('리더', $userLang); ?></p>
-                            </div>
-                        </label>
-                    </div>
-                    <div class="checks">
-                        <label>
-                            <input type="checkbox" name="sst_update_chk" value="3" <? if (!$_GET['sst_idx'] && $sgt_cnt <= 0 && $sgdt_cnt <= 0) {
-                                                                                        echo 'checked disabled';
-                                                                                    } ?> <? if ($readonly) {
-                                                                                                echo 'disabled';
-                                                                                            } ?>>
-                            <span class="ic_box"><i class="xi-check-min"></i></span>
-                            <div class="chk_p">
-                                <p class="text_dynamic"><?=  translate('그룹원', $userLang); ?></p>
-                            </div>
-                        </label>
+            <script>
+                // arm_setting 페이지를 모달로 띄우는 함수
+                function openArmSettingModal() {
+                    var sst_schedule_alarm_chk = $('#sst_schedule_alarm_chk').val();
+                    var sst_pick_type = $('#sst_pick_type').val();
+                    var sst_pick_result = $('#sst_pick_result').val();
+
+                    var armSettingURL = './arm_setting?sst_schedule_alarm_chk=' + sst_schedule_alarm_chk + '&sst_pick_type=' + sst_pick_type + '&sst_pick_result=' + sst_pick_result;
+                    // console.log(armSettingURL);
+                    // 추가 데이터 필요시 추가
+                    // 모달 열기
+                    $('#armSettingModal').modal('show');
+                    // iframe에 arm_setting 페이지 로드
+                    $('#armSettingFrame').attr('src', armSettingURL);
+                }
+
+                // arm_setting 페이지에서 값이 전달될 때 실행되는 함수
+                function onArmSettingComplete(data) {
+                    var timestamp;
+                    var pick_result;
+                    if (data.pick_type === 'day') {
+                        timestamp = data.pick_result + "<?= translate('일 전', $userLang) ?>";
+                    } else if (data.pick_type === 'minute') {
+                        timestamp = data.pick_result + "<?= translate('분 전', $userLang) ?>";
+                    } else if (data.pick_type === 'hour') {
+                        timestamp = data.pick_result + "<?= translate('시간 전', $userLang) ?>";
+                    } else {
+                        timestamp = "<?= translate('알림설정 안함', $userLang) ?>";
+                    }
+                    if (data.pick_result) {
+                        pick_result = data.pick_result;
+                    } else {
+                        pick_result = '';
+                    }
+                    // 전달받은 값으로 필요한 처리 수행
+                    // $('#sst_location_alarm').val(data.sst_location_alarm);
+                    $('#sst_schedule_alarm_chk').val(data.sst_schedule_alarm_chk);
+                    $('#sst_pick_type').val(data.pick_type);
+                    $('#sst_pick_result').val(pick_result);
+                    $('#sst_alram_t').val(timestamp);
+                    // 이후 필요한 처리 추가 가능
+                    closeArmSettingModal();
+                }
+                // 모달을 닫는 함수
+                function closeArmSettingModal() {
+                    $('#armSettingModal').modal('hide');
+                }
+            </script>
+            <!-- 장소 -->
+            <div class="mt_25">
+                <div class="row line_ip mx-0 pl-0">
+                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_location.png" alt="<?= translate('위치 아이콘', $userLang); ?>"></div>
+                    <div class="col pl-0">
+                        <div class="d-flex align-items-center">
+                            <!-- <span class="text-primary mr_12">KT&G</span> -->
+                            <!-- 별칭 출력 -->
+                            <input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="<?= translate('장소', $userLang); ?>" value="<?= $row_sst['slt_idx_t'] ?>" <? if (!$readonly) {
+                                                                                                                                                                                                                                echo 'onclick="f_modal_schedule_location();"';
+                                                                                                                                                                                                                            } ?>>
+                        </div>
+                        <!-- value 안에 데이터 넣어 주세요 -->
+                        <input type="hidden" name="slt_idx" id="slt_idx" value="<?= $row_sst['slt_idx'] ?>" />
+                        <input type="hidden" name="sst_location_alarm" id="sst_location_alarm" value="<?= $row_sst['sst_location_alarm'] ? $row_sst['sst_location_alarm'] : '4' ?>" />
+                        <input type="hidden" name="sst_location_title" id="sst_location_title" value="<?= $row_sst['sst_location_title'] ?>" />
+                        <input type="hidden" name="sst_location_add" id="sst_location_add" value="<?= $row_sst['sst_location_add'] ?>" />
+                        <input type="hidden" name="sst_location_lat" id="sst_location_lat" value="<?= $row_sst['sst_location_lat'] ?>" />
+                        <input type="hidden" name="sst_location_long" id="sst_location_long" value="<?= $row_sst['sst_location_long'] ?>" />
                     </div>
                 </div>
-            </div>
-            <div class="b_botton <?= $dnone ?>">
-                <?php if ($row_sst['sst_idx']) { ?>
-                    <!-- F-17 일정 수정 수정시 생겨야하는 버튼 -->
+                <div class="row mx-0 pl-0">
+                    <div class="col col-auto line_tit pl-0"><span></span></div>
+                    <div class="col px-0">
+                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정이 진행될 장소를 입력해주세요.', $userLang); ?></p>
+                        </ div>
+                    </div>
+                </div>
+                <!-- 준비물 -->
+                <div class="mt_25">
+                    <div class="row line_ip mx-0 pl-0">
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_material.png" alt="<?= translate('준비물 아이콘', $userLang) ?> ?>"></div>
+                        <div class="col pl-0">
+                            <!-- <input type="text" class="form-none txt-cnt" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="준비물" value="<?= $row_sst['sst_supplies'] ?>" <?= $readonly ?> <?= $disable ?>> -->
+                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('준비물', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_supplies'] ?></textarea>
+                        </div>
+                        <!-- value 안에 데이터 넣어 주세요 -->
+                    </div>
+                    <div class="row mx-0 pl-0">
+                        <div class="col col-auto line_tit pl-0"><span></span></div>
+                        <div class="col px-0 d-flex justify-content-between align-items-center">
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정 진행에 필요한 준비물을 입력해주세요.', $userLang); ?></p>
+                            <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_supplies_cnt">0</span>/100)</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 메모 -->
+                <div class="mt_25">
+                    <div class="row line_ip mx-0 pl-0">
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_memo.png" alt="<?= translate('메모 아이콘', $userLang); ?>"></div>
+                        <div class="col pl-0">
+                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_memo" id="sst_memo" maxlength="500" data-length-id="sst_memo_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('메모', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_memo'] ?></textarea>
+                        </div>
+                    </div>
+                    <div class="row mx-0 pl-0">
+                        <div class="col col-auto line_tit pl-0"><span></span></div>
+                        <div class="col px-0 d-flex justify-content-between align-items-center">
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정에 대한 추가 정보나 메모를 작성해주세요.', $userLang); ?></p>
+                            <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_memo_cnt">0</span>/500)</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 연락처 -->
+                <div class="mt_25">
+                    <div class="row line_ip mx-0 pl-0">
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_contact.png" alt="<?= translate('연락처 아이콘', $userLang) ?> ?>"></div>
+                        <div class="col pl-0">
+                            <input type="text" readonly class="form-none cursor_pointer" placeholder="<?= translate('연락처를 입력해주세요.', $userLang) ?>" value="" <? if (!$readonly) {
+                                                                                                                                                                echo 'data-toggle="modal"';
+                                                                                                                                                            } ?> data-target="#schedule_contact">
+                        </div>
+                    </div>
                     <div class="row mx-0">
-                        <div class="col-5 pl-0 pr-3">
-                            <button type="button" class="btn btn-secondary rounded  btn-lg btn-block" data-toggle="modal" data-target="#schedule_delete"><?=  translate('일정 삭제하기', $userLang); ?></button>
-                        </div>
-                        <div class="col-7 px-0">
-                            <button type="submit" id="btn_submit" class="btn btn-primary rounded btn-lg btn-block"><?=  translate('일정 수정하기', $userLang); ?></button>
+                        <div class="col col-auto line_tit pl-0"><span></span></div>
+                        <div class="col px-0">
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('연락처를 입력해주세요.', $userLang) ?></p>
                         </div>
                     </div>
-                <?php } else { ?>
-                    <button type="submit" id="btn_submit" class="btn rounded btn-primary btn-lg btn-block"><?=  translate('입력했어요!', $userLang); ?></button>
-                <?php } ?>
-            </div>
-            <div id="layoutViewport"></div>
+                    <!-- 연락처미입력시 ↑-->
+                    <div class="row mx-0">
+                        <div class="col col-auto line_tit pl-0"><span></span></div>
+                        <div class="col px-0">
+                            <div class="contact_group fs_15 fc_gray_800 fw_600 mt-3">
+                                <ul id="contact_list_box" class="mt-3">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 연락처입력시 ↑-->
+                </div>
+                <!-- 수정권한 -->
+                <div class="mt-5">
+                    <p class="fs_15 fw_500"><?= translate('수정권한을 선택해주세요', $userLang); ?></p>
+                    <div class="checks_wr mt-3">
+                        <div class="checks">
+                            <label>
+                                <input type="checkbox" name="sst_update_chk" value="1" checked disabled>
+                                <span class="ic_box"><i class="xi-check-min"></i></span>
+                                <div class="chk_p">
+                                    <p class="text_dynamic"><?= translate('오너', $userLang); ?></p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="checks">
+                            <label>
+                                <input type="checkbox" name="sst_update_chk" value="2" <? if (!$_GET['sst_idx'] && ($sgt_cnt <= 0 || $sgdt_cnt > 0)) {
+                                                                                            echo 'checked disabled';
+                                                                                        } ?> <? if ($readonly) {
+                                                                                                    echo 'disabled';
+                                                                                                } ?>>
+                                <span class="ic_box"><i class="xi-check-min"></i></span>
+                                <div class="chk_p">
+                                    <p class="text_dynamic"><?= translate('리더', $userLang); ?></p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="checks">
+                            <label>
+                                <input type="checkbox" name="sst_update_chk" value="3" <? if (!$_GET['sst_idx'] && $sgt_cnt <= 0 && $sgdt_cnt <= 0) {
+                                                                                            echo 'checked disabled';
+                                                                                        } ?> <? if ($readonly) {
+                                                                                                    echo 'disabled';
+                                                                                                } ?>>
+                                <span class="ic_box"><i class="xi-check-min"></i></span>
+                                <div class="chk_p">
+                                    <p class="text_dynamic"><?= translate('그룹원', $userLang); ?></p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="b_botton <?= $dnone ?>">
+                    <?php if ($row_sst['sst_idx']) { ?>
+                        <!-- F-17 일정 수정 수정시 생겨야하는 버튼 -->
+                        <div class="row mx-0">
+                            <div class="col-5 pl-0 pr-3">
+                                <button type="button" class="btn btn-secondary rounded  btn-lg btn-block" data-toggle="modal" data-target="#schedule_delete"><?= translate('일정 삭제하기', $userLang); ?></button>
+                            </div>
+                            <div class="col-7 px-0">
+                                <button type="submit" id="btn_submit" class="btn btn-primary rounded btn-lg btn-block"><?= translate('일정 수정하기', $userLang); ?></button>
+                            </div>
+                        </div>
+                    <?php } else { ?>
+                        <button type="submit" id="btn_submit" class="btn rounded btn-primary btn-lg btn-block"><?= translate('입력했어요!', $userLang); ?></button>
+                    <?php } ?>
+                </div>
+                <div id="layoutViewport"></div>
         </form>
         <script>
             $(document).ready(function() {
@@ -2087,7 +2186,7 @@ $('#armSettingModal').modal('hide');
 <!-- 토스트 Toast -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i><?=  translate('일정이 등록되었습니다.', $userLang); ?></p>
+        <p><i class="xi-check-circle mr-2"></i><?= translate('일정이 등록되었습니다.', $userLang); ?></p>
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -2098,15 +2197,15 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content">
             <div class="modal-body text-center pb-5">
                 <img src="./img/warring.png" width="72px" class="pt-3" alt="장소입력해주세요." />
-                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4"><?=  translate('장소를 입력하지 않으면
+                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4"><?= translate('장소를 입력하지 않으면
                     위치 기반 알림을 받지 못해요.', $userLang); ?>
                 </p>
-                <p class="fs_14 text_dynamic text_gray mt-3 line_h1_2 px-4"><?=  translate('장소 입력없이 저장하시겠어요?', $userLang); ?></p>
+                <p class="fs_14 text_dynamic text_gray mt-3 line_h1_2 px-4"><?= translate('장소 입력없이 저장하시겠어요?', $userLang); ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="f_modal_schedule_location();"><?=  translate('장소입력 하러가기', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" id="form_submit_btn" data-dismiss="modal" aria-label="Close"><?=  translate('저장하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="f_modal_schedule_location();"><?= translate('장소입력 하러가기', $userLang); ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" id="form_submit_btn" data-dismiss="modal" aria-label="Close"><?= translate('저장하기', $userLang); ?></button>
                 </div>
             </div>
         </div>
@@ -2124,7 +2223,7 @@ $('#armSettingModal').modal('hide');
                 <div class="cld_head_wr">
                     <div class="add_cal_tit mb-3">
                         <div class="sel_month d-inline-flex" style="margin-left:2rem;">
-                            <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?=  translate('월 선택 아이콘', $userLang); ?>" style="width:1.6rem; ">
+                            <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= translate('월 선택 아이콘', $userLang); ?>" style="width:1.6rem; ">
                             <b id="schedule-title" class="text-text fs_15"></b>
                         </div>
                         <div class="d-flex" style="margin-right:1rem;">
@@ -2180,7 +2279,7 @@ $('#armSettingModal').modal('hide');
                                             }],
                                             eventAfterAllRender: function(view) {
                                                 $('.fc-event-container').html('');
-                                                $('.fc-more-cell').                                       html('');
+                                                $('.fc-more-cell').html('');
                                             },
                                             eventClick: function(event) {
                                                 console.log('event sst_idx: ' + event.start._i);
@@ -2228,18 +2327,18 @@ $('#armSettingModal').modal('hide');
                     <div class="time_conent px-0">
                         <div class="ip_wr border-top pt_20">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class="text-body fw_800"><?=  translate('시작일시', $userLang); ?></h5>
+                                <h5 class="text-body fw_800"><?= translate('시작일시', $userLang); ?></h5>
                             </div>
                             <div class="form-row flex-nowrap align-items-center mb-3">
-                                <input type="text" readonly class="form-control form-control-sm" name="sst_sdate_d1" id="sst_sdate_d1" value="<?= $arr_sdate_t['date'] ?>" placeholder="<?=  translate('시작일자를 선택해주세요.', $userLang); ?>" />
+                                <input type="text" readonly class="form-control form-control-sm" name="sst_sdate_d1" id="sst_sdate_d1" value="<?= $arr_sdate_t['date'] ?>" placeholder="<?= translate('시작일자를 선택해주세요.', $userLang); ?>" />
                                 <span class="mx-2"> </span>
                                 <select class="form-control custom-select form-control-sm" name="sst_sdate_d4" id="sst_sdate_d4">
                                     <option value="1" <?php if ($arr_sdate_t['ampm'] == '1') {
                                                             echo " selected";
-                                                        } ?>><?=  translate('오전', $userLang); ?></option>
+                                                        } ?>><?= translate('오전', $userLang); ?></option>
                                     <option value="2" <?php if ($arr_sdate_t['ampm'] == '2') {
                                                             echo " selected";
-                                                        } ?>><?=  translate('오후', $userLang); ?></option>
+                                                        } ?>><?= translate('오후', $userLang); ?></option>
                                 </select>
                             </div>
                             <div class="form-row flex-nowrap align-items-center">
@@ -2278,18 +2377,18 @@ $('#armSettingModal').modal('hide');
                         </div>
                         <div class="ip_wr pt_20">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class="text-body fw_800"><?=  translate('종료일시', $userLang); ?></h5>
+                                <h5 class="text-body fw_800"><?= translate('종료일시', $userLang); ?></h5>
                             </div>
                             <div class="form-row flex-nowrap align-items-center mb-3">
-                                <input type="text" readonly class="form-control form-control-sm" name="sst_edate_d1" id="sst_edate_d1" value="<?= $arr_edate_t['date'] ?>" placeholder="<?=  translate('종료일자를 선택해주세요.', $userLang) ?> ?>" />
+                                <input type="text" readonly class="form-control form-control-sm" name="sst_edate_d1" id="sst_edate_d1" value="<?= $arr_edate_t['date'] ?>" placeholder="<?= translate('종료일자를 선택해주세요.', $userLang) ?> ?>" />
                                 <span class="mx-2"> </span>
                                 <select class="form-control custom-select form-control-sm" name="sst_edate_d4" id="sst_edate_d4">
                                     <option value="1" <?php if ($arr_edate_t['ampm'] == '1') {
                                                             echo " selected";
-                                                        } ?>><?=  translate('오전', $userLang); ?></option>
+                                                        } ?>><?= translate('오전', $userLang); ?></option>
                                     <option value="2" <?php if ($arr_edate_t['ampm'] == '2') {
                                                             echo " selected";
-                                                        } ?>><?=  translate('오후', $userLang); ?></option>
+                                                        } ?>><?= translate('오후', $userLang); ?></option>
                                 </select>
                             </div>
                             <div class="form-row flex-nowrap align-items-center">
@@ -2330,7 +2429,7 @@ $('#armSettingModal').modal('hide');
                     </div>
                 </div>
                 <div class="modal-footer px-0 py-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('시간 저장하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('시간 저장하기', $userLang); ?></button>
                 </div>
             </div>
         </form>
@@ -2423,7 +2522,7 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content">
             <form method="post" name="frm_schedule_repeat" id="frm_schedule_repeat">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?=  translate('반복', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('반복', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
@@ -2443,7 +2542,7 @@ $('#armSettingModal').modal('hide');
                                             <input type="radio" class="repeat_r1 repeat_week_chk" name="repeat_r1" id="r1_<?= $key ?>" value="<?= $key ?>" onchange="f_repeat_sel(this.value);" />
                                             <span class="ic_box"><i class="xi-check-min"></i></span>
                                             <div class="chk_p">
-                                                <p class="text_dynamic" style="word-break: break-all;"><?=  translate('1주 마다', $userLang); ?></p>
+                                                <p class="text_dynamic" style="word-break: break-all;"><?= translate('1주 마다', $userLang); ?></p>
                                             </div>
                                         </label>
                                     </div>
@@ -2497,7 +2596,7 @@ $('#armSettingModal').modal('hide');
                     ?>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('반복 주기 선택완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('반복 주기 선택완료', $userLang); ?></button>
                 </div>
             </form>
             <script>
@@ -2657,7 +2756,7 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content">
             <form method="post" name="frm_schedule_notice" id="frm_schedule_notice">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?=  translate('알림', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('알림', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
@@ -2685,7 +2784,7 @@ $('#armSettingModal').modal('hide');
                     ?>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('알림 설정완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('알림 설정완료', $userLang); ?></button>
                 </div>
             </form>
             <script>
@@ -2740,26 +2839,26 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content">
             <form method="post" name="frm_schedule_location" id="frm_schedule_location">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?=  translate('장소입력', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('장소입력', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y pt-0" style="max-height: calc(100vh - 200px); overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                     <div class="text-center py-5 border-top">
                         <div class="mx-auto"><img src="<?= CDN_HTTP ?>/img/icon_location.png" style="max-width:4.9rem;"></div>
                         <!-- <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_schedule_map();">지도에서 선택할래요<i class="xi-angle-right-min ml_19"></i></button> -->
-                        <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_map_search();"><?=  translate('주소로 검색할래요', $userLang); ?><i class="xi-angle-right-min ml_19"></i></button>
+                        <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_map_search();"><?= translate('주소로 검색할래요', $userLang); ?><i class="xi-angle-right-min ml_19"></i></button>
 
                     </div>
                     <div class="bargray_fluid mx_n20"></div>
 
                     <div class="location_mark my_20">
-                        <p class="tit_h3 fs_15 mb-4"><?=  translate('내 장소', $userLang); ?></p>
+                        <p class="tit_h3 fs_15 mb-4"><?= translate('내 장소', $userLang); ?></p>
                         <ul id="location_like_list_box">
                         </ul>
                     </div>
                     <!-- 위치알림 -->
                     <div>
-                        <p class="tit_h3 fs_15 mb-4"><?=  translate('위치알림', $userLang); ?></p>
+                        <p class="tit_h3 fs_15 mb-4"><?= translate('위치알림', $userLang); ?></p>
                         <div class="mt-4">
                             <div class="row bg_gray mx-0 arm_set_box">
                                 <div class="col checks mb-0 pl-0 px-sm-0 d-flex align-items-center">
@@ -2767,7 +2866,7 @@ $('#armSettingModal').modal('hide');
                                         <input type="checkbox" id="sst_location_alarm_t_1" value="1" <? if (!$row_sst['sst_location_alarm']) echo 'checked'; ?>>
                                         <span class="ic_box"><i class="xi-check-min"></i></span>
                                         <div class="chk_p flex-shrink-0">
-                                            <p class="text_dynamic text_gray"><?=  translate('진입알림', $userLang); ?></p>
+                                            <p class="text_dynamic text_gray"><?= translate('진입알림', $userLang); ?></p>
                                         </div>
                                     </label>
                                     <!-- 이하 생략 -->
@@ -2777,7 +2876,7 @@ $('#armSettingModal').modal('hide');
                                         <input type="checkbox" id="sst_location_alarm_t_2" value="2" <? if (!$row_sst['sst_location_alarm']) echo 'checked'; ?>>
                                         <span class="ic_box"><i class="xi-check-min"></i></span>
                                         <div class="chk_p flex-shrink-0">
-                                            <p class="text_dynamic text_gray"><?=  translate('이탈알림', $userLang); ?></p>
+                                            <p class="text_dynamic text_gray"><?= translate('이탈알림', $userLang); ?></p>
                                         </div>
                                     </label>
                                     <!-- 이하 생략 -->
@@ -2790,7 +2889,7 @@ $('#armSettingModal').modal('hide');
                                             <input type="checkbox" id="sst_location_alarm_t_3" value="3">
                                             <span class="ic_box"><i class="xi-check-min"></i></span>
                                             <div class="chk_p">
-                                                <p class="text_dynamic text_gray"><?=  translate('위치알림 안함', $userLang); ?></p>
+                                                <p class="text_dynamic text_gray"><?= translate('위치알림 안함', $userLang); ?></p>
                                             </div>
                                         </label>
                                     </div>
@@ -2800,7 +2899,7 @@ $('#armSettingModal').modal('hide');
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('장소 입력하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('장소 입력하기', $userLang); ?></button>
                 </div>
             </form>
             <script>
@@ -2885,7 +2984,7 @@ $('#armSettingModal').modal('hide');
                 }
 
                 $("#frm_schedule_location").validate({
-                    submitHandler: function()                   {
+                    submitHandler: function() {
                         var f = document.frm_schedule_location;
 
                         var q = 0;
@@ -2944,34 +3043,34 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content">
             <form method="post" name="frm_schedule_contact" id="frm_schedule_contact">
                 <div class="modal-header pb-0">
-                    <p class="tit_h2 line_h1_3 fs_20 fw_700 text_dynamic"><?=  translate('일정과 연관된', $userLang); ?>
-                        <?=  translate('연락처를 입력해주세요.', $userLang); ?>
+                    <p class="tit_h2 line_h1_3 fs_20 fw_700 text_dynamic"><?= translate('일정과 연관된', $userLang); ?>
+                        <?= translate('연락처를 입력해주세요.', $userLang); ?>
                     </p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y pt-0">
                     <div class="ip_wr d-none">
                         <div class="ip_tit d-flex align-items-center justify-content-between">
-                            <h5><?=  translate('카테고리', $userLang); ?></h5>
+                            <h5><?= translate('카테고리', $userLang); ?></h5>
                         </div>
-                        <input type="text" class="form-control" name="sct_category" id="sct_category" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?=  translate('카테고리 입력', $userLang); ?>">
+                        <input type="text" class="form-control" name="sct_category" id="sct_category" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= translate('카테고리 입력', $userLang); ?>">
                     </div>
                     <div class="ip_wr mt_25">
                         <div class="ip_tit">
-                            <h5 class=""><?=  translate('연락처 이름', $userLang); ?></h5>
+                            <h5 class=""><?= translate('연락처 이름', $userLang); ?></h5>
                         </div>
-                        <input type="text" class="form-control" name="sct_title" id="sct_title" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?=  translate('홍길동', $userLang); ?>">
+                        <input type="text" class="form-control" name="sct_title" id="sct_title" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= translate('홍길동', $userLang); ?>">
                     </div>
                     <div class="ip_wr mt_25">
                         <div class="ip_tit">
-                            <h5 class=""><?=  translate('연락처', $userLang); ?></h5>
+                            <h5 class=""><?= translate('연락처', $userLang); ?></h5>
                         </div>
                         <!-- <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="40" oninput="maxLengthCheck(this)" placeholder="010-1234-1234"> -->
-                        <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="13" placeholder="<?=  translate('010-1234-1234', $userLang); ?>" oninput="formatPhoneNumber(this)">
+                        <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="13" placeholder="<?= translate('010-1234-1234', $userLang); ?>" oninput="formatPhoneNumber(this)">
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('연락처 저장하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('연락처 저장하기', $userLang); ?></button>
                 </div>
             </form>
             <script>
@@ -3091,12 +3190,12 @@ $('#armSettingModal').modal('hide');
         <!-- opt_bottom_wrap 이거 넣으면 바텀시트 / modal-dialog-scrollable 필요시-->
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?=  translate('일정을 삭제하시겠어요?', $userLang); ?></p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= translate('일정을 삭제하시겠어요?', $userLang); ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=  translate('아니요', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?=  translate('삭제하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang); ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?= translate('삭제하기', $userLang); ?></button>
                 </div>
             </div>
         </div>
@@ -3107,31 +3206,31 @@ $('#armSettingModal').modal('hide');
     <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <p class="modal-title line1_text fs_20 fw_700"><?=  translate('연락처 수정', $userLang); ?></p>
+                <p class="modal-title line1_text fs_20 fw_700"><?= translate('연락처 수정', $userLang); ?></p>
                 <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
             </div>
             <div class="modal-body scroll_bar_y border-top">
                 <form class="">
                     <div class="ip_wr mb-4">
                         <div class="ip_tit d-flex justify-content-between">
-                            <h5 class=""><?=  translate('카테고리', $userLang); ?></h5>
-                            <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?=  translate('삭제하기', $userLang); ?></u></button>
+                            <h5 class=""><?= translate('카테고리', $userLang); ?></h5>
+                            <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
                         </div>
-                        <input type="text" class="form-control" placeholder="<?=  translate('카테고리 입력', $userLang); ?>" value="기사아저씨">
+                        <input type="text" class="form-control" placeholder="<?= translate('카테고리 입력', $userLang); ?>" value="기사아저씨">
                     </div>
                     <div class="bargray_fluid mx_n20"></div>
 
                     <div class="py_20 border-bottom contact_item">
                         <div class="ip_wr">
                             <div class="ip_tit d-flex justify-content-between">
-                                <h5 class=""><?=  translate('이름', $userLang); ?></h5>
-                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?=  translate('삭제하기', $userLang); ?></u></button>
+                                <h5 class=""><?= translate('이름', $userLang); ?></h5>
+                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
                             </div>
                             <input type="text" class="form-control" placeholder="홍길동" value="홍길동">
                         </div>
                         <div class="ip_wr mt_25">
                             <div class="ip_tit">
-                                <h5 class=""><?=  translate('연락처', $userLang); ?></h5>
+                                <h5 class=""><?= translate('연락처', $userLang); ?></h5>
                             </div>
                             <input type="text" class="form-control" placeholder="010-1234-1234" value="010-1234-1234">
                         </div>
@@ -3140,14 +3239,14 @@ $('#armSettingModal').modal('hide');
                     <div class="py_20 border-bottom contact_item">
                         <div class="ip_wr">
                             <div class="ip_tit d-flex justify-content-between">
-                                <h5 class=""><?=  translate('이름', $userLang); ?></h5>
-                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?=  translate('삭제하기', $userLang); ?></u></button>
+                                <h5 class=""><?= translate('이름', $userLang); ?></h5>
+                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
                             </div>
                             <input type="text" class="form-control" placeholder="홍길동" value="">
                         </div>
                         <div class="ip_wr mt_25">
                             <div class="ip_tit">
-                                <h5 class=""><?=  translate('연락처', $userLang); ?></h5>
+                                <h5 class=""><?= translate('연락처', $userLang); ?></h5>
                             </div>
                             <input type="text" class="form-control" placeholder="010-1234-1234" value="">
                         </div>
@@ -3159,8 +3258,8 @@ $('#armSettingModal').modal('hide');
             </div>
             <div class="modal-footer border-0 p-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=  translate('연락처 추가하기', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0"><?=  translate('연락처 수정하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('연락처 추가하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0"><?= translate('연락처 수정하기', $userLang); ?></button>
                 </div>
             </div>
         </div>
@@ -3177,7 +3276,7 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content" id="schedule_map_content">
             <form method="post" name="frm_schedule_map" id="frm_schedule_map">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?=  translate('위치 선택', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('위치 선택', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y p-0">
@@ -3188,18 +3287,18 @@ $('#armSettingModal').modal('hide');
                                 <ul>
                                     <li class="d-none">
                                         <div class="address_btn" onclick="f_modal_map_search();">
-                                            <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span> <?=  translate('지번, 도로명, 건물명으로 검색', $userLang); ?></p>
+                                            <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span> <?= translate('지번, 도로명, 건물명으로 검색', $userLang); ?></p>
                                         </div>
                                     </li>
                                     <li class="d-flex">
                                         <div class="name flex-fill">
                                             <div class="d-flex align-items-center justify-content-between">
-                                                <span class="fs_12 fw_600 text-primary"><?=  translate('선택한 위치', $userLang); ?></span>
+                                                <span class="fs_12 fw_600 text-primary"><?= translate('선택한 위치', $userLang); ?></span>
                                                 <!-- <a class="fc_gray_900 fs_12 fw_500" href="javascript:f_modal_map_search();">주소검색하기 <i class="xi-angle-right-min"></i></a> -->
                                             </div>
                                             <!-- 위치 선택전후는 폰트컬러 두께만 바껴요! -->
                                             <!-- 위치를 선책전 입니다. -->
-                                            <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add"><?=  translate('위치를 선택해주세요', $userLang); ?></div>
+                                            <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add"><?= translate('위치를 선택해주세요', $userLang); ?></div>
                                             <!-- 위치를 선책후 입니다. -->
                                             <!-- <div class="fs_14 fw_700 text-text text_dynamic mt-2 line_h1_3">서울 영등포구 여의대로56</div> -->
                                         </div>
@@ -3211,7 +3310,7 @@ $('#armSettingModal').modal('hide');
 
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=  translate('위치 선택완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('위치 선택완료', $userLang); ?></button>
                 </div>
             </form>
         </div>
@@ -3586,7 +3685,7 @@ $('#armSettingModal').modal('hide');
         <div class="modal-content" id="map_search_content">
             <form method="post" name="frm_map_search" id="frm_map_search">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?=  translate('주소 검색', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('주소 검색', $userLang); ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">

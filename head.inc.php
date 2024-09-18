@@ -67,11 +67,14 @@ $DB->update('member_t', $arr_query);
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-X8X49QPT01"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
 
         gtag('config', 'G-X8X49QPT01');
-        // console.log(<?=$_SESSION['_mt_idx'] ?>);
+        // console.log(<?= $_SESSION['_mt_idx'] ?>);
     </script>
 
     <!-- 제이쿼리 -->
@@ -172,7 +175,7 @@ $DB->update('member_t', $arr_query);
         //
         -->
     </script>
- 
+
     <script src="<?= CDN_HTTP ?>/js/default_dev.js?v=<?= $v_txt ?>"></script>
 
     <script>
@@ -379,28 +382,28 @@ $DB->update('member_t', $arr_query);
         }
     </script>
 
-    <?php 
+    <?php
     // $chk_admin 변수가 필요한 경우 주석 해제
     if ($chk_admin) {
         // 안드로이드 웹뷰로 페이지명을 전달해서 홈(index)면 뒤로가기 2번으로 종료가 작동하도록 합니다.
         if ($chk_mobile) {
     ?>
-        <script src="<?= CDN_HTTP ?>/lib/fakeloader/fakeloader.min.js?v=<?= $v_txt ?>"></script>
-        <link rel="stylesheet" href="<?= CDN_HTTP ?>/lib/fakeloader/fakeloader.css?v=<?= $v_txt ?>">
-        <script type="text/javascript">
-            $(document).ready(function() {
-                setTimeout(() => {
-                    window.FakeLoader.init({
-                        auto_hide: true
-                    });
-                }, 100);
-            });
+            <script src="<?= CDN_HTTP ?>/lib/fakeloader/fakeloader.min.js?v=<?= $v_txt ?>"></script>
+            <link rel="stylesheet" href="<?= CDN_HTTP ?>/lib/fakeloader/fakeloader.css?v=<?= $v_txt ?>">
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    setTimeout(() => {
+                        window.FakeLoader.init({
+                            auto_hide: true
+                        });
+                    }, 100);
+                });
 
-            document.getElementById("fakeloader-overlay").addEventListener("click", function(event) {
-                event.stopPropagation(); // 이벤트 전파 중지
-            });
-        </script>
-    <?php 
+                document.getElementById("fakeloader-overlay").addEventListener("click", function(event) {
+                    event.stopPropagation(); // 이벤트 전파 중지
+                });
+            </script>
+    <?php
         } // if ($chk_admin) 닫는 주석 추가
     }
     ?>
@@ -505,19 +508,19 @@ if ($_SESSION['_mt_idx']) {
     <?php if ($h_menu == '1') { ?>
         <!-- head_01 -->
         <div class="h_menu head_01">
-            <div class="logo_wr"><a class="logo" href="<?= CDN_HTTP ?>/"><img src="<?= CDN_HTTP ?>/img/logo.png" alt="홈으로 이동"></a></div>
+            <div class="logo_wr"><a class="logo" href="<?= CDN_HTTP ?>/"><img src="<?= CDN_HTTP ?>/img/logo.png" alt="<?= translate('홈으로 이동', $userLang) ?>"></a></div>
             <div class="mr-5 h_tit">
                 <p class="fs_18 fw_600 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div class="d-flex">
-                <a href="./setting" class="mr-3" onclick="sendEvent('click_setting', 'engagement', 'setting');"><img src="<?= CDN_HTTP ?>/img/ico_set.png" width="24px" alt="설정" /></a>
-                <a href="./alarm_list" class="arm_btn <?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="알람" /></a>
+                <a href="./setting" class="mr-3" onclick="sendEvent('click_setting', 'engagement', 'setting');"><img src="<?= CDN_HTTP ?>/img/ico_set.png" width="24px" alt="<?= translate('설정', $userLang) ?>" /></a>
+                <a href="./alarm_list" class="arm_btn <?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?= translate('알람', $userLang) ?>" /></a>
             </div><!-- on 추가되면 활성화-->
         </div>
     <?php } elseif ($h_menu == '2') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="history.back();"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="뒤로" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="history.back();"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -526,11 +529,11 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '3') { ?>
         <!-- head_03 -->
         <div class="h_menu head_03">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="뒤로" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
             <div class="h_tit">
                 <p class="fs_17 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
-            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./inquiry_form'">문의하기</button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./inquiry_form'"><?= translate('문의하기', $userLang) ?></button></div>
         </div>
     <?php } elseif ($h_menu == '4') { ?>
         <!-- head_07 -->
@@ -539,7 +542,7 @@ if ($_SESSION['_mt_idx']) {
                 <p class="fs_17 fw_700 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div></div>
-            <div><a href="alarm_list" class="arm_btn<?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="알람" /></a></div><!-- on 추가되면 활성화-->
+            <div><a href="alarm_list" class="arm_btn<?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?= translate('알람', $userLang) ?>" /></a></div><!-- on 추가되면 활성화-->
         </div>
     <?php } elseif ($h_menu == '5') { ?>
         <!-- head_08 -->
@@ -553,7 +556,7 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '6') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="뒤로" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -562,7 +565,7 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '7') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="<?= $h_func ?>"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="뒤로" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="<?= $h_func ?>"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -581,7 +584,7 @@ if ($_SESSION['_mt_idx']) {
                 <p class="fs_22 fw_700 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div></div>
-            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./plan_information'">플랜</button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./plan_information'"><?= translate('플랜', $userLang) ?></button></div>
         </div>
     <?php } elseif ($h_menu == '9') { ?>
         <!-- head_07 -->
@@ -591,23 +594,23 @@ if ($_SESSION['_mt_idx']) {
             </div>
         </div>
     <?php } ?>
-    
+
     <script>
-    function isAndroid() {
-        return navigator.userAgent.match(/Android/i);
-    }
-    
-    function isiOS() {
-        return navigator.userAgent.match(/iPhone|iPad|iPod|Mac|Apple/i);
-    }
-    
-    function sendEvent(eventName, eventCategory, eventLabel) {
-        gtag('event', eventName, {
-            'event_category': eventCategory,
-            'event_label': eventLabel,
-            'user_id': '<?= $_SESSION['_mt_idx'] ?>',
-            'platform': isAndroidDevice() ? 'Android' : (isiOSDevice() ? 'iOS' : 'Unknown')
-        });
-    }
+        function isAndroid() {
+            return navigator.userAgent.match(/Android/i);
+        }
+
+        function isiOS() {
+            return navigator.userAgent.match(/iPhone|iPad|iPod|Mac|Apple/i);
+        }
+
+        function sendEvent(eventName, eventCategory, eventLabel) {
+            gtag('event', eventName, {
+                'event_category': eventCategory,
+                'event_label': eventLabel,
+                'user_id': '<?= $_SESSION['_mt_idx'] ?>',
+                'platform': isAndroidDevice() ? 'Android' : (isiOSDevice() ? 'iOS' : 'Unknown')
+            });
+        }
     </script>
 </body>

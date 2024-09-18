@@ -28,6 +28,7 @@ $ot_list = $DB->get('order_t');
 <div class="container sub_pg">
     <div class="mt-4">
         <p class="tit_h1 wh_pre line_h1_3 text_dynamic"><?= translate("SMAP 유료플랜", $userLang); ?>
+        
         <?= translate("구매내역입니다.", $userLang); ?></p> 
         <!-- "SMAP 유료플랜\n구매내역입니다." 번역 (줄바꿈 유지) -->
         <div class="pt-4">

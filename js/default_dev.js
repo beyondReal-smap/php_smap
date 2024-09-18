@@ -991,80 +991,155 @@ function f_calendar_init(t = "") {
     },
   });
 }
-
 function f_calendar_log_init(t = "") {
-    var form_data = new FormData();
-    var week_chk = $("#week_calendar").val();
-    var sgdt_mt_idx = $("#sgdt_mt_idx").val();
+    return new Promise((resolve, reject) => { // Promise 반환
+        var form_data = new FormData();
+        var week_chk = $("#week_calendar").val();
+        var sgdt_mt_idx = $("#sgdt_mt_idx").val();
 
-    if (t == "today") {
-        var cday = new Date();
-    } else {
-        var sdate = $("#csdate").val();
-        var lsdate = $("#lsdate").val();
-        var ledate = $("#ledate").val();
-        var cday = new Date(sdate);
-    }
-
-    form_data.append("act", "calendar_list");
-    form_data.append("week_chk", week_chk);
-    form_data.append("lsdate", lsdate);
-    form_data.append("ledate", ledate);
-    form_data.append("sgdt_mt_idx", sgdt_mt_idx);
-
-    if (week_chk == "N") {
-        if (t == "prev") {
-            cday.setMonth(cday.getMonth() - 1);
-            form_data.append("sdate", dateFormat(cday));
-        } else if (t == "next") {
-            cday.setMonth(cday.getMonth() + 1);
-            form_data.append("sdate", dateFormat(cday));
-        } else if (t == "today") {
-            form_data.append("sdate", dateFormat(cday));
+        if (t == "today") {
+            var cday = new Date();
         } else {
-            form_data.append("sdate", dateFormat(cday));
+            var sdate = $("#csdate").val();
+            var lsdate = $("#lsdate").val();
+            var ledate = $("#ledate").val();
+            var cday = new Date(sdate);
         }
-        var cday2 = cday.getFullYear() + "-" + (cday.getMonth() + 1 < 9 ? "0" + (cday.getMonth() + 1) : cday.getMonth() + 1) + "-02";
-        $("#csdate").val(cday2);
-    } else {
-        if (t == "prev") {
-            cday.setDate(cday.getDate() - 7);
-            form_data.append("sdate", dateFormat(cday));
-        } else if (t == "next") {
-            cday.setDate(cday.getDate() + 7);
-            form_data.append("sdate", dateFormat(cday));
-        } else if (t == "today") {
-            form_data.append("sdate", dateFormat(cday));
-        } else {
-            form_data.append("sdate", dateFormat(cday));
-        }
-        $("#csdate").val(dateFormat(cday));
-    }
 
-    // setTimeout(() => {
-    //     $("#calendar_date_title").html(cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월");  
-    // }, 100);
+        form_data.append("act", "calendar_list");
+        form_data.append("week_chk", week_chk);
+        form_data.append("lsdate", lsdate);
+        form_data.append("ledate", ledate);
+        form_data.append("sgdt_mt_idx", sgdt_mt_idx);
 
-    $.ajax({
-        url: "./location_update",
-        enctype: "multipart/form-data",
-        data: form_data,
-        type: "POST",
-        async: true,
-        contentType: false,
-        processData: false,
-        cache: true,
-        timeout: 5000,
-        success: function (data) {
-            if (data) {
-                $("#schedule_calandar_box").html(data);
+        if (week_chk == "N") {
+            if (t == "prev") {
+                cday.setMonth(cday.getMonth() - 1);
+                form_data.append("sdate", dateFormat(cday));
+            } else if (t == "next") {
+                cday.setMonth(cday.getMonth() + 1);
+                form_data.append("sdate", dateFormat(cday));
+            } else if (t == "today") {
+                form_data.append("sdate", dateFormat(cday));
+            } else {
+                form_data.append("sdate", dateFormat(cday));
             }
-        },
-        error: function (err) {
-            console.log(err);
-        },
+            var cday2 = cday.getFullYear() + "-" + (cday.getMonth() + 1 < 9 ? "0" + (cday.getMonth() + 1) : cday.getMonth() + 1) + "-02";
+            $("#csdate").val(cday2);
+        } else {
+            if (t == "prev") {
+                cday.setDate(cday.getDate() - 7);
+                form_data.append("sdate", dateFormat(cday));
+            } else if (t == "next") {
+                cday.setDate(cday.getDate() + 7);
+                form_data.append("sdate", dateFormat(cday));
+            } else if (t == "today") {
+                form_data.append("sdate", dateFormat(cday));
+            } else {
+                form_data.append("sdate", dateFormat(cday));
+            }
+            $("#csdate").val(dateFormat(cday));
+        }
+
+        $.ajax({
+            url: "./location_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 5000,
+            success: function (data) {
+                if (data) {
+                    $("#schedule_calandar_box").html(data);
+                    resolve(); // 성공 시 resolve 호출
+                } else {
+                    reject(new Error('데이터를 불러오지 못했습니다.')); // 실패 시 reject 호출
+                }
+            },
+            error: function (err) {
+                console.log(err);
+                reject(err); // 오류 발생 시 reject 호출
+            },
+        });
     });
 }
+
+// function f_calendar_log_init(t = "") {
+//     var form_data = new FormData();
+//     var week_chk = $("#week_calendar").val();
+//     var sgdt_mt_idx = $("#sgdt_mt_idx").val();
+
+//     if (t == "today") {
+//         var cday = new Date();
+//     } else {
+//         var sdate = $("#csdate").val();
+//         var lsdate = $("#lsdate").val();
+//         var ledate = $("#ledate").val();
+//         var cday = new Date(sdate);
+//     }
+
+//     form_data.append("act", "calendar_list");
+//     form_data.append("week_chk", week_chk);
+//     form_data.append("lsdate", lsdate);
+//     form_data.append("ledate", ledate);
+//     form_data.append("sgdt_mt_idx", sgdt_mt_idx);
+
+//     if (week_chk == "N") {
+//         if (t == "prev") {
+//             cday.setMonth(cday.getMonth() - 1);
+//             form_data.append("sdate", dateFormat(cday));
+//         } else if (t == "next") {
+//             cday.setMonth(cday.getMonth() + 1);
+//             form_data.append("sdate", dateFormat(cday));
+//         } else if (t == "today") {
+//             form_data.append("sdate", dateFormat(cday));
+//         } else {
+//             form_data.append("sdate", dateFormat(cday));
+//         }
+//         var cday2 = cday.getFullYear() + "-" + (cday.getMonth() + 1 < 9 ? "0" + (cday.getMonth() + 1) : cday.getMonth() + 1) + "-02";
+//         $("#csdate").val(cday2);
+//     } else {
+//         if (t == "prev") {
+//             cday.setDate(cday.getDate() - 7);
+//             form_data.append("sdate", dateFormat(cday));
+//         } else if (t == "next") {
+//             cday.setDate(cday.getDate() + 7);
+//             form_data.append("sdate", dateFormat(cday));
+//         } else if (t == "today") {
+//             form_data.append("sdate", dateFormat(cday));
+//         } else {
+//             form_data.append("sdate", dateFormat(cday));
+//         }
+//         $("#csdate").val(dateFormat(cday));
+//     }
+
+//     // setTimeout(() => {
+//     //     $("#calendar_date_title").html(cday.getFullYear() + "년 " + (cday.getMonth() + 1) + "월");  
+//     // }, 100);
+
+//     $.ajax({
+//         url: "./location_update",
+//         enctype: "multipart/form-data",
+//         data: form_data,
+//         type: "POST",
+//         async: true,
+//         contentType: false,
+//         processData: false,
+//         cache: true,
+//         timeout: 5000,
+//         success: function (data) {
+//             if (data) {
+//                 $("#schedule_calandar_box").html(data);
+//             }
+//         },
+//         error: function (err) {
+//             console.log(err);
+//         },
+//     });
+// }
 
 function f_member_receipt_done(product_id, purchaseToken, package_name, JsonString, mt_idx) {  // 구독 결제 완료
   var form_data = new FormData();

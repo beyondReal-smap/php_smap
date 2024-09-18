@@ -127,7 +127,7 @@ if ($_POST['act'] == "event_source") {
         $DB->orderBy("sgt_udate", "desc");
         $list_sgt = $DB->get('smap_group_t');
     }    ?>
-    <p class="fs_12 fw_700 text-primary mb-3 pt_20"><?= datetype($_POST['event_start_date'], 21) ?><?= translate('의 일정입니다.', $userLang) ?></p>
+    <p class="fs_12 fw_700 text-primary mb-3 pt_20"><?= DateType($_POST['event_start_date'], 20) ?><?= translate('의 일정입니다.', $userLang) ?></p>
     <div id="mbr_wr">
         <!-- 그룹이 있든 없든 항상 본인은 맨 위에 표시 본인일정에는 .user_grplist 추가됩니다.-->
         <div class="grp_list user_grplist">
@@ -209,7 +209,7 @@ if ($_POST['act'] == "event_source") {
                                                                 </div>
                                                                 <div class="mx-3">
                                                                     <p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text"><?= $row_sst_a['sst_title'] ?></p>
-                                                                    <p class="fs_10 fw_300 text_gray line_h1_3"><span>수정권한 : </span> <?= $grant ?></p>
+                                                                    <p class="fs_10 fw_300 text_gray line_h1_3"><span><?= translate('수정권한', $userLang) ?> : </span> <?= translate($grant, $userLang) ?></p>
                                                                 </div>
                                                             </div>
                                                             <!-- 수정권한 없을때 지워주세요 -->
@@ -349,7 +349,7 @@ if ($_POST['act'] == "event_source") {
                                                                                             </div>
                                                                                             <div class="mx-3">
                                                                                                 <p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text"><?= $row_sst_a['sst_title'] ?></p>
-                                                                                                <p class="fs_10 fw_300 text_gray line_h1_3"><span>수정권한 : </span> <?= $grant ?></p>
+                                                                                                <p class="fs_10 fw_300 text_gray line_h1_3"><span><?= translate('수정권한', $userLang) ?> : </span> <?= translate($grant, $userLang) ?></p>
                                                                                             </div>
                                                                                         </div>
                                                                                         <!-- 수정권한 없을때 지워주세요 -->
@@ -1686,14 +1686,14 @@ if ($_POST['act'] == "event_source") {
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= translate('그룹원추가', $userLang) ?></p>
                 </div>
             <?php } else { ?>
                 <div class="swiper-slide mem_box add_mem_box" style="visibility: hidden;">
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic" ><?= translate('그룹원추가', $userLang) ?></p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= translate('그룹원추가', $userLang) ?></p>
                 </div>
             <?php } ?>
         </div>
@@ -1713,17 +1713,17 @@ if ($_POST['act'] == "event_source") {
         echo "<script>alert('" . $_SESSION['msg'] . "');location.replace('/login.php');</script>";
         exit;
     }
-    
+
     if (empty($_SESSION['_mt_idx'])) {
         p_alert('로그인이 필요합니다.', './login', '');
         exit;
     }
-    
+
     if (!isset($DB) || !$DB) {
         echo json_encode(['error' => '데이터베이스 연결 오류']);
         exit;
     }
-    
+
     function getBatteryInfo($percentage)
     {
         if ($percentage >= 80) {
@@ -1734,7 +1734,7 @@ if ($_POST['act'] == "event_source") {
             return ['color' => '#FF204E', 'image' => './img/battery_red.png', 'percentage' => $percentage];
         }
     }
-    
+
     function getSchedules($sgdt_idx, $event_start_date, $mt_idx)
     {
         global $DB;
@@ -1748,60 +1748,60 @@ if ($_POST['act'] == "event_source") {
 
         return $list;
     }
-    
+
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_show', 'Y');
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
     $sgdt_row = $DB->getone('smap_group_detail_t');
-    
+
     // // logToFile("sgdt_row: " . print_r($sgdt_row, true));
-    
+
     if (!$sgdt_row) {
         echo json_encode(['error' => '그룹 상세 정보를 찾을 수 없습니다.']);
         exit;
     }
-    
+
     $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
     $DB->where('sgdt_show', 'Y');
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
     $sgdt_list = $DB->get('smap_group_detail_t');
-    
+
     // // logToFile("sgdt_list: " . print_r($sgdt_list, true));
-    
+
     $result = ['result' => 'N', 'members' => []]; // 결과를 저장할 배열, result 값 초기화
-    
+
     foreach ($sgdt_list as $sgdt_member) {
         // 멤버 정보
         $DB->where('mt_idx', $sgdt_member['mt_idx']);
         $member_info = $DB->getone('member_t', 'mt_idx, mt_name, mt_sido, mt_gu, mt_dong, mt_file1');
-    
+
         // 위치 정보
         $DB->where('mt_idx', $sgdt_member['mt_idx']);
         $DB->orderby('mlt_gps_time', 'desc');
         $location_info = $DB->getone('member_location_log_t', 'mlt_battery, mlt_speed, mlt_lat, mlt_long');
-    
+
         // 위치 정보가 없는 경우 빈 배열로 초기화
         $location_info = $location_info ?: [];
-    
+
         // 배터리 정보
         $battery_info = getBatteryInfo(intval($location_info['mlt_battery'] ?? 0));
-    
+
         // 일정 정보
         $schedules = getSchedules($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
-    
+
         // 경로 데이터
         $arr_sst_idx = get_schedule_main($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
         $schedule_count = count($arr_sst_idx);
         $arr_sst_date = get_schedule_date($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
-    
+
         // logToFile("sgdt_member: " . print_r($sgdt_member, true));
         // logToFile("arr_sst_idx: " . print_r($arr_sst_idx, true));
         // logToFile("schedule_count: " . $schedule_count);
         // logToFile("arr_sst_date: " . print_r($arr_sst_date, true));
         // logToFile("schedules: " . print_r($schedules, true));
-    
+
         // result_data['members'] 배열 초기화 (sgdt_idx를 키로 사용)
         $result['members'][$sgdt_member['sgdt_idx']] = [
             'result' => 'N',
@@ -1812,7 +1812,7 @@ if ($_POST['act'] == "event_source") {
             'battery_info' => $battery_info,
             'schedules' => $schedules,
         ];
-    
+
         if (!empty($arr_sst_date)) {
             $latest_date = max($arr_sst_date);
             $wdate = date('Y-m-d');
@@ -1822,11 +1822,11 @@ if ($_POST['act'] == "event_source") {
             $DB->where('sllt_date', $wdate);
             $DB->orderby('sllt_wdate', 'desc');
             $sllt_row = $DB->getone('smap_loadpath_log_t');
-    
+
             // logToFile("latest_date: " . $latest_date);
             // logToFile("wdate: " . $wdate);
             // logToFile("sllt_row: " . print_r($sllt_row, true));
-    
+
             if ($sllt_row) {
                 $result['result'] = 'Y'; // 전체 결과도 Y로 변경
                 $result['members'][$sgdt_member['sgdt_idx']]['result'] = 'Y'; // 멤버별 결과도 Y로 변경
@@ -1834,15 +1834,15 @@ if ($_POST['act'] == "event_source") {
                 $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_walk'] = $sllt_row['sllt_json_walk'];
             }
         }
-    
+
         // my_lat, mt_long, my_profile 추가
         $result['members'][$sgdt_member['sgdt_idx']]['member_info']['my_lat'] = $location_info['mlt_lat'] == "" ? $member_info['mt_lat'] : $location_info['mlt_lat'];
         $result['members'][$sgdt_member['sgdt_idx']]['member_info']['mt_long'] = $location_info['mlt_long'] == "" ? $member_info['mt_long'] :  $location_info['mlt_long'];
         $result['members'][$sgdt_member['sgdt_idx']]['member_info']['my_profile'] = $member_info['mt_file1'] == "" ? $ct_no_img_url : get_image_url($member_info['mt_file1']);
     }
-    
+
     // logToFile("result: " . print_r($result, true));
-    
+
     // JSON으로 데이터 반환
     echo json_encode($result);
     exit;
@@ -1861,7 +1861,7 @@ if ($_POST['act'] == "event_source") {
             $DB->orderby('mlt_gps_time', 'desc');
             $mt_location_info = $DB->getone('member_location_log_t');
 
-            $battery_percentage = intval($mt_location_info['mlt_battery']);
+            $battery_percentage = isset($mt_location_info['mlt_battery']) ? intval($mt_location_info['mlt_battery']) : 0;
             $battery_color = '';
 
             if ($battery_percentage >= 80) {

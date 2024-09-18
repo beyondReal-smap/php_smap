@@ -3,9 +3,9 @@
 define("APP_AUTHOR", "SMAP - 자녀 일정·위치 확인");
 //상단타이틀, URL 설정
 define("APP_TITLE", 'SMAP - 자녀 일정·위치 확인');
-define("APP_DOMAIN", 'https://app.smap.site');
-define("CDN_HTTP", 'https://app.smap.site');
-define("DESIGN_HTTP", 'https://app.smap.site/design');
+define("APP_DOMAIN", 'https://app2.smap.site');
+define("CDN_HTTP", 'https://app2.smap.site');
+define("DESIGN_HTTP", 'https://app2.smap.site/design');
 define("KEYWORDS", '');
 define("DESCRIPTION", '자녀 위치 확인부터 일정 공유까지, 모든 것을 한 곳에서.');
 define("ADMIN_NAME", 'SMAP');

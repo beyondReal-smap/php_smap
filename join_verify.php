@@ -29,8 +29,8 @@ $phoneNumber = $_GET['phoneNumber'];
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">입력하신 휴대폰번호로
-            인증번호를 보냈어요.</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= translate("입력하신 휴대폰번호로
+            인증번호를 보냈어요.", $userLang) ?></p> <!-- "입력하신 휴대폰번호로 인증번호를 보냈어요." 번역 -->
         <form onsubmit="check_hp('auth'); return false;">
             <input type="hidden" name="HTTP_REFERER" id="HTTP_REFERER" value="<?= $_SERVER["HTTP_REFERER"] ?>">
             <input type="hidden" name="app_token" id="app_token" value="<?= $_SESSION['_mt_token_id'] ?>" />
@@ -39,31 +39,31 @@ $phoneNumber = $_GET['phoneNumber'];
             <div class="mt-5">
                 <div class="ip_wr mt_hp_chk_msg">
                     <div class="ip_tit">
-                        <h5>인증번호</h5>
+                        <h5><?= translate("인증번호", $userLang) ?></h5> <!-- "인증번호" 번역 -->
                     </div>
                     <div class="form-row mt_06">
                         <div class="col-12">
-                            <input type="tel" class="form-control input_time_input" placeholder="6자리 숫자" name="mt_num" id="mt_num" maxlength="6" autocomplete="off">
+                            <input type="tel" class="form-control input_time_input" placeholder="<?= translate("6자리 숫자", $userLang) ?>" name="mt_num" id="mt_num" maxlength="6" autocomplete="off"> <!-- "6자리 숫자" 번역 -->
                             <span class="fc_red fs_15 fw_300 bg_gray_100 input_time" id="cert_timer"></span>
                         </div>
                     </div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 인증번호가 일치하지 않습니다.</div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate("확인되었습니다.", $userLang) ?></div> <!-- "확인되었습니다." 번역 -->
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate("인증번호가 일치하지 않습니다.", $userLang) ?></div> <!-- "인증번호가 일치하지 않습니다." 번역 -->
                 </div>
                 <div class="ip_wr mt-5 mt_hp_msg">
                     <div class="ip_tit">
-                        <h5 class="">입력하신 휴대전화번호로 인증번호가 발송됩니다.</h5>
+                        <h5 class=""><?= translate("입력하신 휴대전화번호로 인증번호가 발송됩니다.", $userLang) ?></h5> <!-- "입력하신 휴대전화번호로 인증번호가 발송됩니다." 번역 -->
                     </div>
-                    <input type="tel" class="form-control" placeholder="<?= translate('010-0000-0000', $userLang) ?>" id="mt_hp" name="mt_hp" value="<?= $_GET['phoneNumber'] ?>" readonly>
+                    <input type="tel" class="form-control" placeholder="010-0000-0000" id="mt_hp" name="mt_hp" value="<?= $_GET['phoneNumber'] ?>" readonly>
                     <!-- <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div> -->
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 휴대전화번호를 다시 확인해주세요</div>
-                    <button type="button" onclick="check_hp('send', 'join')" class="btn fs_12 fc_primary rounded-pill bg_secondary text-center px_12 py_07 text_dynamic w_fit h_fit_im d-flex align-items-center mt-3" id="re_send_btn">인증번호가 안와요! <i class="xi-arrow-right ml-2"></i></button>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate("휴대전화번호를 다시 확인해주세요", $userLang) ?></div> <!-- "휴대전화번호를 다시 확인해주세요" 번역 -->
+                    <button type="button" onclick="check_hp('send', 'join')" class="btn fs_12 fc_primary rounded-pill bg_secondary text-center px_12 py_07 text_dynamic w_fit h_fit_im d-flex align-items-center mt-3" id="re_send_btn"><?= translate("인증번호가 안와요!", $userLang) ?> <i class="xi-arrow-right ml-2"></i></button> <!-- "인증번호가 안와요!" 번역 -->
                 </div>
             </div>
             <div class="b_botton">
                 <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='join_email.php'"><?= translate('입력했어요!', $userLang) ?></button> -->
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');"><?= translate('입력했어요!', $userLang) ?></button>
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()">휴대폰 인증을 완료했어요!</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');"><?= translate('입력했어요!', $userLang) ?></button> <!-- "입력했어요!" 번역 -->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= translate("휴대폰 인증을 완료했어요!", $userLang) ?></button> <!-- "휴대폰 인증을 완료했어요!" 번역 -->
             </div>
             <div id="layoutViewport"></div>
         </form>
@@ -125,8 +125,7 @@ $phoneNumber = $_GET['phoneNumber'];
                         $("#cert_timer").css("display", "");
                         $('#re_send_btn').addClass("hidden");
 
-
-                        jalert('인증번호가 발송되었어요!');
+                        jalert(translate('인증번호가 발송되었어요!', $userLang)); // "인증번호가 발송되었어요!" 번역
                     } else {
                         clearInterval(timer);
                         $("#cert_timer").css("display", "none");

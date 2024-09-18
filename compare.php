@@ -113,7 +113,7 @@ if ($_POST['act'] == "list") {
                 <div class="border bg-white rounded-lg mb-3">
                     <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer">
                         <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3"><?= $row_sgt['sgt_title'] ?><span class="ml-2">(<?= $member_cnt_t ?>)</span></p>
-                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');">그룹나가기</button>
+                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');"><?= translate('그룹나가기', $userLang) ?></button>
                     </div>
                     <?php
                     unset($list_sgdt);
