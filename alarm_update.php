@@ -4,7 +4,7 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 
 if ($_POST['act'] == "delete_all") {
     if($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     unset($arr_query);

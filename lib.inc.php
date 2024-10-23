@@ -40,67 +40,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
 
 // include $_SERVER['DOCUMENT_ROOT'] . "/queries.php"; // 쿼리 파일 포함
 
-// // 구글 맵스 API 키 설정
-// $google_maps_api_key = 'AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw'; // Google Maps API 키로 대체
-
-// // 사용자 IP 주소 가져오기
-// $user_ip = $_SERVER['REMOTE_ADDR'];
-
-// // 구글 맵스 Geolocation API URL 생성
-// $geolocation_api_url = "https://www.googleapis.com/geolocation/v1/geolocate?key=$google_maps_api_key";
-
-// // API 요청 생성
-// $ch = curl_init();
-// curl_setopt($ch, CURLOPT_URL, $geolocation_api_url);
-// curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-// curl_setopt($ch, CURLOPT_POST, 1);
-// curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['considerIp' => $user_ip]));
-// curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-
-// // API 요청 실행 및 응답 가져오기
-// $response = curl_exec($ch);
-// curl_close($ch);
-
-// // 응답 파싱
-// $location_data = json_decode($response, true);
-
-// // 로케일 추출
-// if (isset($location_data['location']['latLng'])) {
-//     // 위도 및 경도에서 로케일 가져오기
-//     $lat = $location_data['location']['latLng']['latitude'];
-//     $lng = $location_data['location']['latLng']['longitude'];
-
-//     // 구글 맵스 Reverse Geocoding API URL 생성
-//     $reverse_geocoding_api_url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$google_maps_api_key";
-
-//     // API 요청 생성 및 실행
-//     $ch = curl_init();
-//     curl_setopt($ch, CURLOPT_URL, $reverse_geocoding_api_url);
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-//     $geocoding_response = curl_exec($ch);
-//     curl_close($ch);
-
-//     // 응답 파싱
-//     $geocoding_data = json_decode($geocoding_response, true);
-
-//     // 로케일 정보 추출
-//     if (isset($geocoding_data['results'][0]['address_components'])) {
-//         $address_components = $geocoding_data['results'][0]['address_components'];
-//         foreach ($address_components as $component) {
-//             if (in_array('country', $component['types'])) {
-//                 $userLang = strtolower($component['short_name']);
-//                 break;
-//             }
-//         }
-//     }
-// } else {
-//     // Geolocation API에서 위치 정보를 가져오지 못한 경우 기본 로케일 설정
-//     $userLang = 'ko'; // 기본 로케일 (영어)
-// }
-
-$userLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-// $userLang = 'en';
-
 class Logger
 {
     private $logFile;
@@ -139,6 +78,16 @@ class Logger
 
 $logger = new Logger();
 
+// 사용자 언어 설정 (member_t 테이블에서 가져옴)
+// $logger->write("Setting user language. Fetching member info for mt_idx: " . $_SESSION['_mt_idx']);
+$DB->where('mt_idx', $_SESSION['_mt_idx']);
+$row = $DB->getone('member_t', 'mt_lang');
+// $logger->write("Fetched member info: " . json_encode($row));
+$userLang = $row['mt_lang'] ? $row['mt_lang'] : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+// $logger->write("Determined user language: " . $userLang);
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php';
+// $logger->write("Loaded translations for language: " . $userLang);
+
 $detect_mobile = new \Detection\MobileDetect();
 if ($detect_mobile->isMobile()) {
     $chk_mobile = true;
@@ -173,10 +122,79 @@ ini_set('display_errors', '1');
 
 
 //캐시서버 사용시 리셋
-if ($chk_admin) {
-    opcache_reset();
+// if ($chk_admin) {
+//     opcache_reset();
 
-    include $_SERVER['DOCUMENT_ROOT'] . "/config_mng.inc.php";
+//     include $_SERVER['DOCUMENT_ROOT'] . "/config_mng.inc.php";
+// }
+// 사용자의 언어에 따른 가격 설정 함수
+function getPriceByRegion() {
+    $userLang = getUserLang();
+
+    $prices = [
+        'ko' => ['monthly' => 4900, 'yearly' => 42000, 'currency' => '₩', 'txt_monthly' => '월간', 'txt_yearly' => '연간'],
+        'en' => ['monthly' => 4.99, 'yearly' => 39.99, 'currency' => '$', 'txt_monthly' => 'Monthly', 'txt_yearly' => 'Yearly'],
+        'ja' => ['monthly' => 550, 'yearly' => 4800, 'currency' => '¥', 'txt_monthly' => '月間', 'txt_yearly' => '年間'],
+        'id' => ['monthly' => 59000, 'yearly' => 499000, 'currency' => 'Rp', 'txt_monthly' => 'Bulanan', 'txt_yearly' => 'Tahunan'],
+        'vi' => ['monthly' => 89000, 'yearly' => 759000, 'currency' => '₫', 'txt_monthly' => 'Tháng', 'txt_yearly' => 'Năm'],
+        'ms' => ['monthly' => 16, 'yearly' => 139, 'currency' => 'RM', 'txt_monthly' => 'Bulanan', 'txt_yearly' => 'Tahunan'],
+        'th' => ['monthly' => 129, 'yearly' => 1099, 'currency' => '฿', 'txt_monthly' => 'รายเดือน', 'txt_yearly' => 'รายปี'],
+        'hi' => ['monthly' => 299, 'yearly' => 2499, 'currency' => '₹', 'txt_monthly' => 'मासिक', 'txt_yearly' => 'वार्षिक'],
+        'es' => ['monthly' => 3.99, 'yearly' => 34.99, 'currency' => '€', 'txt_monthly' => 'Mensual', 'txt_yearly' => 'Anual'],
+        'pt' => ['monthly' => 19.90, 'yearly' => 169.90, 'currency' => 'R$', 'txt_monthly' => 'Mensal', 'txt_yearly' => 'Anual']
+    ];
+
+    if (!isset($prices[$userLang])) {
+        error_log("Unsupported language: $userLang. Using default pricing.");
+        return $prices['en'];  // 영어를 기본값으로 사용
+    }
+
+    return $prices[$userLang];
+}
+
+function get_cached_data($key) {
+    if (!isset($_SESSION['cache']) || !isset($_SESSION['cache'][$key]) || $_SESSION['cache'][$key]['expires'] < time()) {
+        return null;
+    }
+    return $_SESSION['cache'][$key]['data'];
+}
+
+function set_cached_data($key, $data, $ttl = 3600) {
+    if (!isset($_SESSION['cache'])) {
+        $_SESSION['cache'] = array();
+    }
+    $_SESSION['cache'][$key] = array(
+        'data' => $data,
+        'expires' => time() + $ttl
+    );
+}
+
+function formatPrice($price) {
+    $lang = getUserLang();
+    $localeMap = [
+        'ko' => ['.,', 'ko_KR'],  // 한국어: 1,234.56
+        'en' => ['.,', 'en_US'],  // 영어: 1,234.56
+        'es' => [',.', 'es_ES'],  // 스페인어: 1.234,56
+        'vi' => [',.', 'vi_VN'],  // 베트남어: 1.234,56
+        'id' => [',.', 'id_ID'],  // 인도네시아어: 1.234,56
+        'th' => ['.,', 'th_TH'],  // 태국어: 1,234.56
+        'hi' => ['.,', 'hi_IN'],  // 힌디어: 1,234.56
+        'ja' => ['.,', 'ja_JP']   // 일본어: 1,234.56
+    ];
+
+    // 언어에 맞는 설정 선택, 없으면 영어로 기본 설정
+    $format = $localeMap[$lang] ?? $localeMap['en'];
+
+    // 로케일 설정
+    setlocale(LC_MONETARY, $format[1]);
+
+    // 가격 포맷팅
+    return number_format($price, 2, $format[0][0], $format[0][1]);
+}
+
+function getUserLang() {
+    $mt_info = get_member_t_info();
+    return $mt_info['mt_lang'];
 }
 
 function translate($key, $lang = null)
@@ -944,23 +962,24 @@ function printr($arr_val)
 
 function fnc_Day_Name($strDate)
 {
-    global $userLang;
+    global $translations;
     $strDate = substr($strDate, 0, 10);
-    $days = array(translate("일", $userLang), translate("월", $userLang), translate("화", $userLang), translate("수", $userLang), translate("목", $userLang), translate("금", $userLang), translate("토", $userLang));
+    $days = array($translations['txt_sunday'], $translations['txt_monday'], $translations['txt_tuesday'], $translations['txt_wednesday'], $translations['txt_thursday'], $translations['txt_friday'], $translations['txt_saturday'] );
     $temp_day = date("w", strtotime($strDate));
     return $days[$temp_day];
 }
 
 function TimeType($time_t)
 {
+    global $translations;
     $hour = date("H", strtotime($time_t));
     $min  = date("i", strtotime($time_t));
 
     if ($hour > 12) {
         $hour = $hour - 12;
-        $result = "오후 " . $hour . ":" . $min;
+        $result = $translations['txt_pm'] . " " . $hour . ":" . $min;
     } else {
-        $result = "오전 " . $hour . ":" . $min;
+        $result = $translations['txt_am'] . " " . $hour . ":" . $min;
     }
 
     return $result;
@@ -968,7 +987,7 @@ function TimeType($time_t)
 
 function DateType($strDate, $type = "1")
 {
-    global $userLang;
+    global $userLang, $translations;
 
     if ($strDate == "" || $strDate == "0000-00-00 00:00:00") {
         return "-";
@@ -982,58 +1001,60 @@ function DateType($strDate, $type = "1")
         case "2":
             return $dateTime->format('Y.m.d H:i');
         case "3":
-            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ")";
         case "4":
-            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ") " . $dateTime->format('H:i');
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ") " . $dateTime->format('H:i');
         case "5":
             return $dateTime->format('y.m.d');
         case "6":
-            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ") " . $dateTime->format('H:i');
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ") " . $dateTime->format('H:i');
         case "7":
             return $dateTime->format('H:i');
         case "8":
             return $dateTime->format('y.m.d H:i');
         case "9":
-            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ")<br/>" . $dateTime->format('H:i');
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ")<br/>" . $dateTime->format('H:i');
         case "10":
-            return $dateTime->format('y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang);
+            return $dateTime->format('y') . $translations['txt_year'] . " " . $dateTime->format('m') . $translations['txt_month'];
         case "11":
-            return $dateTime->format('Y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+            return $dateTime->format('Y') . $translations['txt_year'] . " " . $dateTime->format('m') . $translations['txt_month'] . " " . $dateTime->format('d') .  $translations['txt_day'] . " (" . fnc_Day_Name_Country($strDate) . ")";
         case "12":
-            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+            return $dateTime->format('y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ")";
         case "13":
-            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+            return $dateTime->format('m') . $translations['txt_month'] . " " . $dateTime->format('d') . $translations['txt_day'] . " " . fnc_Day_Name_Country($strDate) . $translations['txt_day_of_week'] . " " . TimeType($dateTime->format('H:i:s'));
         case "14":
-            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
+            return $dateTime->format('m') . $translations['txt_month'] . " " . $dateTime->format('d') . $translations['txt_day'] . " (" . fnc_Day_Name_Country($strDate) . ")";
         case "15":
             return TimeType($dateTime->format('H:i:s'));
         case "16":
-            return $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+            return $dateTime->format('m') . $translations['txt_month'] . " " . $dateTime->format('d') . $translations['txt_day'] . " " . fnc_Day_Name_Country($strDate) . $translations['txt_day_of_week'] . " " . TimeType($dateTime->format('H:i:s'));
         case "17":
-            return fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($dateTime->format('H:i:s'));
+            return fnc_Day_Name_Country($strDate) . $translations['txt_day_of_week'] . " " . TimeType($dateTime->format('H:i:s'));
         case "18":
             return $dateTime->format('Y-m-d H:i');
         case "19":
-            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name($strDate) . ")";
+            return $dateTime->format('Y.m.d') . " (" . fnc_Day_Name_Country($strDate) . ")";
         case "20":
             switch ($userLang) {
                 case 'ko':
-                    return $dateTime->format('n월 j일 ') . fnc_Day_Name_Country($strDate, 'ko');
+                    return $dateTime->format('n월 j일 ') . fnc_Day_Name_Country($strDate);
                 case 'en':
                     return $dateTime->format('D, M j'); // Tue, Sep 10 형식
                 case 'ja':
-                    return $dateTime->format('n月 j日 ') . fnc_Day_Name_Country($strDate, 'ja') . ' ';
+                    return $dateTime->format('n月 j日 ') . fnc_Day_Name_Country($strDate) . ' ';
                 case 'id':
-                    return $dateTime->format('j M ') . fnc_Day_Name_Country($strDate, 'id');
+                    return $dateTime->format('j M ') . fnc_Day_Name_Country($strDate);
                 case 'vi':
-                    return $dateTime->format('j') . ' Tháng ' . $dateTime->format('n') . fnc_Day_Name_Country($strDate, 'vi');
+                    return $dateTime->format('j') . ' Tháng ' . $dateTime->format('n') . fnc_Day_Name_Country($strDate);
                 case 'es':
-                    return $dateTime->format('j \d\e M') . fnc_Day_Name_Country($strDate, 'es');
+                    return $dateTime->format('j \d\e M') . fnc_Day_Name_Country($strDate);
+                case 'hi':
+                    return $dateTime->format('j') . ' ' . $dateTime->format('F') . ' ' . fnc_Day_Name_Country($strDate);
                 default:
-                    return $dateTime->format('n') . translate("월", $userLang) . " " . $dateTime->format('j') . translate("일", $userLang) . fnc_Day_Name_Country($strDate);
+                    return $dateTime->format('n') . $translations['txt_month'] . " " . $dateTime->format('j') . $translations['txt_day'] . fnc_Day_Name_Country($strDate);
             }
         case "21":
-            return $dateTime->format('Y') . translate("년", $userLang) . " " . $dateTime->format('m') . translate("월", $userLang) . " " . $dateTime->format('d') . translate("일", $userLang);
+            return $dateTime->format('Y') . $translations['txt_year'] . " " . $dateTime->format('m') . $translations['txt_month'] . " " . $dateTime->format('d') . $translations['txt_day'];
         default:
             return $strDate;
     }
@@ -1054,148 +1075,28 @@ function getOrdinalSuffix($number)
     return 'th';
 }
 
-function fnc_Day_Name_Country($strDate, $lang = null)
-{
-    global $userLang;
-    $lang = $lang ?? $userLang;
-
-    $dayOfWeek = date('w', strtotime($strDate));
-
+// 요일 이름을 줄임말로 정확하게 반환하는 함수
+function getDayNameAbbr($dayNumber, $lang) {
     $dayNames = [
         'ko' => ['일', '월', '화', '수', '목', '금', '토'],
         'en' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         'ja' => ['日', '月', '火', '水', '木', '金', '土'],
         'id' => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-        'vi' => ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
-        'es' => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+        'vi' => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+        'es' => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        'hi' => ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि']
     ];
 
-    return $dayNames[$lang][$dayOfWeek] ?? $dayNames['en'][$dayOfWeek];
+    return $dayNames[$lang][$dayNumber] ?? $dayNames['en'][$dayNumber];
 }
 
-// TimeType 함수가 정의되어 있다고 가정합니다.
-// 이 함수가 없다면, 필요에 따라 구현해야 합니다.
-
-// function DateType($strDate, $type = "1")
-// {
-//     global $userLang; // 함수 내에서 전역 변수 $userLang 사용
-//     $dateTime = new DateTime($strDate);
-
-//     if ($strDate == "" || $strDate == "0000-00-00 00:00:00") {
-//         $strDate = "-";
-//     } else {
-//         if ($type == "1") {
-//             $strDate = str_replace("-", ".", substr($strDate, 0, 10));
-//         } elseif ($type == "2") {
-//             $strDate = str_replace("-", ".", substr($strDate, 0, 16));
-//         } elseif ($type == "3") {
-//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
-//         } elseif ($type == "4") {
-//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
-//         } elseif ($type == "5") {
-//             $strDate = str_replace("-", ".", substr($strDate, 2, 8));
-//         } elseif ($type == "6") {
-//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ") " . substr($strDate, 11, 5);
-//         } elseif ($type == "7") {
-//             $strDate = substr($strDate, 11, 5);
-//         } elseif ($type == "8") {
-//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " " . substr($strDate, 11, 5);
-//         } elseif ($type == "9") {
-//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")<br/>" . substr($strDate, 11, 5);
-//         } elseif ($type == "10") {
-//             $strDate = str_replace("-", translate("년", $userLang) . " ", substr($strDate, 2, 5)) . translate("월", $userLang);
-//         } elseif ($type == "11") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
-//         } elseif ($type == "12") {
-//             $strDate = str_replace("-", ".", substr($strDate, 2, 8)) . " (" . fnc_Day_Name($strDate) . ")";
-//         } elseif ($type == "13") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-//         } elseif ($type == "14") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " (" . fnc_Day_Name($strDate) . ")";
-//         } elseif ($type == "15") {
-//             $strDate_ex1 = explode(' ', $strDate);
-
-//             $strDate = TimeType($strDate_ex1[1]);
-//         } elseif ($type == "16") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang) . " " . fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-//         } elseif ($type == "17") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = fnc_Day_Name($strDate) . translate("요일", $userLang) . " " . TimeType($strDate_ex1[1]);
-//         } elseif ($type == "18") {
-//             $strDate = substr($strDate, 0, 16);
-//         } elseif ($type == "19") {
-//             $strDate = str_replace("-", ".", substr($strDate, 0, 10)) . " (" . fnc_Day_Name($strDate) . ")";
-//         } elseif ($type == "20") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             if (substr($strDate_ex2[1], 1) < 10) {
-//                 $strDate_ex2[1] = str_replace('0', '', $strDate_ex2[1]);
-//             }
-//             if (substr($strDate_ex2[2], 1) < 10) {
-//                 $strDate_ex2[2] = str_replace('0', '', $strDate_ex2[2]);
-//             }
-
-//             if ($type == "20") {
-//                 switch ($userLang) {
-//                     case 'ko':
-//                         return $dateTime->format('n월 j일 (') . fnc_Day_Name_Country($strDate, 'ko') . ')';
-//                     case 'en':
-//                         return $dateTime->format('jS M (') . fnc_Day_Name_Country($strDate, 'en') . ')';
-//                     case 'ja':
-//                         return $dateTime->format('n月j日 (') . fnc_Day_Name_Country($strDate, 'ja') . ')';
-//                     case 'id':
-//                         return $dateTime->format('j M (') . fnc_Day_Name_Country($strDate, 'id') . ')';
-//                     case 'vi':
-//                         return $dateTime->format('j') . ' Tháng ' . $dateTime->format('n') . ' (' . fnc_Day_Name_Country($strDate, 'vi') . ')';
-//                     case 'es':
-//                         return $dateTime->format('j \d\e M (') . fnc_Day_Name_Country($strDate, 'es') . ')';
-//                     default:
-//                         return $dateTime->format('n') . translate("월", $userLang) . " " . $dateTime->format('j') . translate("일", $userLang) . " (" . fnc_Day_Name_Country($strDate) . ")";
-//                 }
-//             }
-//         } elseif ($type == "21") {
-//             $strDate_ex1 = explode(' ', $strDate);
-//             $strDate_ex2 = explode('-', $strDate_ex1[0]);
-
-//             $strDate = $strDate_ex2[0] . translate("년", $userLang) . " " . $strDate_ex2[1] . translate("월", $userLang) . " " . $strDate_ex2[2] . translate("일", $userLang);
-//         }
-//     }
-
-//     return $strDate;
-// }
-
-// function fnc_Day_Name_Country($strDate, $lang = null) {
-//     global $userLang;
-//     $lang = $lang ?? $userLang;
-
-//     $dayOfWeek = date('w', strtotime($strDate));
-
-//     $dayNames = [
-//         'ko' => ['일', '월', '화', '수', '목', '금', '토'],
-//         'en' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-//         'ja' => ['日', '月', '火', '水', '木', '金', '土'],
-//         'id' => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-//         'vi' => ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
-//         'es' => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-//     ];
-
-//     return $dayNames[$lang][$dayOfWeek] ?? $dayNames['en'][$dayOfWeek];
-// }
+function fnc_Day_Name_Country($strDate)
+{
+    global $userLang;
+    $strDate = substr($strDate, 0, 10);
+    $temp_day = date("w", strtotime($strDate));
+    return getDayNameAbbr($temp_day, $userLang);
+}
 
 function substr_star($str)
 {
@@ -1686,25 +1587,76 @@ function get_time()
     return ((float)$usec + (float)$sec);
 }
 
+// function format_phone($phone)
+// {
+//     global $userLang;
+//     $phone = preg_replace("/[^0-9]/", "", $phone);
+//     $length = strlen($phone);
+
+//     switch ($length) {
+//         case 11:
+//             return preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3", $phone);
+//             break;
+//         case 10:
+//             return preg_replace("/([0-9]{3})([0-9]{3})([0-9]{4})/", "$1-$2-$3", $phone);
+//             break;
+//         case 9:
+//             return preg_replace("/([0-9]{2})([0-9]{3})([0-9]{4})/", "$1-$2-$3", $phone);
+//             break;
+//         default:
+//             return $phone;
+//             break;
+//     }
+// }
 function format_phone($phone)
 {
+    global $userLang;
     $phone = preg_replace("/[^0-9]/", "", $phone);
+
+    // 언어별 전화번호 형식 정의
+    $phone_formats = [
+        'en' => [ // 미국
+            10 => '/(\d{3})(\d{3})(\d{4})/',
+            11 => '/(\d{1})(\d{3})(\d{3})(\d{4})/', // 국가번호 포함
+        ],
+        'ko' => [ // 한국
+            10 => '/(\d{3})(\d{3,4})(\d{4})/',
+            11 => '/(\d{3})(\d{4})(\d{4})/',
+        ],
+        'ja' => [ // 일본
+            10 => '/(\d{3})(\d{4})(\d{4})/',
+            11 => '/(\d{2,3})(\d{4})(\d{4})/', 
+        ],
+        'id' => [ // 인도네시아
+            9 => '/(\d{3})(\d{3})(\d{3})/', 
+            11 => '/(\d{2})(\d{3})(\d{3})(\d{3})/', 
+            12 => '/(\d{3})(\d{3})(\d{3})(\d{3})/',
+        ],
+        'es' => [ // 스페인
+            9 => '/(\d{3})(\d{3})(\d{3})/',
+        ],
+        'th' => [ // 태국
+            9 => '/(\d{3})(\d{3})(\d{3})/',
+            10 => '/(\d{2})(\d{3})(\d{3})(\d{4})/', // 국가번호 포함 
+        ],
+        'vi' => [ // 베트남
+            9 => '/(\d{3})(\d{3})(\d{3})/',
+            10 => '/(\d{2})(\d{4})(\d{4})/',
+        ],
+        'hi' => [ // 인도
+            10 => '/(\d{5})(\d{5})/',
+        ],
+    ];
+
     $length = strlen($phone);
 
-    switch ($length) {
-        case 11:
-            return preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3", $phone);
-            break;
-        case 10:
-            return preg_replace("/([0-9]{3})([0-9]{3})([0-9]{4})/", "$1-$2-$3", $phone);
-            break;
-        case 9:
-            return preg_replace("/([0-9]{2})([0-9]{3})([0-9]{4})/", "$1-$2-$3", $phone);
-            break;
-        default:
-            return $phone;
-            break;
-    }
+    // 사용자 언어에 맞는 형식 적용
+    if (isset($phone_formats[$userLang][$length])) {
+        return preg_replace($phone_formats[$userLang][$length], '$1-$2-$3', $phone);
+    } 
+    
+    // 일치하는 형식이 없으면 원래 번호 반환
+    return $phone;
 }
 
 function delete_all($dir)
@@ -1996,6 +1948,12 @@ function f_group_invite_cnt($mt_idx = "")
     } else {
         $DB->where('mt_idx', $_SESSION['_mt_idx']);
     }
+    $DB->where('sgdt_show', 'Y');
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $row_sgt = $DB->getone('smap_group_detail_t');
+
+    $DB->where('sgt_idx', $row_sgt['sgt_idx']);
     $DB->where('sgdt_owner_chk', 'N');
     $DB->where('sgdt_show', 'Y');
     $DB->where('sgdt_discharge', 'N');
@@ -2461,12 +2419,8 @@ function get_sel_fct()
 
 function get_search_coordinate2address($lat, $lng, $userLang = null)
 {
-    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
-
-    // $userLang이 함수 호출 시 전달되지 않으면 전역 변수 값 사용
-    if ($userLang === null) {
-        $userLang = $GLOBALS['userLang'];
-    }
+    $userLang = getUserLang() ? getUserLang() : 'ko'; // 함수 내에서 전역 변수 $userLang 사용
+    global $logger;
 
     if ($userLang == 'ko') {
         // 네이버 지도 API 사용
@@ -2500,6 +2454,7 @@ function get_search_coordinate2address($lat, $lng, $userLang = null)
             $rtn['area3'] = '명동';
         }
     } else {
+        $logger->write("Google Maps API 요청 시작: lat={$lat}, lng={$lng}, language={$userLang}");
         $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key=" . GOOGLE_MAPS_API_KEY . "&language={$userLang}";
 
         $ch = curl_init();
@@ -2508,34 +2463,110 @@ function get_search_coordinate2address($lat, $lng, $userLang = null)
         $result = curl_exec($ch);
 
         if ($result === false) {
-            error_log('Curl failed: ' . curl_error($ch));
+            $logger->write('Curl 실패: ' . curl_error($ch));
             curl_close($ch);
             return null;
         }
-
         curl_close($ch);
+        $logger->write("Google Maps API 응답 수신: " . $result);
         $obj = json_decode($result, true);
 
-        $rtn = [
-            'area1' => null,
-            'area2' => null,
-            'area3' => null
-        ];
+        $rtn = ['area1' => '', 'area2' => '', 'area3' => ''];
 
-        if ($obj['status'] == 'OK' && !empty($obj['results'][0]['address_components'])) {
-            $address_components = $obj['results'][0]['address_components'];
+        if ($obj['status'] == 'OK' && !empty($obj['results'])) {
+            $logger->write("Google Maps API 응답 상태: OK");
 
-            foreach ($address_components as $component) {
-                if (in_array('administrative_area_level_1', $component['types'])) {
-                    $rtn['area1'] = $component['long_name']; // 시도
-                } elseif (in_array('locality', $component['types']) || in_array('administrative_area_level_2', $component['types'])) {
-                    $rtn['area2'] = $component['long_name']; // 시
-                } elseif (in_array('sublocality_level_1', $component['types']) || in_array('administrative_area_level_3', $component['types'])) {
-                    $rtn['area3'] = $component['long_name']; // 구/군
+            foreach ($obj['results'] as $result) {
+                $address_components = $result['address_components'];
+
+                foreach ($address_components as $component) {
+                    $logger->write($component['types'][0] . ': ' . $component['long_name']);
+                    switch ($userLang) {
+                        case 'en': // 미국
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name']; // State (시도)
+                                $logger->write("State: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
+                                $rtn['area2'] = $component['long_name']; // County (구) 
+                                $logger->write("County: " . $component['long_name']);
+                            } elseif (in_array('locality', $component['types'])) {
+                                $rtn['area3'] = $component['long_name']; // City (동) 
+                                $logger->write("City: " . $component['long_name']);
+                            }
+                            break;
+                        case 'ja': // 일본
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name']; // Prefecture (시도)
+                                $logger->write("Prefecture: " . $component['long_name']);
+                            } elseif (in_array('locality', $component['types'])) {
+                                $rtn['area2'] = $component['long_name']; // City (구)
+                                $logger->write("City: " . $component['long_name']);
+                            } elseif (in_array('sublocality_level_1', $component['types'])) {
+                                $rtn['area3'] = $component['long_name']; // Ward (동)
+                                $logger->write("Ward: " . $component['long_name']);
+                            }
+                            break;
+                        case 'id': // 인도네시아
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name']; // Province (시도)
+                                $logger->write("Province: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
+                                $rtn['area2'] = $component['long_name']; // Regency/City (구)
+                                $logger->write("Regency/City: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
+                                $rtn['area3'] = $component['long_name']; // Sub-district (동)
+                                $logger->write("Sub-district: " . $component['long_name']);
+                            }
+                            break;
+                        case 'vn': // 베트남
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name']; // Province/City (시도)
+                                $logger->write("Province/City: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
+                                $rtn['area2'] = $component['long_name']; // District (구)
+                                $logger->write("District: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
+                                $rtn['area3'] = $component['long_name']; // Ward/Commune (동)
+                                $logger->write("Ward/Commune: " . $component['long_name']);
+                            }
+                            break;
+                        case 'th': // 태국
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name']; // Province (시도)
+                                $logger->write("Province: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
+                                $rtn['area2'] = $component['long_name']; // District (구)
+                                $logger->write("District: " . $component['long_name']);
+                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
+                                $rtn['area3'] = $component['long_name']; // Sub-district (동)
+                                $logger->write("Sub-district: " . $component['long_name']);
+                            }
+                            break;
+                        default: // 기본 처리 (기존 로직)
+                            if (in_array('administrative_area_level_1', $component['types'])) {
+                                $rtn['area1'] = $component['long_name'];
+                                $logger->write("기본 처리 - 시도: " . $component['long_name']);
+                            } elseif (in_array('locality', $component['types']) || in_array('administrative_area_level_2', $component['types'])) {
+                                $rtn['area2'] = $component['long_name'];
+                                $logger->write("기본 처리 - 구: " . $component['long_name']);
+                            } elseif (in_array('sublocality_level_1', $component['types']) || in_array('administrative_area_level_3', $component['types'])) {
+                                $rtn['area3'] = $component['long_name'];
+                                $logger->write("기본 처리 - 동: " . $component['long_name']);
+                            }
+                            break;
+                    }
+
+                }
+
+                $logger->write('area1: ' . $rtn['area1'] . ' area2: ' . $rtn['area2'] . ' area3: ' . $rtn['area3']);
+                // 모든 정보가 채워지면 루프를 종료
+                if ($rtn['area1'] && $rtn['area2'] && $rtn['area3']) {
+                    $logger->write("모든 정보가 채워졌습니다. 루프를 종료합니다.");
+                    break;
                 }
             }
         } else {
-            error_log('Google Maps API request failed: ' . $obj['status']);
+            $logger->write('Google Maps API 요청 실패: ' . $obj['status']);
         }
     }
 
@@ -2570,7 +2601,7 @@ function get_cached_group_member_data($mt_idx)
 
     $cache_key = 'group_member_data_' . $mt_idx;
     $cache_file = $_SERVER['DOCUMENT_ROOT'] . '/cache/' . $cache_key . '.json';
-    
+
     $DB->where('mt_idx', $mt_idx);
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
@@ -2654,25 +2685,25 @@ function get_cached_group_member_data($mt_idx)
 function get_sgdt_member_list($sgt_idx)
 {
     global $DB, $_SESSION;
-    global $userLang; // 함수 내에서 전역 변수 $userLang 사용
+    global $translations; // 함수 내에서 전역 변수 $translations 사용
 
     // 캐시 키 생성
-    $cache_key = "sgdt_member_list_{$sgt_idx}_{$_SESSION['_mt_idx']}";
+    // $cache_key = "sgdt_member_list_{$sgt_idx}_{$_SESSION['_mt_idx']}";
 
-    // 캐시된 데이터 확인
-    $cached_data = CacheUtil::get($cache_key);
+    // // 캐시된 데이터 확인
+    // $cached_data = CacheUtil::get($cache_key);
 
-    // 캐시된 데이터가 있을 경우, 유효성 검사
-    if ($cached_data) {
-        $DB->where('sgt_idx', $sgt_idx);
-        $DB->where('sgdt_udate', $cached_data['last_update'], '>');
-        $updated = $DB->getOne('smap_group_detail_t', 'COUNT(*) as count');
+    // // 캐시된 데이터가 있을 경우, 유효성 검사
+    // if ($cached_data) {
+    //     $DB->where('sgt_idx', $sgt_idx);
+    //     $DB->where('sgdt_udate', $cached_data['last_update'], '>');
+    //     $updated = $DB->getOne('smap_group_detail_t', 'COUNT(*) as count');
 
-        // DB에 변경이 없으면 캐시된 데이터 반환
-        if ($updated['count'] == 0) {
-            return $cached_data;
-        }
-    }
+    //     // DB에 변경이 없으면 캐시된 데이터 반환
+    //     if ($updated['count'] == 0) {
+    //         return $cached_data;
+    //     }
+    // }
 
     // 기존 로직
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -2721,17 +2752,17 @@ function get_sgdt_member_list($sgt_idx)
             $my_working_cnt = $row_mllt['mt_health_work'];
 
             if ($row_sgdt['sgdt_owner_chk'] == 'Y') {
-                $sgdt_owner_leader_chk_t = '오너';
+                $sgdt_owner_leader_chk_t = $translations['txt_owner'];
             } else {
                 if ($row_sgdt['sgdt_leader_chk'] == 'Y') {
-                    $sgdt_owner_leader_chk_t = '리더';
+                    $sgdt_owner_leader_chk_t = $translations['txt_leader'];
                     $chk_leader++;
                 } else {
                     $sgdt_owner_leader_chk_t = '';
                 }
             }
             if ($row_sgdt['sgdt_group_chk'] == 'Y') {
-                $row_sgdt['sgdt_adate'] = '무기한';
+                $row_sgdt['sgdt_adate'] = $translations['txt_indefinite'];
             } elseif ($row_sgdt['sgdt_group_chk'] == 'N') {
                 // 오늘 날짜
                 $today = new DateTime();
@@ -2743,9 +2774,9 @@ function get_sgdt_member_list($sgt_idx)
                 $remainingHours = $remainingTimes * 24; // 시간으로 변환
                 if ($remainingDays > 0 || $remainingTimes > 0) {
                     if ($remainingDays > 0) {
-                        $row_sgdt['sgdt_adate'] = $remainingDays . translate('일', $userLang);
+                        $row_sgdt['sgdt_adate'] = $remainingDays . $translations['txt_day'];
                     } else {
-                        $row_sgdt['sgdt_adate'] = floor($remainingHours) . translate('시간', $userLang);
+                        $row_sgdt['sgdt_adate'] = floor($remainingHours) . $translations['txt_hour'];
                     }
                 } else { // 기한이 지났을 경우 그룹 나가도록 설정
                     unset($arr_query);
@@ -2806,7 +2837,7 @@ function get_sgdt_member_list($sgt_idx)
     $rtn['last_update'] = date('Y-m-d H:i:s');
 
     // 결과를 캐시에 저장 (예: 10분 동안)
-    CacheUtil::set($cache_key, $rtn, 600);
+    // CacheUtil::set($cache_key, $rtn, 600);
 
 
     return $rtn;
@@ -3051,16 +3082,16 @@ function get_distance_km($d)
 }
 function get_distance_m($d)
 {
-    global $userLang;
-    $rtn = round($d / 60) . ' ' . translate("분", $userLang);
+    global $userLang, $translations;
+    $rtn = round($d / 60) . ' ' . $translations['txt_minute'];
 
     return $rtn;
 }
 
 function get_distance_hm($d)
 {
-    global $userLang;
-    $rtn = round($d) . ' ' . translate("분", $userLang);
+    global $userLang, $translations;
+    $rtn = round($d) . ' ' . $translations['txt_minute'];
 
     return $rtn;
 }

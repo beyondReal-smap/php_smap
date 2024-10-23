@@ -19,7 +19,7 @@ $random_color = $color_sets[array_rand($color_sets)];
 
 if ($_POST['act'] == "recom_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $point_t = 'POINT(' . $_SESSION['_mt_long'] . ', ' . $_SESSION['_mt_lat'] . ')';
@@ -31,7 +31,7 @@ if ($_POST['act'] == "recom_list") {
         foreach ($list_rlt as $row_rlt) { ?>
             <div class="border_orange rounded-lg px_16 py_16 d-flex align-items-center justify-content-between mb-3">
                 <div class="mr-2">
-                    <p class="fs_13 fc_orange rounded_04 bg_fff5ea text-center px_06 py_02 text_dynamic line1_text line_h1_4 w_fit mb-2">추천장소</p>
+                    <p class="fs_13 fc_orange rounded_04 bg_fff5ea text-center px_06 py_02 text_dynamic line1_text line_h1_4 w_fit mb-2"><?=$translations['txt_recommended_place']?></p>
                     <p class="fs_14 fw_600 text_dynamic line_h1_2 py_02"><?= $row_rlt['rlt_title'] ?> <small class="text-muted">(<?= get_distance_t($row_rlt['distance']) ?>)</small></p>
                     <p class="line1_text fs_13 fw_400 text_dynamic line_h1_4 py_02"><?= $row_rlt['rlt_add1'] ?></p>
                     <p class="line1_text fs_13 fw_400 text_dynamic line_h1_4 py_02"><?= $row_rlt['rlt_tel1'] ?></p>
@@ -47,13 +47,13 @@ if ($_POST['act'] == "recom_list") {
     }
 } elseif ($_POST['act'] == "location_member_input") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access_sgdt_idx'], './login', '');
     }
     if ($_POST['sgdt_mt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_mt_idx');
+        p_alert($translations['txt_invalid_access_sgdt_mt_idx'], './login', '');
     }
 
     unset($arr_query);
@@ -73,7 +73,7 @@ if ($_POST['act'] == "recom_list") {
             <div class="add_cal_tit">
                 <button type="button" id="btn-schedule-prev" class="btn h-auto swiper-button-prev"><i class="xi-angle-left-min"></i></button>
                 <div class="sel_month d-inline-flex flex-grow-1 text-centerf">
-                    <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" width="16px" alt="월 선택 아이콘" />
+                    <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" width="16px" alt="<?=$translations['txt_month_selection_icon']?>" />
                     <p class="fs_15 fw_600" id="schedule-title"></p>
                 </div>
                 <button type="button" id="btn-schedule-next" class="btn h-auto swiper-button-next"><i class="xi-angle-right-min"></i></button>
@@ -123,7 +123,7 @@ if ($_POST['act'] == "recom_list") {
                                             sgdt_mt_idx: $('#sgdt_mt_idx').val(),
                                         },
                                         error: function() {
-                                            console.log('잘못된 접근입니다.');
+                                            console.log('<?=$translations['txt_invalid_access']?>.');
                                         },
                                     }],
                                     eventAfterAllRender: function(view) {
@@ -191,7 +191,7 @@ if ($_POST['act'] == "recom_list") {
     }
 } elseif ($_POST['act'] == "calendar_list") {
     if (empty($_SESSION['_mt_idx'])) {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $mt_idx_t = $_POST['sgdt_mt_idx'] ?? $_SESSION['_mt_idx'];
@@ -351,7 +351,7 @@ if ($_POST['act'] == "recom_list") {
     }
 } elseif ($_POST['act'] == "get_line2") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     // Function to calculate distance between two coordinates using Haversine formula
@@ -426,15 +426,17 @@ if ($_POST['act'] == "recom_list") {
 
     function formatStayTime($seconds)
     {
+        global $translations;
+
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $stay_time_formatted = "";
 
         if ($hours > 0) {
-            $stay_time_formatted .= $hours . "시간 ";
+            $stay_time_formatted .= $hours . ' ' . $translations['txt_hr'];
         }
 
-        $stay_time_formatted .= $minutes . "분 체류";
+        $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
         return $stay_time_formatted;
     }
 
@@ -502,7 +504,7 @@ if ($_POST['act'] == "recom_list") {
                 $mt_file1_url = get_image_url($mt_info['mt_file1']);
 
                 if ($row_sst_a['sst_all_day'] == 'Y') {
-                    $sst_all_day_t = '하루종일';
+                    $sst_all_day_t = $translations['txt_all_day']; 
                 } else {
                     $repeat_array = json_decode($row_sst_a['sst_repeat_json'], true);
                     // 반복을 저장할 배열
@@ -610,9 +612,9 @@ if ($_POST['act'] == "recom_list") {
                         // 형식에 맞게 문자열로 표현
                         $stay_time_formatted = "";
                         if ($hours > 0) {
-                            $stay_time_formatted .= $hours . "시간 ";
+                            $stay_time_formatted .= $hours . ' ' . $translations['txt_hr'] . ' ';
                         }
-                        $stay_time_formatted .= $minutes . "분 체류";
+                        $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
 
                         $addr = get_search_coordinate2address($first_location['mlt_lat'], $first_location['mlt_long'], $userLang);
                         $address = $addr['area2'] . ' ' . $addr['area3'];
@@ -697,9 +699,9 @@ if ($_POST['act'] == "recom_list") {
                 // Format stay time
                 $stay_time_formatted = "";
                 if ($hours > 0) {
-                    $stay_time_formatted .= $hours . "시간 ";
+                    $stay_time_formatted .= $hours . ' ' .$translations['txt_hr'] . ' ';
                 }
-                $stay_time_formatted .= $minutes . "분 체류";
+                $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
 
                 // Get address
                 $addr = get_search_coordinate2address($row_mlt['start_lat'], $row_mlt['start_long'], $userLang);
@@ -962,7 +964,7 @@ if ($_POST['act'] == "recom_list") {
                 $stayDuration = strtotime($event['endTime']) - strtotime($event['startTime']);
                 $hours = floor($stayDuration / 3600);
                 $minutes = floor(($stayDuration % 3600) / 60);
-                $event['stayTime'] = sprintf(" %d시간 %d분 체류", $hours, $minutes);
+                $event['stayTime'] = sprintf(" %d" . ' ' . $translations['txt_hr'] . " %d" . $translations['txt_minu'] . ' '. $translations['txt_stay'], $hours, $minutes);
             }
             // log_to_file("event['stayTime']: " . $event['stayTime'], $log_file);
         }
@@ -1005,7 +1007,7 @@ if ($_POST['act'] == "recom_list") {
     echo json_encode($arr_data, JSON_PRETTY_PRINT);
 } elseif ($_POST['act'] == "get_line") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     // Function to calculate distance between two coordinates using Haversine formula
@@ -1080,15 +1082,17 @@ if ($_POST['act'] == "recom_list") {
 
     function formatStayTime($seconds)
     {
+        global $translations;
+
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $stay_time_formatted = "";
 
         if ($hours > 0) {
-            $stay_time_formatted .= $hours . "시간 ";
+            $stay_time_formatted .= $hours . ' ' . $translations['txt_hr'] . ' ';
         }
 
-        $stay_time_formatted .= $minutes . "분 체류";
+        $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
         return $stay_time_formatted;
     }
 
@@ -1156,7 +1160,7 @@ if ($_POST['act'] == "recom_list") {
                 $mt_file1_url = get_image_url($mt_info['mt_file1']);
 
                 if ($row_sst_a['sst_all_day'] == 'Y') {
-                    $sst_all_day_t = '하루종일';
+                    $sst_all_day_t = $translations['txt_all_day']; 
                 } else {
                     $repeat_array = json_decode($row_sst_a['sst_repeat_json'], true);
                     // 반복을 저장할 배열
@@ -1264,9 +1268,9 @@ if ($_POST['act'] == "recom_list") {
                         // 형식에 맞게 문자열로 표현
                         $stay_time_formatted = "";
                         if ($hours > 0) {
-                            $stay_time_formatted .= $hours . "시간 ";
+                            $stay_time_formatted .= $hours . ' ' . $translations['txt_hr'] . ' ';
                         }
-                        $stay_time_formatted .= $minutes . "분 체류";
+                        $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
 
                         $addr = get_search_coordinate2address($first_location['mlt_lat'], $first_location['mlt_long'], $userLang);
                         $address = $addr['area2'] . ' ' . $addr['area3'];
@@ -1305,7 +1309,7 @@ if ($_POST['act'] == "recom_list") {
     // 오늘 자 체류로그가 있을 때
     if ($list_stay) {
         $log_count = 1;
-        $list_count_stay = count($list_stay);
+        $list_count_stay =       count($list_stay);
         $staylog_count = count($list_stay);
         $filtered_stays = [];
 
@@ -1351,9 +1355,9 @@ if ($_POST['act'] == "recom_list") {
                 // Format stay time
                 $stay_time_formatted = "";
                 if ($hours > 0) {
-                    $stay_time_formatted .= $hours . "시간 ";
+                    $stay_time_formatted .= $hours . ' ' . $translations['txt_hr'] . ' ';
                 }
-                $stay_time_formatted .= $minutes . "분 체류";
+                $stay_time_formatted .= $minutes . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'];
 
                 // Get address
                 $addr = get_search_coordinate2address($row_mlt['start_lat'], $row_mlt['start_long'], $userLang);
@@ -1616,7 +1620,7 @@ if ($_POST['act'] == "recom_list") {
                 $stayDuration = strtotime($event['endTime']) - strtotime($event['startTime']);
                 $hours = floor($stayDuration / 3600);
                 $minutes = floor(($stayDuration % 3600) / 60);
-                $event['stayTime'] = sprintf(" %d시간 %d분 체류", $hours, $minutes);
+                $event['stayTime'] = sprintf(" %d" . ' ' . $translations['txt_hr'] . " %d" . ' ' . $translations['txt_minu'] . ' ' . $translations['txt_stay'], $hours, $minutes);
             }
             // log_to_file("event['stayTime']: " . $event['stayTime'], $log_file);
         }
@@ -1659,7 +1663,7 @@ if ($_POST['act'] == "recom_list") {
     echo json_encode($arr_data, JSON_PRETTY_PRINT);
 } elseif ($_POST['act'] == "input_location") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -1697,10 +1701,10 @@ if ($_POST['act'] == "recom_list") {
         $_last_idx = $DB->insert('smap_location_t', $arr_query);
     }
 
-    p_alert('등록되었습니다.', './location', '');
+    p_alert($translations['txt_registered'], './location', '');
 } elseif ($_POST['act'] == "my_location_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $sgdt_row = $DB->getone('smap_group_detail_t');
@@ -1821,7 +1825,7 @@ if ($_POST['act'] == "recom_list") {
     exit;
 } elseif ($_POST['act'] == "location_map_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        echo json_encode(['result' => 'error', 'message' => '로그인이 필요합니다.']);
+        echo json_encode(['result' => 'error', 'message' => $translations['txt_login_required']]);
         exit;
     }
 
@@ -1863,10 +1867,10 @@ if ($_POST['act'] == "recom_list") {
     exit;
 } elseif ($_POST['act'] == "location_delete") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['slt_idx'] == '') {
-        p_alert('잘못된 접근입니다. slt_idx');
+        p_alert($translations['txt_invalid_access_slt_idx'], './login', '');
     }
 
     unset($arr_query);
@@ -1883,10 +1887,10 @@ if ($_POST['act'] == "recom_list") {
     echo "Y";
 } elseif ($_POST['act'] == "location_alarm_chk") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['slt_idx'] == '') {
-        p_alert('잘못된 접근입니다. slt_idx');
+        p_alert($translations['txt_invalid_access_slt_idx'], './login', '');
     }
     $DB->where('slt_idx', $_POST['slt_idx']);
     $DB->where('slt_show', 'Y');
@@ -1911,10 +1915,10 @@ if ($_POST['act'] == "recom_list") {
     echo "Y";
 } elseif ($_POST['act'] == "location_add") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access_sgdt_idx'], './login', '');
     }
 
     // 회원구분
@@ -1960,12 +1964,12 @@ if ($_POST['act'] == "recom_list") {
     }
 } elseif ($_POST['act'] == "group_member_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        echo json_encode(['result' => 'error', 'message' => '로그인이 필요합니다.']);
+        echo json_encode(['result' => 'error', 'message' => $translations['txt_login_required']]);
         exit;
     }
 
     if (!isset($_POST['group_sgdt_idx'])) {
-        echo json_encode(['result' => 'error', 'message' => '잘못된 접근입니다. group_sgdt_idx']);
+        echo json_encode(['result' => 'error', 'message' => $translations['txt_invalid_access_group_sgdt_idx']]);
         exit;
     }
 
@@ -2007,58 +2011,58 @@ if ($_POST['act'] == "recom_list") {
 
                 if ($invite_cnt || $list_sgdt['data']) {
                     if ($list_sgdt['data']) {
-                        foreach ($list_sgdt['data'] as $val) {
+                        foreach ($list_sgdt['data'] as $val) {                           
                             $data['group_members'][] = [
-                                'sgt_idx' => $row_sgt['sgt_idx'],
-                                'sgdt_idx' => $val['sgdt_idx'],
-                                'profile_image' => $val['mt_file1_url'],
-                                'nickname' => $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'],
-                                'mt_idx' => $val['mt_idx']
-                            ];
-                        }
+                            'sgt_idx' => $row_sgt['sgt_idx'],
+                            'sgdt_idx' => $val['sgdt_idx'],
+                            'profile_image' => $val['mt_file1_url'],
+                            'nickname' => $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'],
+                            'mt_idx' => $val['mt_idx']
+                        ];
                     }
                 }
             }
         }
     }
+}
 
-    echo json_encode(['result' => 'success', 'data' => $data]);
+echo json_encode(['result' => 'success', 'data' => $data]);
 } elseif ($_POST['act'] == "marker_reload") {
-    if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
-    }
-    unset($arr_data);
-    $DB->where('sgdt_idx', $_POST['sgdt_idx']);
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $DB->where('sgdt_show', 'Y');
-    $sgdt_row = $DB->getone('smap_group_detail_t');
+if ($_SESSION['_mt_idx'] == '') {
+    p_alert($translations['txt_login_required'], './login', '');
+}
+unset($arr_data);
+$DB->where('sgdt_idx', $_POST['sgdt_idx']);
+$DB->where('sgdt_discharge', 'N');
+$DB->where('sgdt_exit', 'N');
+$DB->where('sgdt_show', 'Y');
+$sgdt_row = $DB->getone('smap_group_detail_t');
 
-    // 기본 지도 위치 지정
-    if ($sgdt_row) {
-        $DB->where('mt_idx', $sgdt_row['mt_idx']);
-        $mem_row = $DB->getone('member_t');
+// 기본 지도 위치 지정
+if ($sgdt_row) {
+    $DB->where('mt_idx', $sgdt_row['mt_idx']);
+    $mem_row = $DB->getone('member_t');
 
-        $DB->where('mt_idx', $sgdt_row['mt_idx']);
-        $DB->orderby('mlt_gps_time', 'desc');
-        $mt_location_info = $DB->getone('member_location_log_t');
+    $DB->where('mt_idx', $sgdt_row['mt_idx']);
+    $DB->orderby('mlt_gps_time', 'desc');
+    $mt_location_info = $DB->getone('member_location_log_t');
 
-        $arr_data = array(
-            "my_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
-            "mt_long" => $mt_location_info['mlt_long'] == "" ? $mem_row['mt_long'] :  $mt_location_info['mlt_long'],
-            "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
-        );
-    } else {
-        $DB->where('mt_idx', $_SESSION['_mt_idx']);
-        $mem_row = $DB->getone('member_t');
-        $arr_data = array(
-            "my_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
-            "mt_long" => $_SESSION['_mt_long'] == "" ? $mem_row['mt_long'] : $_SESSION['_mt_long'],
-            "my_profile" => $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'],
-        );
-    }
-    $arr_data['marker_reload'] = 'Y';
-    echo json_encode($arr_data);
-    exit;
+    $arr_data = array(
+        "my_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
+        "mt_long" => $mt_location_info['mlt_long'] == "" ? $mem_row['mt_long'] :  $mt_location_info['mlt_long'],
+        "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
+    );
+} else {
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $mem_row = $DB->getone('member_t');
+    $arr_data = array(
+        "my_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
+        "mt_long" => $_SESSION['_mt_long'] == "" ? $mem_row['mt_long'] : $_SESSION['_mt_long'],
+        "my_profile" => $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'],
+    );
+}
+$arr_data['marker_reload'] = 'Y';
+echo json_encode($arr_data);
+exit;
 }
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";

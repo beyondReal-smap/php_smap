@@ -1,16 +1,17 @@
 <?php
-include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
+include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '4';
 $h_menu = '5';
-$_SUB_HEAD_TITLE = "위치";
-include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
+$_SUB_HEAD_TITLE = $translations['txt_location_summary'];
+include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 ?>
 <div class="container sub_pg px-0">
     <div class="">
         <div class="fixed_top sch_cld_wrap bg-white pt-3 border-bottom">
             <div class="cld_head_wr ">
                 <div class="sel_month d-inline-flex pl_16">
-                    <img class="mr-2" src="<?=CDN_HTTP?>/img/sel_month.png" alt="월 선택 아이콘" style="width:1.6rem;">
+                    <img class="mr-2" src="<?=CDN_HTTP?>/img/sel_month.png" alt="<?=$translations['txt_month_selection_icon']?>" style="width:1.6rem;">
                     <select class="form-none custom-select text-text">
                         <option selected value="1">2023년 09월</option>
                         <option value="2">2023년 10월</option>
@@ -20,13 +21,13 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                 </div>
                 <div class="cld_head fs_12">
                     <ul>
-                        <li class="sun"><? translate('일', $userLang) ?></li>
-                        <li><? translate('월', $userLang) ?><</li>
-                        <li><? translate('화', $userLang) ?><</li>
-                        <li><? translate('수', $userLang) ?><</li>
-                        <li><? translate('목', $userLang) ?><</li>
-                        <li><? translate('금', $userLang) ?><</li>
-                        <li class="sat">토</li>
+                        <li class="sun text-danger"><?=$translations['txt_sunday'] ?></li>
+                        <li><?=$translations['txt_monday'] ?></li>
+                        <li><?=$translations['txt_tuesday'] ?></li>
+                        <li><?=$translations['txt_wednesday'] ?></li>
+                        <li><?=$translations['txt_thursday'] ?></li>
+                        <li><?=$translations['txt_friday'] ?></li>
+                        <li class="sat text-primary"><?=$translations['txt_saturday'] ?></li>
                     </ul>
                 </div>
             </div>
@@ -148,7 +149,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                 </form>
             </div>
             <div class="down_wrap text-center pt_08 pb-3">
-                <img src="<?=CDN_HTTP?>/img/btn_bl_arrow.png" class="top_down mx-auto" width="12px" alt="탑다운" />
+                <img src="<?=CDN_HTTP?>/img/btn_bl_arrow.png" class="top_down mx-auto" width="12px" alt="<?=$translations['txt_top_down'] ?>" />
             </div>
         </div>
         <div class="sch_wrap">
@@ -160,16 +161,16 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
             </div>
             <div class="sch_summary row mx-0 align-items-start bg_main py-5 border-bottom">
                 <div class="sch_summary_div px-2">
-                    <p class="fs_13 text_gray text-center">일정개수</p>
-                    <p class="fs_16 fw_700 fc_mian_sec text-center text_dynamic mt_07">3<span>개</span></p>
+                    <p class="fs_13 text_gray text-center"><?=$translations['txt_schedule_count'] ?></p>
+                    <p class="fs_16 fw_700 fc_mian_sec text-center text_dynamic mt_07">3<span><?=$translations['txt_items'] ?></span></p>
                 </div>
                 <div class="sch_summary_div border-left border-right px-2">
-                    <p class="fs_13 text_gray text-center">이동거리</p>
+                    <p class="fs_13 text_gray text-center"><?=$translations['txt_distance_km'] ?></p>
                     <p class="fs_16 fw_700 fc_mian_sec text-center text_dynamic mt_07">3565.42<span>km</span></p>
                 </div>
                 <div class="sch_summary_div px-2">
-                    <p class="fs_13 text_gray text-center">이동시간</p>
-                    <p class="fs_16 fw_700 fc_mian_sec text-center text_dynamic mt_07">5622<span>분</span></p>
+                    <p class="fs_13 text_gray text-center"><?=$translations['txt_travel_time'] ?></p>
+                    <p class="fs_16 fw_700 fc_mian_sec text-center text_dynamic mt_07">5622<span><?=$translations['txt_minute'] ?></span></p>
                 </div>
             </div>
             <div class="pt_20 px_16">
@@ -179,7 +180,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                     </div>
                     <div class="flex-shrink-0">
                         <p class="fs_11 text_light_gray text-right">체류시간</p>
-                        <p class="fs_13 fw_700 text-right mt-2">4시간 23분</p>
+                        <p class="fs_13 fw_700 text-right mt-2"><?=$translations['txt_hour_label'] ?> 23<?=$translations['txt_minutes_stay'] ?></p>
                     </div>
                 </div>
                 <div class="border rounded-lg px_16 py_16 d-flex align-items-center justify-content-between mb-3">
@@ -188,7 +189,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                     </div>
                     <div class="flex-shrink-0">
                         <p class="fs_11 text_light_gray text-right">체류시간</p>
-                        <p class="fs_13 fw_700 text-right mt-2">1시간 11분</p>
+                        <p class="fs_13 fw_700 text-right mt-2">1<?=$translations['txt_hour_label'] ?> 11<?=$translations['txt_minutes_stay'] ?></p>
                     </div>
                 </div>
                 <div class="border rounded-lg px_16 py_16 d-flex align-items-center justify-content-between mb-3">
@@ -197,7 +198,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
                     </div>
                     <div class="flex-shrink-0">
                         <p class="fs_11 text_light_gray text-right">체류시간</p>
-                        <p class="fs_13 fw_700 text-right mt-2">2시간 26분</p>
+                        <p class="fs_13 fw_700 text-right mt-2">2<?=$translations['txt_hour_label'] ?> 26<?=$translations['txt_minutes_stay'] ?></p>
                     </div>
                 </div>
             </div>

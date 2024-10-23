@@ -12,7 +12,7 @@ $numDay = date('d', $tt);
 $numMonth = date('m', $tt);
 $numMonth2 = date('n', $tt);
 // 숫자가 1자리일 경우 앞에 0을 붙여주는 로직 추가
-$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT); 
+$numMonth2 = str_pad($numMonth2, 2, '0', STR_PAD_LEFT);
 $numYear = date('Y', $tt);
 $prevMonth = date('Y-m-01', strtotime($sdate . " -" . $dayOfWeek . "days"));
 $nextMonth = date('Y-m-01', strtotime($sdate . " +" . $dayOfWeek . "days"));
@@ -112,13 +112,13 @@ if (!$sgdt_row['sgdt_idx']) {
             </div>
             <div class="cld_head fs_12">
                 <ul>
-                    <li class="sun">일</li>
-                    <li>월</li>
-                    <li>화</li>
-                    <li>수</li>
-                    <li>목</li>
-                    <li>금</li>
-                    <li class="sat">토</li>
+                    <li class="sun text-danger"><?= $translations['txt_sunday'] ?></li>
+                    <li><?= $translations['txt_monday'] ?></li>
+                    <li><?= $translations['txt_tuesday'] ?></li>
+                    <li><?= $translations['txt_wednesday'] ?></li>
+                    <li><?= $translations['txt_thursday'] ?></li>
+                    <li><?= $translations['txt_friday'] ?></li>
+                    <li class="sat text-primary"><?= $translations['txt_saturday'] ?></li>
                 </ul>
             </div>
         </div>

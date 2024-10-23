@@ -4,10 +4,10 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 
 if ($_POST['act'] == "coupon_input") {
     if ($_POST['ct_code'] == "") {
-        p_alert("잘못된 접근입니다.");
+        p_alert($translations['txt_invalid_access']  . "");
     }
     if ($_POST['mt_idx'] == "") {
-        p_alert("잘못된 접근입니다.");
+        p_alert($translations['txt_invalid_access']  . "");
     }
     // 쿠폰 확인
     $DB->where('ct_code', $_POST['ct_code']);
@@ -65,7 +65,7 @@ if ($_POST['act'] == "coupon_input") {
                 'ot_code' => $ot_code,
                 'mt_idx' => $mem_row['mt_idx'],
                 'mt_id' => $mem_row['mt_id'],
-                'ot_title' => '쿠폰사용 ' . $ct_row['ct_days'] . '일',
+                'ot_title' => $translations['txt_coupon_use'] . ' ' . $ct_row['ct_days'] . $translations['txt_days'],
                 'ot_pay_type' => '3',
                 'ot_status' => '2',
                 'ot_sprice' => '0',

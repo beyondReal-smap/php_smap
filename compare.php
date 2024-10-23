@@ -36,7 +36,7 @@ if ($_POST['act'] == "list") {
                             if ($invite_cnt) {
                             ?>
                                 <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-                                    <?= number_format($invite_cnt) ?>명 초대중
+                                    <?= number_format($invite_cnt) ?><?= $translations['people_inviting'] ?>  <!-- 명 초대중 -->
                                 </p>
                                 <?php
                             }
@@ -48,7 +48,7 @@ if ($_POST['act'] == "list") {
                                             <a href="#" class="d-flex align-items-center">
                                                 <div class="prd_img flex-shrink-0 mr_12">
                                                     <div class="rect_square rounded_14">
-                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
+                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="<?= $translations['image'] ?>" />
                                                     </div>
                                                 </div>
                                                 <div>
@@ -61,7 +61,7 @@ if ($_POST['act'] == "list") {
                                                             <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                                                 <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                                             <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= $translations['remaining_period'] ?> : <?= $val['sgdt_adate'] ?></p> <!-- 남은기간 -->
                                                         <? } ?>
                                                     </div>
                                                 </div>
@@ -113,7 +113,7 @@ if ($_POST['act'] == "list") {
                 <div class="border bg-white rounded-lg mb-3">
                     <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer">
                         <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3"><?= $row_sgt['sgt_title'] ?><span class="ml-2">(<?= $member_cnt_t ?>)</span></p>
-                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');"><?= translate('그룹나가기', $userLang) ?></button>
+                        <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_row['sgdt_idx'] ?>');"><?= $translations['leave_group'] ?></button> <!-- 그룹나가기 -->
                     </div>
                     <?php
                     unset($list_sgdt);
@@ -124,7 +124,7 @@ if ($_POST['act'] == "list") {
                             <? if ($invite_cnt) {
                             ?>
                                 <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-                                    <?= number_format($invite_cnt) ?>명 초대중
+                                    <?= number_format($invite_cnt) ?><?= $translations['people_inviting'] ?> <!-- 명 초대중 -->
                                 </p>
                                 <?php
                             }
@@ -137,7 +137,7 @@ if ($_POST['act'] == "list") {
                                             <a href="#" class="d-flex align-items-center">
                                                 <div class="prd_img flex-shrink-0 mr_12">
                                                     <div class="rect_square rounded_14">
-                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
+                                                        <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="<?= $translations['image'] ?>" />
                                                     </div>
                                                 </div>
                                                 <div>
@@ -150,7 +150,7 @@ if ($_POST['act'] == "list") {
                                                             <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                                                 <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                                             <? } ?>
-                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= $translations['remaining_period'] ?> : <?= $val['sgdt_adate'] ?></p> <!-- 남은기간 -->
                                                         <? } ?>
                                                     </div>
                                                 </div>
@@ -190,7 +190,7 @@ if ($_POST['act'] == "list") {
                     <a href="#" class="d-flex align-items-center">
                         <div class="prd_img flex-shrink-0 mr_12">
                             <div class="rect_square rounded_14">
-                                <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
+                                <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="<?= $translations['image'] ?>" />
                             </div>
                         </div>
                         <div>
@@ -203,7 +203,7 @@ if ($_POST['act'] == "list") {
                                     <? if ($val['sgdt_owner_leader_chk_t']) { ?>
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <? } ?>
-                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">남은기간 : <?= $val['sgdt_adate'] ?></p>
+                                    <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1"><?= $translations['remaining_period'] ?> : <?= $val['sgdt_adate'] ?></p> <!-- 남은기간 -->
                                 <? } ?>
                             </div>
                         </div>
@@ -216,7 +216,7 @@ if ($_POST['act'] == "list") {
     }
 } elseif ($_POST['act'] == "group_member_order") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
 
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -247,10 +247,10 @@ if ($_POST['act'] == "list") {
     }
 } elseif ($_POST['act'] == "chg_sgt_title") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
     if ($_POST['sgt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgt_idx');
     }
 
     $DB->where('sgt_idx', $_POST['sgt_idx']);
@@ -270,11 +270,11 @@ if ($_POST['act'] == "list") {
 
         p_gotourl("./group_info?sgt_idx=" . $_POST['sgt_idx']);
     } else {
-        p_alert("잘못된 접근입니다.");
+        p_alert($translations['txt_invalid_access']  . "");
     }
 } elseif ($_POST['act'] == "leader_delete") {
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
 
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
@@ -316,8 +316,8 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_id'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  "[SMAP] 리더 해제알림 🚫";
-    $plt_content =  '\'' . $group_name . '\' 그룹의 리더에서 해제되었습니다.';
+    $plt_title =  $translations['leader_release_notification']; // '[SMAP] 리더 해제알림 🚫';
+    $plt_content =  $translations['released_from_leader']. $group_name . $translations['released_from_leader_2']; // '\'' . $group_name . '\' 그룹의 리더에서 해제되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content); 
     /*     $DB->where('sgt_idx', $row_sgdt['sgt_idx']);
@@ -341,7 +341,7 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "leader_add") {
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
 
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
@@ -384,8 +384,8 @@ if ($_POST['act'] == "list") {
     $mt_id = $member_row['mt_id'];
     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
     $group_name = $row_sgt['sgt_title'];
-    $plt_title =  '[SMAP] 리더 등록알림 👑';
-    $plt_content =  '\'' . $group_name . '\' 그룹의 리더로 등록되었습니다.';
+    $plt_title =  $translations['leader_registration_notification']; // '[SMAP] 리더 등록알림 👑';
+    $plt_content =  $translations['registered_as_leader'] . $group_name . $translations['registered_as_leader_2']; // '\'' . $group_name . '\' 그룹의 리더로 등록되었습니다.';
 
     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
 /*     $DB->where('sgt_idx', $row_sgdt['sgt_idx']);
@@ -410,7 +410,7 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "mem_out") {
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
 
     unset($arr_query);
@@ -446,10 +446,10 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "group_delete") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
     if ($_POST['sgt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgt_idx');
     }
 
     $DB->where('sgt_idx', $_POST['sgt_idx']);
@@ -498,11 +498,11 @@ if ($_POST['act'] == "list") {
 
         echo "Y";
     } else {
-        p_alert("잘못된 접근입니다.");
+        p_alert($translations['txt_invalid_access']  . "");
     }
 } elseif ($_POST['act'] == "group_out") {
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
 
     unset($arr_query);
@@ -539,10 +539,10 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "chk_sgt_title") { // 그룹명 중복검사
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
     if ($_POST['sgt_title'] == '') {
-        p_alert("잘못된 접근입니다. sgt_title");
+        p_alert($translations['txt_invalid_access']  . " sgt_title");
     }
 
     $DB->where('sgt_title', $_POST['sgt_title']);
@@ -557,7 +557,7 @@ if ($_POST['act'] == "list") {
     }
 } elseif ($_POST['act'] == "group_create") { // 그룹생성
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
 
     $DB->where('sgt_title', $_POST['sgt_title']);
@@ -603,14 +603,14 @@ if ($_POST['act'] == "list") {
 
         p_gotourl("./group");
     } else {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
 } elseif ($_POST['act'] == "link_modal") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['login_required'], './login', '');
     }
     if ($_POST['sgt_idx'] == '') {
-        p_alert("잘못된 접근입니다. sgt_idx");
+        p_alert($translations['txt_invalid_access']  . " sgt_idx");
     }
 
     $DB->where('sgt_idx', $_POST['sgt_idx']);
@@ -664,7 +664,7 @@ if ($_POST['act'] == "list") {
     echo $rtn;
 } elseif ($_POST['act'] == "share_link") {
     if ($_POST['currentURL'] == '') {
-        p_alert("잘못된 접근입니다. currentURL");
+        p_alert($translations['txt_invalid_access']  . " currentURL");
     }
 
     $parsed_url = parse_url($_POST['currentURL']);
@@ -688,7 +688,7 @@ if ($_POST['act'] == "list") {
     }
 } elseif ($_POST['act'] == "group_activity_period") { // 그룹활동기한 무기한 설정
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
     unset($arr_query);
     $arr_query = array(
@@ -704,10 +704,10 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "group_activity_period_detail") { // 그룹활동기한 디테일 설정
     if ($_POST['sgdt_idx'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_idx');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_idx');
     }
     if ($_POST['sgdt_group_chk'] == '') {
-        p_alert('잘못된 접근입니다. sgdt_group_chk');
+        p_alert($translations['txt_invalid_access']  . ' sgdt_group_chk');
     }
     unset($arr_query);
     $arr_query = array(
@@ -723,10 +723,10 @@ if ($_POST['act'] == "list") {
     echo "Y";
 } elseif ($_POST['act'] == "group_invite_code_chk") { // 초대코드 사용하여 그룹가입
     if ($_POST['sit_code'] == '') {
-        p_alert('잘못된 접근입니다. sit_code');
+        p_alert($translations['txt_invalid_access']  . ' sit_code');
     }
     if ($_POST['mt_idx'] == '') {
-        p_alert('잘못된 접근입니다. mt_idx');
+        p_alert($translations['txt_invalid_access']  . ' mt_idx');
     }
     $DB->where('sit_code', $_POST['sit_code']);
     $DB->where('sit_status', '2');
@@ -815,8 +815,8 @@ if ($_POST['act'] == "list") {
                             $mt_id = $member_row['mt_id'];
                             $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
                             $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-                            $plt_title = '[SMAP] 새로운 멤버가 합류했어요 🎉';
-                            $plt_content = $mem_nickname . '님이 합류했습니다.';
+                            $plt_title = $translations['new_member_joined']; // '[SMAP] 새로운 멤버가 합류했어요 🎉';
+                            $plt_content = $mem_nickname . $translations['joined_group']; // '님이 합류했습니다.';
 
                             $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
                         }

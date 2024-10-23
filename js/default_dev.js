@@ -61,12 +61,12 @@ function f_preview_image_selected(e, obj_id, obj_name) {
 
     filesArr.forEach(function (f) {
         if (!f.type.match("image.*")) {
-            jalert("확장자는 이미지 확장자만 가능합니다.");
+            jalert($translations['txt_image_extension_only']); // 확장자는 이미지 확장자만 가능합니다.
             return;
         }
 
         if (f.size > 1200000) {
-            jalert("업로드는 1메가 이하만 가능합니다.");
+            jalert($translations['txt_upload_size_limit']); // 업로드는 1메가 이하만 가능합니다.
             return;
         }
 
@@ -82,7 +82,7 @@ function f_preview_image_selected(e, obj_id, obj_name) {
 
 function f_hp_chk() {
     if ($("#srt_tel").val() == "") {
-        jalert("연락처를 입력해주세요.", "", $("#srt_tel").focus());
+        jalert($translations['txt_enter_contact_info'], "", $("#srt_tel").focus()); // 연락처를 입력해주세요.
         return false;
     }
 
@@ -108,10 +108,10 @@ function set_timer() {
         min = parseInt(time / 60);
         sec = time % 60;
         $("#certi_hp").show();
-        document.getElementById("hp_confirm_timer").innerHTML = "인증번호를 발송했습니다. (유효시간 : " + min + ":" + sec + ")";
+        document.getElementById("hp_confirm_timer").innerHTML = $translations['txt_verification_code_sent'] + " (" + $translations['txt_valid_time'] + ": " + min + ":" + sec + ")"; // 인증번호를 발송했습니다. (유효시간 : 
         time--;
         if (time < -1) {
-            jalert("인증번호 유효시간이 만료 되었습니다.", "", "");
+            jalert($translations['txt_verification_code_expired'], "", ""); // 인증번호 유효시간이 만료 되었습니다.
             clearInterval(timer);
             $("#certi_hp").hide();
             $("#hp_chk_btn").prop("disabled", false);
@@ -125,20 +125,20 @@ function set_timer() {
 
 function f_hp_confirm() {
     if ($("#hp_confirm").val() == "") {
-        jalert("인증번호를 등록해주세요.", "", $("#hp_confirm").focus());
+        jalert($translations['txt_enter_verification_code'], "", $("#hp_confirm").focus()); // 인증번호를 등록해주세요.
         return false;
     }
 
     $.post("./step_update.php", { act: "confirm_hp", srt_tel: $("#srt_tel").val(), hp_confirm: $("#hp_confirm").val() }, function (data) {
         if (data == "Y") {
-            jalert("인증이 확인되었습니다.", "", "");
+            jalert($translations['txt_verification_confirmed'], "", ""); // 인증이 확인되었습니다.
             clearInterval(timer);
             $("#srt_tel_chk").val("Y");
             $("#certi_hp").hide();
             $("#hp_confirm").prop("readonly", true);
             $("#srt_tel").prop("readonly", true);
         } else {
-            jalert("인증이 확인되지 않습니다. 인증문자를 확인바랍니다.", "", "");
+            jalert($translations['txt_verification_failed'], "", ""); // 인증이 확인되지 않습니다. 인증문자를 확인바랍니다.
         }
     });
 
@@ -166,7 +166,7 @@ function validateMtPw(value) {
 
 function page_auth_move(mt_rank1) {
     if (mt_rank1.trim() === "") {
-        jalert("해당 페이지에 접근하려면 해당페이지에 대한 권한이 필요합니다.", "", "");
+        jalert($translations['txt_permission_required'], "", ""); // 해당 페이지에 접근하려면 해당페이지에 대한 권한이 필요합니다.
     } else {
         $.ajax({
             url: "/ajax.menu_chg.php",
@@ -181,7 +181,7 @@ function page_auth_move(mt_rank1) {
                 if (data.result) {
                     location.href = data.page_url;
                 } else {
-                    jalert("개발된 페이지가 없습니다.", "", "");
+                    jalert($translations['txt_no_developed_page'], "", ""); // 개발된 페이지가 없습니다.
                 }
             },
             error: function (request, status, error) {
@@ -208,11 +208,11 @@ function handleFileSelect(event) {
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
         if (file.size <= maxFileSize) {
-            console.log("파일 이름:", file.name);
-            console.log("파일 크기:", file.size);
-            console.log("파일 유형:", file.type);
+            console.log($translations['txt_file_name'] + ":", file.name); // 파일 이름:
+            console.log($translations['txt_file_size'] + ":", file.size); // 파일 크기:
+            console.log($translations['txt_file_type'] + ":", file.type); // 파일 유형:
         } else {
-            jalert("파일 크기가 제한을 초과했습니다. 최대 파일 크기는 100MB입니다.");
+            jalert($translations['txt_file_size_exceeded']); // 파일 크기가 제한을 초과했습니다. 최대 파일 크기는 100MB입니다.
             return false;
         }
         var formData = new FormData();
@@ -232,7 +232,7 @@ function handleFileSelect(event) {
                 }, 500);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.error("파일 업로드 실패:", errorThrown);
+                console.error($translations['txt_file_upload_failed'] + ":", errorThrown); // 파일 업로드 실패:
             },
         });
     }
@@ -354,11 +354,11 @@ function f_get_box_list2(pg = "") {
 }
 function f_show_chg(u, i, v) {
     $.confirm({
-        title: "변경",
-        content: "정보를 변경하시겠습니까?",
+        title: $translations['txt_change'], // 변경
+        content: $translations['txt_confirm_change_info'], // 정보를 변경하시겠습니까?
         buttons: {
             confirm: {
-                text: "확인",
+                text: $translations['txt_confirm'], // 확인
                 action: function () {
                     $.post(
                         u,
@@ -369,7 +369,7 @@ function f_show_chg(u, i, v) {
                         },
                         function (data) {
                             if (data == "Y") {
-                                jalert("변경되었습니다.");
+                                jalert($translations['txt_changed']); // 변경되었습니다.
                             }
                         }
                     );
@@ -377,7 +377,7 @@ function f_show_chg(u, i, v) {
             },
             cancel: {
                 btnClass: "btn-outline-default",
-                text: "취소",
+                text: $translations['txt_cancel'], // 취소
                 action: function () {
                     close();
                 },
@@ -394,11 +394,11 @@ function f_post_del(u, i, o = "") {
     }
 
     $.confirm({
-        title: "경고",
-        content: "정말 삭제하시겠습니까? 삭제된 자료는 복구되지 않습니다.",
+        title: $translations['txt_warning'], // 경고
+        content: $translations['txt_confirm_delete_irreversible'], // 정말 삭제하시겠습니까? 삭제된 자료는 복구되지 않습니다.
         buttons: {
             confirm: {
-                text: "확인",
+                text: $translations['txt_confirm'], // 확인
                 action: function () {
                     $.post(
                         u,
@@ -408,7 +408,7 @@ function f_post_del(u, i, o = "") {
                         },
                         function (data) {
                             if (data == "Y") {
-                                jalert_url("삭제되었습니다.", "reload");
+                                jalert_url($translations['txt_deleted'], "reload"); // 삭제되었습니다.
                             }
                         }
                     );
@@ -416,7 +416,7 @@ function f_post_del(u, i, o = "") {
             },
             cancel: {
                 btnClass: "btn-outline-default",
-                text: "취소",
+                text: $translations['txt_cancel'], // 취소
                 action: function () {
                     close();
                 },
@@ -429,12 +429,12 @@ function f_post_del(u, i, o = "") {
 
 function sendfile_summernote(ctype, file, no, editor) {
     if (!file.type.match("image.*")) {
-        jalert("확장자는 이미지 확장자만 가능합니다.");
+        jalert($translations['txt_image_extension_only']); // 확장자는 이미지 확장자만 가능합니다.
         return;
     }
 
     if (file.size > 12000000) {
-        jalert("업로드는 10메가 이하만 가능합니다.");
+        jalert($translations['txt_upload_size_limit_10mb']); // 업로드는 10메가 이하만 가능합니다.
         return;
     }
 

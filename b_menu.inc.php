@@ -51,52 +51,52 @@
         overflow: hidden; /* 텍스트가 넘치지 않도록 */
     }
 </style>
-
+<?php $translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; ?>
 <div class="b_menu" style="z-index:1054">
     <ul>
         <li <?php if ($b_menu === '1') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/" onclick="sendBottomMenuEvent('home');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_off.png" alt="<?= translate('홈', $userLang) ?>" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_on.png" alt="<?= translate('홈', $userLang) ?>" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_off.png" alt="<?=$translations['txt_home'] ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu1_on.png" alt="<?=$translations['txt_home'] ?>" class="img_on">
                 </div>
-                <p><?= translate('홈', $userLang) ?></p>
+                <p><?=$translations['txt_home'] ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '2') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/group" onclick="sendBottomMenuEvent('group');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_off.png" alt="<?= translate('그룹', $userLang) ?>" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_on.png" alt="<?= translate('그룹', $userLang) ?>" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_off.png" alt="<?=$translations['txt_group'] ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu2_on.png" alt="<?=$translations['txt_group'] ?>" class="img_on">
                 </div>
-                <p><?= translate('그룹', $userLang) ?></p>
+                <p><?=$translations['txt_group'] ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '3') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/schedule" onclick="sendBottomMenuEvent('schedule');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_off.png" alt="<?= translate('일정', $userLang) ?>" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_on.png" alt="<?= translate('일정', $userLang) ?>" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_off.png" alt="<?=$translations['txt_schedule'] ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu3_on.png" alt="<?=$translations['txt_schedule'] ?>" class="img_on">
                 </div>
-                <p><?= translate('일정', $userLang) ?></p>
+                <p><?=$translations['txt_schedule'] ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '4') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/location" onclick="sendBottomMenuEvent('location');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_off.png" alt="<?= translate('내장소', $userLang) ?>" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_on.png" alt="<?= translate('내장소', $userLang) ?>" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_off.png" alt="<?=$translations['txt_my_places'] ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu4_on.png" alt="<?=$translations['txt_my_places'] ?>" class="img_on">
                 </div>
-                <p><?= translate('내장소', $userLang) ?></p>
+                <p><?=$translations['txt_my_places'] ?></p>
             </a>
         </li>
         <li <?php if ($b_menu === '5') { ?> class="on" <?php } ?>>
             <a href="<?= CDN_HTTP ?>/log" onclick="sendBottomMenuEvent('log');">
                 <div class="b_menu_img">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_off.png" alt="<?= translate('로그', $userLang) ?>" class="img_off">
-                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_on.png" alt="<?= translate('로그', $userLang) ?>" class="img_on">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_off.png" alt="<?=$translations['txt_log'] ?>" class="img_off">
+                    <img src="<?= CDN_HTTP ?>/img/ic_b_menu5_on.png" alt="<?=$translations['txt_log'] ?>" class="img_on">
                 </div>
-                <p><?= translate('로그', $userLang) ?></p>
+                <p><?=$translations['txt_log'] ?></p>
             </a>
         </li>
     </ul>

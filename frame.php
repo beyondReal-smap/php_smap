@@ -150,7 +150,7 @@ opcache_reset();
 
                 <div class="left_logo">
 
-                    <a class="logo" href="https://app.smap.site/"><img src="https://app.smap.site/img/logo.png" alt="홈으로 이동"></a>
+                    <a class="logo" href="https://app2.smap.site/"><img src="https://app2.smap.site/img/logo.png" alt="홈으로 이동"></a>
 
                 </div>
 
@@ -242,7 +242,7 @@ opcache_reset();
 
             <!-- iframe 영역 -->
 
-            <iframe src="https://app.smap.site/" height="100%" width="100%"></iframe>
+            <iframe src="https://app2.smap.site/" height="100%" width="100%"></iframe>
 
             <!-- iframe 영역 -->
 

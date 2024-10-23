@@ -14,8 +14,10 @@ function write_log($message) {
 }
 
 if ($_POST['act'] == "recommend_input") {
-    if (empty($_POST['mt_hp']) || empty($_POST['mt_idx'])) {
-        p_alert(translate("잘못된 접근입니다.", $userLang)); // "잘못된 접근입니다." 번역
+    $logger->write('Recommend input action started.');
+    if (empty($_POST['mt_hp']) && empty($_POST['mt_email']) || empty($_POST['mt_idx'])) {
+        $logger->write('Invalid access: Missing required fields.');
+        p_alert($translations['txt_invalid_access']); // "잘못된 접근입니다." 번역
         exit;
     }
 
@@ -25,20 +27,29 @@ if ($_POST['act'] == "recommend_input") {
 
     if ($mem_row['mt_recommend_chk'] == 'Y') { 
         // 추천인 코드를 이미 사용했을 경우
+        $logger->write('Recommend code already used.');
         echo json_encode(array('result' => 'use'));
         exit;
     } else { 
         // 추천인 코드를 사용하지 않았을 경우
         $mt_hp = str_replace('-', '', $_POST['mt_hp']);
-        $DB->where('mt_id', $mt_hp)
-            ->where('mt_type', '1')
-            ->where('mt_status', '1')
-            ->where('mt_show', 'Y');
+        $mt_email = $_POST['mt_email'];
+        if (!empty($mt_hp)) {
+            $DB->where('mt_id', $mt_hp)
+                ->where('mt_type', '1')
+                ->where('mt_status', '1')
+                ->where('mt_show', 'Y');
+        } else {
+            $DB->where('mt_email', $mt_email)
+                ->where('mt_type', '1')
+                ->where('mt_status', '1')
+                ->where('mt_show', 'Y');
+        }
         $recommend_row = $DB->getone('member_t');
 
         if ($recommend_row['mt_idx']) { 
             // 추천인이 있을 경우
-
+            $logger->write('Referrer found.');
             // 추천인 로그 업데이트
             $arr_query = array(
                 'mt_idx' => $mem_row['mt_idx'],
@@ -50,7 +61,7 @@ if ($_POST['act'] == "recommend_input") {
                 'rlt_mt_name' => $recommend_row['mt_name'],
                 'rlt_mt_nickname' => $recommend_row['mt_nickname'],
                 'rlt_code' => $_POST['mt_hp'],
-                'rlt_days' => translate('30일', $userLang), // "30일" 번역
+                'rlt_days' => $translations['txt_30_days'], // "30일" 번역
                 'rlt_show' => 'Y',
                 'rlt_wdate' => $DB->now(),
             );
@@ -66,7 +77,7 @@ if ($_POST['act'] == "recommend_input") {
                 'ot_code' => $ot_code,
                 'mt_idx' => $mem_row['mt_idx'],
                 'mt_id' => $mem_row['mt_id'],
-                'ot_title' => translate('추천인 입력 30일', $userLang), // "추천인 입력 30일" 번역
+                'ot_title' => $translations['txt_recommend_input_30_days'], // "추천인 입력 30일" 번역
                 'ot_pay_type' => '4',
                 'ot_status' => '2',
                 'ot_sprice' => '0',
@@ -98,7 +109,7 @@ if ($_POST['act'] == "recommend_input") {
                 'ot_code' => $re_ot_code,
                 'mt_idx' => $recommend_row['mt_idx'],
                 'mt_id' => $recommend_row['mt_id'],
-                'ot_title' => translate('추천인 입력 30일', $userLang), // "추천인 입력 30일" 번역
+                'ot_title' => $translations['txt_recommend_input_30_days'], // "추천인 입력 30일" 번역
                 'ot_pay_type' => '4',
                 'ot_status' => '2',
                 'ot_sprice' => '0',
@@ -121,18 +132,20 @@ if ($_POST['act'] == "recommend_input") {
                 ]);
 
             $_mt_level = $_SESSION['_mt_level'] = 5;
+            $logger->write('Recommend input action completed successfully.');
             echo json_encode(array('result' => 'ok'));
             exit;
 
         } else { 
             // 추천인이 없을 경우
+            $logger->write('No referrer found.');
             echo json_encode(array('result' => 'none'));
             exit;
         }
     }    
 } elseif ($_POST['act'] == "admin_input") {
     if (empty($_POST['mt_hp']) || empty($_POST['mt_idx'])) {
-        p_alert(translate("잘못된 접근입니다.", $userLang)); // "잘못된 접근입니다." 번역
+        p_alert($translations['txt_invalid_access']); // "잘못된 접근입니다." 번역
         exit;
     }
 
@@ -144,7 +157,7 @@ if ($_POST['act'] == "recommend_input") {
     // write_log("mem_row: " . print_r($mem_row, true));
 
     if (!$mem_row) {
-        p_alert(translate("회원 정보를 찾을 수 없습니다.", $userLang)); // "회원 정보를 찾을 수 없습니다." 번역
+        p_alert($translations['txt_member_not_found']); // "회원 정보를 찾을 수 없습니다." 번역
         exit;
     }
 
@@ -203,7 +216,7 @@ if ($_POST['act'] == "recommend_input") {
                 'ot_code' => $ot_code,
                 'mt_idx' => $mem_row['mt_idx'],
                 'mt_id' => $mem_row['mt_id'],
-                'ot_title' => translate('관리자 입력', $userLang), // "관리자 입력" 번역
+                'ot_title' => $translations['txt_admin_input'], // "관리자 입력" 번역
                 'ot_pay_type' => '3',
                 'ot_status' => '2',
                 'ot_sprice' => '0',

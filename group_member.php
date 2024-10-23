@@ -3,7 +3,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
     header('Content-Type: application/json');
-    echo json_encode(['error' => '로그인이 필요합니다.']);
+    echo json_encode(['error' => $translations['txt_login_required']]);
     exit;
 }
 $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); //오너인 그룹수
@@ -22,7 +22,7 @@ $DB->orderBy("sgt_udate", "desc");
 $DB->orderBy("sgt_idx", "asc");
 $list_sgt = $DB->get('smap_group_t');
 
-error_log("sgdt_idx: " . $_POST['gc_sgt_idx'] . "\n", 3, '/data/wwwroot/app.smap.site/logfile.log');
+error_log("sgdt_idx: " . $_POST['gc_sgt_idx'] . "\n", 3, '/data/wwwroot/app2.smap.site/logfile.log');
 
 $group_members = []; // 초기화
 
@@ -36,13 +36,13 @@ $group_members[] = [
 if ($list_sgt) {
     foreach ($list_sgt as $row_sgt) {
         $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-        // error_log("list_sgdt: " . print_r($list_sgdt['data'], true) . "\n", 3, '/data/wwwroot/app.smap.site/logfile.log');
+        // error_log("list_sgdt: " . print_r($list_sgdt['data'], true) . "\n", 3, '/data/wwwroot/app2.smap.site/logfile.log');
         if ($list_sgdt['data']) {
             foreach ($list_sgdt['data'] as $key => $val) {
                // 로그 출력
-                error_log("sgdt_idx: " . $val['sgdt_idx'] . "\n", 3, '/data/wwwroot/app.smap.site/logfile.log');
-                error_log("mt_file1_url: " . $val['mt_file1_url'] . "\n", 3, '/data/wwwroot/app.smap.site/logfile.log');
-                error_log("mt_nickname: " . $val['mt_nickname'] . "\n", 3, '/data/wwwroot/app.smap.site/logfile.log');
+                error_log("sgdt_idx: " . $val['sgdt_idx'] . "\n", 3, '/data/wwwroot/app2.smap.site/logfile.log');
+                error_log("mt_file1_url: " . $val['mt_file1_url'] . "\n", 3, '/data/wwwroot/app2.smap.site/logfile.log');
+                error_log("mt_nickname: " . $val['mt_nickname'] . "\n", 3, '/data/wwwroot/app2.smap.site/logfile.log');
                 $group_members[] = [
                     'sgdt_idx' => $val['sgdt_idx'],
                     'mt_file1_url' => $val['mt_file1_url'],
@@ -56,7 +56,7 @@ if ($list_sgt) {
 // 오류 처리
 if ($DB->getLastError()) {
     header('Content-Type: application/json');
-    echo json_encode(['error' => '데이터베이스 오류가 발생했습니다.']);
+    echo json_encode(['error' => $translations['txt_database_error']]);
     exit;
 }
 

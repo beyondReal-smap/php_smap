@@ -1,0 +1,16 @@
+{
+  "name": "app2.smap.site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tailwindcss -i ./lib/tailwind/input.css -o ./lib/tailwind/output.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

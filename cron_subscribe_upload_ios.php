@@ -1,6 +1,6 @@
 <?php
 
-$_SERVER['DOCUMENT_ROOT'] = "/data/wwwroot/app.smap.site";
+$_SERVER['DOCUMENT_ROOT'] = "/data/wwwroot/app2.smap.site";
 $cron_chk = true;
 
 include $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
@@ -42,19 +42,23 @@ function verifyReceipt($receiptData, $isSandbox = false)
     return json_decode($response, true);
 }
 
+// 지역별 가격 정보 가져오기
+$priceInfo = getPriceByRegion();
 // 상품 정보 배열
 $productInfo = [
     'com.dmonster.smap.sub_month' => [
-        'ot_title' => translate('구독결제(월간)', $userLang), // "구독결제(월간)" 번역
-        'sprice' => '4900',
+        'ot_title' => $translations['txt_monthly_subscription'],
+        'sprice' => $priceInfo['monthly'],
         'bprice' => '0',
-        'price' => '4900'
+        'price' => $priceInfo['monthly'],
+        'currency' => $priceInfo['currency']
     ],
     'com.dmonster.smap.sub_year' => [
-        'ot_title' => translate('구독결제(연간)', $userLang), // "구독결제(연간)" 번역
-        'sprice' => '58800',
-        'bprice' => '16800',
-        'price' => '42000'
+        'ot_title' => $translations['txt_yearly_subscription'],
+        'sprice' => $priceInfo['monthly'] * 12,
+        'bprice' => $priceInfo['monthly'] * 12 - $priceInfo['yearly'],
+        'price' => $priceInfo['yearly'],
+        'currency' => $priceInfo['currency']
     ]
 ];
 

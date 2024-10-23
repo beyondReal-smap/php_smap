@@ -6,13 +6,13 @@ $_SUB_HEAD_TITLE = "그룹 활동 기한 설정";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', './logout');
+        alert($translations['txt_login_attempt_from_other_device'], './logout');
     }
 }
 ?>
@@ -350,13 +350,13 @@ if ($_SESSION['_mt_idx'] == '') {
                 function get_hh_mm_txt(hh_data, mm_data) {
                     var stype;
                     if (mm_data == 'day' || mm_data == 'other_day') {
-                        stype = '일';
+                        stype = $translations['txt_day'];
                         group_type = "day";
                     } else if (mm_data == 'minute' || mm_data == 'other_minute') {
-                        stype = '분';
+                        stype = $translations['txt_minute'];
                         group_type = "minute";
                     } else {
-                        stype = '시간';
+                        stype = $translations['txt_hour'];
                         group_type = "hour";
                     }
                     if (typeof hh_data === 'undefined') {} else {
@@ -367,7 +367,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 }
             </script>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="group_period_chk()"><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="group_period_chk()"><?= $translations['txt_input_complete'] ?></button>
             </div>
         </form>
     </div>

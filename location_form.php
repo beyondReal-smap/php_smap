@@ -2,11 +2,11 @@
 include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 $b_menu = '4';
 $h_menu = '2';
-$_SUB_HEAD_TITLE = "위치";
+$_SUB_HEAD_TITLE = $translations['txt_location']; // 위치
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 
 if($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', ''); // 로그인이 필요합니다.
 }
 ?>
 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?=NCPCLIENTID?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
@@ -21,26 +21,24 @@ if($_SESSION['_mt_idx'] == '') {
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="input_location" />
             <div class="ip_wr">
-                <input type="text" class="form-control txt-cnt" name="slt_title" id="slt_title" value="" minlength="2" maxlength="20" data-length-id="slt_title_cnt" oninput="maxLengthCheck(this)" placeholder="위치명을 입력해주세요.">
+                <input type="text" class="form-control txt-cnt" name="slt_title" id="slt_title" value="" minlength="2" maxlength="20" data-length-id="slt_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_enter_location_name']?>"> <!-- 위치명을 입력해주세요. -->
                 <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="slt_title_cnt">0</span>/20)</p>
             </div>
             <div class="line_ip mt_25">
                 <div class="row">
-                    <div class="col col-auto line_tit"><img src="<?=CDN_HTTP?>/img/ip_ic_member.png" alt="멤버 아이콘"></div>
+                    <div class="col col-auto line_tit"><img src="<?=CDN_HTTP?>/img/ip_ic_member.png" alt="<?=$translations['txt_member_icon']?>"></div> <!-- 멤버 아이콘 -->
                     <div class="col">
                         <input type="hidden" name="sgdt_idx" id="sgdt_idx" value="" />
-                        <input type="text" readonly class="form-none cursor_pointer" name="sgdt_idx_t" id="sgdt_idx_t" placeholder="멤버 선택" value="<?=$row_sst['sgdt_idx_t']?>" onclick="f_modal_schedule_member();">
+                        <input type="text" readonly class="form-none cursor_pointer" name="sgdt_idx_t" id="sgdt_idx_t" placeholder="<?=$translations['txt_select_member']?>" value="<?=$row_sst['sgdt_idx_t']?>" onclick="f_modal_schedule_member();"> <!-- 멤버 선택 -->
                     </div>
                 </div>
             </div>
             <div class="line_ip mt_25">
                 <div class="row">
-                    <div class="col col-auto line_tit"><img src="<?=CDN_HTTP?>/img/ip_ic_location.png" alt="위치 아이콘"></div>
+                    <div class="col col-auto line_tit"><img src="<?=CDN_HTTP?>/img/ip_ic_location.png" alt="<?=$translations['txt_location_icon']?>"></div> <!-- 위치 아이콘 -->
                     <div class="col">
                         <div class="d-flex align-items-center">
-                            <!-- <span class="text-primary mr_12">KT&G</span> -->
-                            <!-- 별칭 출력 -->
-                            <input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="위치 선택" value="" onclick="f_modal_schedule_location();">
+                            <input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="<?=$translations['txt_select_location']?>" value="" onclick="f_modal_schedule_location();"> <!-- 위치 선택 -->
                         </div>
                         <!-- value 안에 데이터 넣어 주세요 -->
 
@@ -53,10 +51,10 @@ if($_SESSION['_mt_idx'] == '') {
                 </div>
             </div>
             <div class="text-center">
-                <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_25 mx-auto" onclick="location.href='./schedule_form'">일정도 같이 입력할래요!<i class="xi-angle-right-min ml_19"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_25 mx-auto" onclick="location.href='./schedule_form'"><?=$translations['txt_enter_schedule_together']?><i class="xi-angle-right-min ml_19"></i></button> <!-- 일정도 같이 입력할래요! -->
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" id="ToastBtn">위치입력 완료</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" id="ToastBtn"><?=$translations['txt_complete_location_input']?></button> <!-- 위치입력 완료 -->
             </div>
         </form>
     </div>
@@ -65,7 +63,7 @@ if($_SESSION['_mt_idx'] == '') {
 <!-- 토스트 Toast 토스트 넣어두었습니다. 필요하시면 사용하심됩니다.! 사용할 버튼에 id="ToastBtn" 넣으면 사용가능! -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i>위치가 등록되었습니다.</p> <!-- 성공메시지 -->
+        <p><i class="xi-check-circle mr-2"></i><?=$translations['txt_location_registration_success']?></p> <!-- 위치가 등록되었습니다. -->
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -76,12 +74,12 @@ if($_SESSION['_mt_idx'] == '') {
         <div class="modal-content">
             <form method="post" name="frm_schedule_member" id="frm_schedule_member">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700">멤버 선택</p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?=$translations['txt_select_member']?></p> <!-- 멤버 선택 -->
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?=CDN_HTTP?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y px-0" style="min-height:380px;" id="schedule_member_content"></div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0">멤버 선택완료</button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=$translations['txt_complete_member_selection']?></button> <!-- 멤버 선택완료 -->
                 </div>
             </form>
             <script>
@@ -97,7 +95,7 @@ if($_SESSION['_mt_idx'] == '') {
                     });
 
                     if (q < 1) {
-                        jalert("멤버를 선택해주세요.");
+                        jalert("<?=$translations['txt_please_select_member']?>"); // 멤버를 선택해주세요.
                         return false;
                     }
 
@@ -114,7 +112,7 @@ if($_SESSION['_mt_idx'] == '') {
                 },
                 messages: {
                     sgdt_idx_r1: {
-                        required: "멤버를 선택해주세요.",
+                        required: "<?=$translations['txt_please_select_member']?>", // 멤버를 선택해주세요.
                     },
                 },
                 errorPlacement: function(error, element) {
@@ -135,7 +133,7 @@ if($_SESSION['_mt_idx'] == '') {
         <div class="modal-content">
             <form method="post" name="frm_schedule_location" id="frm_schedule_location">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700">위치선택</p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?=$translations['txt_select_location']?></p> <!-- 위치선택 -->
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?=CDN_HTTP?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y pt-0" style="height:400px;">
@@ -146,14 +144,14 @@ if($_SESSION['_mt_idx'] == '') {
                     <div class="bargray_fluid mx_n20"></div>
 
                     <div class="location_mark my_20">
-                        <p class="tit_h3 fs_15 mb-4">즐겨찾는 위치</p>
+                        <p class="tit_h3 fs_15 mb-4"><?=$translations['txt_favorite_location']?></p> <!-- 즐겨찾는 위치 -->
                         <ul id="location_like_list_box" class="scroll_bar_y" style="min-height:30rem;">
 
                         </ul>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0">위치 선택하기</button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=$translations['txt_select_location']?></button> <!-- 위치 선택하기 -->
                 </div>
             </form>
             <script>
@@ -226,7 +224,7 @@ if($_SESSION['_mt_idx'] == '') {
                 },
                 messages: {
                     sgdt_idx_r1: {
-                        required: "멤버를 선택해주세요.",
+                        required: "<?=$translations['txt_please_select_member']?>", // 멤버를 선택해주세요.
                     },
                 },
                 errorPlacement: function(error, element) {
@@ -263,15 +261,15 @@ if($_SESSION['_mt_idx'] == '') {
                                 <ul>
                                     <li class="d-flex">
                                         <div class="name flex-fill">
-                                            <span class="fs_12 fw_600 text-primary">선택한 위치</span>
+                                            <span class="fs_12 fw_600 text-primary"><?=$translations['txt_selected_location']?></span> <!-- 선택한 위치 -->
                                             <div class="fs_14 fw_600 text_dynamic mt-1 line_h1_3" id="location_add"></div>
                                         </div>
                                         <button type="button" class="mark_btn" id="btn_location_like" onclick="f_location_like();"></button>
                                     </li>
                                     <li class="d-flex mt-3">
                                         <div class="name flex-fill">
-                                            <span class="fs_12 fw_600 text-primary">별칭</span>
-                                            <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="별칭을 입력해주세요">
+                                            <span class="fs_12 fw_600 text-primary"><?=$translations['txt_location_nickname']?></span> <!-- 별칭 -->
+                                            <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="<?=$translations['txt_enter_location_name']?>"> <!-- 별칭을 입력해주세요 -->
                                         </div>
                                     </li>
                                 </ul>
@@ -281,7 +279,7 @@ if($_SESSION['_mt_idx'] == '') {
 
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0">위치 선택완료</button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?=$translations['txt_select_location_complete']?></button> <!-- 위치 선택완료 -->
                 </div>
             </form>
         </div>
@@ -293,11 +291,11 @@ function f_location_like_delete(i) {
         title: '',
         type: "blue",
         typeAnimated: true,
-        content: '즐겨찾는 위치를 삭제하시겠습니까?',
+        content: '<?=$translations['txt_delete_favorite_location']?>', // 즐겨찾는 위치를 삭제하시겠습니까?
         buttons: {
             confirm: {
                 btnClass: "btn-default btn-lg btn-block",
-                text: "확인",
+                text: "<?=$translations['txt_confirm']?>", // 확인
                 action: function() {
                     var form_data = new FormData();
                     form_data.append("act", "map_location_like_delete");
@@ -333,7 +331,7 @@ function f_location_like_delete(i) {
 
 function f_location_like() {
     if ($('#slt_title').val() == '') {
-        jalert('별칭을 입력바랍니다.');
+        jalert('<?=$translations['txt_enter_location_name']?>'); // 별칭을 입력바랍니다.
         return false;
     }
 
@@ -341,11 +339,11 @@ function f_location_like() {
         title: '',
         type: "blue",
         typeAnimated: true,
-        content: '위치를 등록하시겠습니까?',
+        content: '<?=$translations['txt_register_location']?>', // 위치를 등록하시겠습니까?
         buttons: {
             confirm: {
                 btnClass: "btn-default btn-lg btn-block",
-                text: "확인",
+                text: "<?=$translations['txt_confirm']?>", // 확인
                 action: function() {
                     var form_data = new FormData();
                     form_data.append("act", "map_location_input");
@@ -548,7 +546,7 @@ $("#frm_schedule_map").validate({
         var f = document.frm_schedule_map;
 
         if ($('#sst_location_add').val() == '') {
-            jalert('위치를 선택해주세요.');
+            jalert('<?=$translations['txt_please_select_location']?>'); // 위치를 선택해주세요.
             return false;
         }
 
@@ -564,7 +562,7 @@ $("#frm_schedule_map").validate({
     },
     messages: {
         sst_location_add: {
-            required: "위치를 선택해주세요.",
+            required: "<?=$translations['txt_please_select_location']?>", // 위치를 선택해주세요.
         },
     },
     errorPlacement: function(error, element) {
@@ -657,13 +655,13 @@ $("#frm_form").validate({
     },
     messages: {
         slt_title: {
-            required: "위치명을 입력해주세요.",
+            required: "<?=$translations['txt_enter_location_name']?>", // 위치명을 입력해주세요.
         },
         sgdt_idx_t: {
-            required: "멤버를 선택해주세요.",
+            required: "<?=$translations['txt_please_select_member']?>", // 멤버를 선택해주세요.
         },
         slt_idx_t: {
-            required: "위치를 선택해주세요.",
+            required: "<?=$translations['txt_please_select_location']?>", // 위치를 선택해주세요.
         },
     },
     errorPlacement: function(error, element) {

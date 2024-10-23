@@ -4,7 +4,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
 if ($_POST['act'] == "event_source") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     if ($_POST['sgdt_mt_idx']) {
@@ -81,337 +81,107 @@ if ($_POST['act'] == "event_source") {
     echo $rtn;
 } elseif ($_POST['act'] == "list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+        p_alert(translate($translations['txt_login_required'], $userLang), './login', '');
     }
-    $arr_sst_idx = get_schedule_array($_SESSION['_mt_idx'], $_POST['event_start_date']);
-    $cnt = count($arr_sst_idx);
-    if ($cnt > 0) {
-        $arr_sst_idx_im = implode(',', $arr_sst_idx);
 
-        unset($list_sst);
-        $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
+    function getSchedules($sgdt_idx, $event_start_date, $mt_idx)
+    {
+        global $DB;
+
+        //나의 일정
+        unset($list);
+        if ($sgdt_idx != '') {
+            $DB->where('sgdt_idx', $sgdt_idx);
+        } else {
+            $DB->where('mt_idx', $mt_idx);
+        }
+        $DB->where(" ( sst_sdate <= '" . $event_start_date . " 23:59:59' and sst_edate >= '" . $event_start_date . " 00:00:00' )");
         $DB->where('sst_show', 'Y');
-        $DB->groupBy("mt_idx");
-        $DB->orderBy("sst_sdate", "asc");
-        $list_sst = $DB->get('smap_schedule_t');
+        $DB->orderBy('sst_sdate', 'ASC');
+        $list = $DB->get('smap_schedule_t');
+
+        return $list;
+    }
+    // 스케줄 배열 가져오기
+    $arr_sst_idx = get_schedule_array($_SESSION['_mt_idx'], $_POST['event_start_date']);
+
+    // 스케줄 정보 가져오기 (필요한 경우에만)
+    $list_sst = [];
+    if (!empty($arr_sst_idx)) {
+        $arr_sst_idx_im = implode(',', $arr_sst_idx);
+        $list_sst = $DB->rawQuery("
+        SELECT * FROM smap_schedule_t
+        WHERE sst_idx IN (" . $arr_sst_idx_im . ") 
+         AND sst_show = 'Y'
+        GROUP BY mt_idx
+        ORDER BY sst_sdate ASC
+    ");
     }
 
-    //오너인 그룹수
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgt_show', 'Y');
-    $row = $DB->getone('smap_group_t', 'count(*) as cnt');
-    $sgt_cnt = $row['cnt'];
+    // 사용자 관련 그룹 정보 한 번에 가져오기
+    $user_groups = $DB->rawQuery("
+        SELECT 
+            (SELECT COUNT(*) FROM smap_group_t WHERE mt_idx = " . $_SESSION['_mt_idx'] . " AND sgt_show = 'Y') as owner_count,
+            (SELECT COUNT(*) FROM smap_group_detail_t WHERE mt_idx = " . $_SESSION['_mt_idx'] . " AND sgdt_owner_chk = 'N' AND sgdt_leader_chk = 'Y' AND sgdt_show = 'Y' AND sgdt_discharge = 'N' AND sgdt_exit = 'N') as leader_count,
+            GROUP_CONCAT(DISTINCT sgt.sgt_idx) as invited_group_ids
+        FROM smap_group_detail_t sgdt
+        LEFT JOIN smap_group_t sgt ON sgdt.sgt_idx = sgt.sgt_idx
+        WHERE sgdt.mt_idx = " . $_SESSION['_mt_idx'] . " AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N' AND sgt.sgt_show = 'Y'
+    ");
 
-    //리더인 그룹수
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_owner_chk', 'N');
-    $DB->where('sgdt_leader_chk', 'Y');
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-    $sgdt_cnt = $row['cnt'];
+    $user_group_info = $user_groups[0];
+    $sgt_cnt = $user_group_info['owner_count'];
+    $sgdt_cnt = $user_group_info['leader_count'];
 
-    //초대된 그룹수
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
-
-    if ($row_sgdt['gc_sgt_idx']) {
-        unset($list_sgt);
-        $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
-        $DB->where('sgt_show', 'Y');
-        $DB->orderBy("sgt_idx", "asc");
-        $DB->orderBy("sgt_udate", "desc");
-        $list_sgt = $DB->get('smap_group_t');
-    }    ?>
-    <p class="fs_12 fw_700 text-primary mb-3 pt_20"><?= DateType($_POST['event_start_date'], 20) ?><?= translate('의 일정입니다.', $userLang) ?></p>
-    <div id="mbr_wr">
-        <!-- 그룹이 있든 없든 항상 본인은 맨 위에 표시 본인일정에는 .user_grplist 추가됩니다.-->
-        <div class="grp_list user_grplist">
-            <ul class="mbr_wr_ul">
-                <li class="schdl_list">
-                    <ul>
-                        <li id="mbr_hd01_1" class="mbr_hd">
-                            <div class="d-flex justify-content-between">
-                                <div class="d-flex align-items-center flex-auto">
-                                    <a href="#" class="d-flex align-items-center flex-fill">
-                                        <div class="prd_img flex-shrink-0 mr_12">
-                                            <div class="rect_square rounded_14">
-                                                <img src="<?= $_SESSION['_mt_file1'] ?>" alt="이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
-                                            </div>
-                                        </div>
-                                        <p class="fs_14 fw_500 text_dynamic mr-2"><?= $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'] ?></p>
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center flex-shrink-0">
-                                    <a href='./schedule_form?sdate=<?= $_POST['event_start_date'] ?>&mt_idx=<?= $_SESSION['_mt_idx'] ?>' class="fs_13 fc_navy"><i class="xi-plus-min"></i><?= translate('일정 추가하기', $userLang) ?></a>
-                                    <? if ($cnt > 0) { ?>
-                                        <button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr01_1" aria-expanded="false" aria-controls="mbr01"><img class="open_ic" src="<?= CDN_HTTP ?>/img/ic_open.png" style="width:1.0rem;"></button>
-                                    <? } else { ?>
-                                        <button type="button" style="visibility:hidden" class=" btn btn-link ml-3" data-toggle="collapse" data-target="#mbr01_1" aria-expanded="false" aria-controls="mbr01"><img class="open_ic" src="<?= CDN_HTTP ?>/img/ic_open.png" style="width:1.0rem;"></button>
-                                    <? } ?>
-                                </div>
-                            </div>
-                            <? if ($cnt > 0) { ?>
-                                <div id="mbr01_1" class="collapse " aria-labelledby="mbr01_1" aria-labelledby="mbr_hd01_1" data-parent="#mbr_wr">
-                                    <ul class="pt-4 pb-3">
-                                        <?
-                                        if ($list_sst) {
-                                            unset($list_sst_a);
-                                            $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
-                                            $DB->where('sst_show', 'Y');
-                                            $DB->orderBy("sst_all_day", "asc");
-                                            $DB->orderBy("sst_sdate", "asc");
-                                            $DB->orderBy("sst_edate", "asc");
-                                            $list_sst_a = $DB->get('smap_schedule_t');
-                                            if ($list_sst_a) {
-                                                $count = 1;
-                                                foreach ($list_sst_a as $row_sst_a) {
-                                                    $current_date = date('Y-m-d H:i:s');
-                                                    // if (get_date_ttime($current_date) >= get_date_ttime($row_sst_a['sst_edate'])) {
-                                                    if ($row_sst_a['sst_all_day'] == 'Y') {
-                                                        $point_status = 'point_ing';
-                                                    } else if ($current_date >= $row_sst_a['sst_edate']) {
-                                                        $point_status = 'point_done';
-                                                    } else if ($current_date >= $row_sst_a['sst_sdate'] && $current_date <= $row_sst_a['sst_edate']) {
-                                                        $point_status = 'point_ing';
-                                                    } else {
-                                                        $point_status = 'point_gonna';
-                                                    }
-                                                    if ($row_sst_a['sst_update_chk'] == '1,2,3') {
-                                                        $grant = '전체';
-                                                    } else {
-                                                        $grantNumbers = explode(',', $row_sst_a['sst_update_chk']);
-                                                        // 권한 문자열을 담을 배열 초기화
-                                                        $grantStrings = array();
-
-                                                        // 각 권한 번호에 따른 권한 문자열 배열에 추가
-                                                        foreach ($grantNumbers as $number) {
-                                                            if (isset($arr_grant[$number])) {
-                                                                $grantStrings[] = $arr_grant[$number];
-                                                            }
-                                                        }
-
-                                                        // 권한 문자열 합치기
-                                                        $grant = implode(', ', $grantStrings);
-                                                    }
-                                        ?>
-                                                    <li class="py-2">
-                                                        <a href="./schedule_form?sst_idx=<?= $row_sst_a['sst_idx'] ?>" class="d-flex align-items-center justify-content-between">
-                                                            <div class="d-flex align-items-center">
-                                                                <div class="task <?= $point_status ?>">
-                                                                    <span class="point_inner">
-                                                                        <span class="point_txt"><?= $count ?></span>
-                                                                    </span>
-                                                                </div>
-                                                                <div class="mx-3">
-                                                                    <p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text"><?= $row_sst_a['sst_title'] ?></p>
-                                                                    <p class="fs_10 fw_300 text_gray line_h1_3"><span><?= translate('수정권한', $userLang) ?> : </span> <?= translate($grant, $userLang) ?></p>
-                                                                </div>
-                                                            </div>
-                                                            <!-- 수정권한 없을때 지워주세요 -->
-                                                            <p><i class="xi-angle-right-min text_light_gray fs_13"></i></p>
-                                                        </a>
-                                                    </li>
-                                        <?
-                                                    $count++;
-                                                }
-                                            }
-                                        }
-                                        ?>
-                                    </ul>
-                                </div>
-                            <?
-                            }
-                            ?>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-
-        <?php
-        if ($sgt_cnt > 0 || $sgdt_cnt > 0) {
-
-            if ($list_sgt) {
-                foreach ($list_sgt as $row_sgt) {
-                    $member_cnt_t = get_group_member_cnt($row_sgt['sgt_idx']);
-        ?>
-                    <!--F-3 전체 그룹원 일정-->
-                    <div class="grp_list">
-                        <div class="grp_tit">
-                            <p class="fs_17 fw_700 line_h1_3 line1_text text_dynamic"><?= $row_sgt['sgt_title'] ?></p>
-                        </div>
-                        <ul class="mbr_wr_ul">
-                            <? if ($member_cnt_t <= 1) { ?>
-                                <!-- 그룹원 추가 버튼 -->
-                                <li class="schdl_list">
-                                    <!-- <button type="button" class="btn w-100 h-auto fs_13 fc_navy schdl_btn" data-toggle="modal" data-target="#link_modal"><i class="xi-plus-min mr-2"></i>그룹원 초대하기</button> -->
-                                    <button type="button" class="btn w-100 h-auto fs_13 fc_navy schdl_btn" onclick="share_link_modal('<?= $row_sgt['sgt_idx'] ?>')"><i class="xi-plus-min mr-2"></i><?= translate('그룹원 초대하기', $userLang) ?></button>
-                                </li>
-                                <? } else {
-                                unset($list_sgdt);
-                                $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-                                if ($list_sgdt['data']) {
-                                    foreach ($list_sgdt['data'] as $key => $val) {
-                                        $arr_sst_idx = get_schedule_array2($val['sgdt_idx'], $_POST['event_start_date'], $val['mt_idx']);
-                                        $cnt = count($arr_sst_idx);
-                                        if (translate($val['sgdt_owner_leader_chk_t'], $userLang) != translate('오너', $userLang)) {
-                                ?>
-                                            <li class="schdl_list">
-                                                <ul>
-                                                    <li id="mbr_hd02_1" class="mbr_hd">
-                                                        <div class="d-flex justify-content-between">
-                                                            <div class="d-flex align-items-center flex-auto">
-                                                                <a href="#" class="d-flex align-items-center flex-fill">
-                                                                    <div class="prd_img flex-shrink-0 mr_12">
-                                                                        <div class="rect_square rounded_14">
-                                                                            <img src="<?= $val['mt_file1_url'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" alt="이미지" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <p class="fs_14 fw_500 text_dynamic mr-2"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
-                                                                </a>
-                                                            </div>
-                                                            <div class="d-flex align-items-center flex-shrink-0">
-                                                                <? if ($sgt_cnt > 0 || $sgdt_cnt > 0) {
-                                                                    if (translate($val['sgdt_owner_leader_chk_t'], $userLang) != translate('오너', $userLang)) { ?>
-                                                                        <a href="./schedule_form?sdate=<?= $_POST['event_start_date'] ?>&sgdt_idx=<?= $val['sgdt_idx'] ?>" class="fs_13 fc_navy"><i class="xi-plus-min"></i><?= translate('일정 추가하기', $userLang) ?></a>
-                                                                <? }
-                                                                } ?>
-                                                                <? if ($cnt > 0) { ?>
-                                                                    <button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_<?= $key ?>" aria-expanded="false" aria-controls="mbr02_1"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>
-                                                                <? } else { ?>
-                                                                    <button type="button" style="visibility:hidden" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_<?= $key ?>" aria-expanded="false" aria-controls="mbr02_1"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>
-                                                                <? } ?>
-                                                            </div>
-                                                        </div>
-                                                        <? if ($cnt > 0) { ?>
-                                                            <div id="mbr02_<?= $key ?>" class="collapse " aria-labelledby="mbr02_<?= $key ?>" aria-labelledby="mbr_hd02_1" data-parent="#mbr_wr">
-                                                                <ul class="pt-4 pb-3">
-                                                                    <?
-                                                                    $arr_sst_idx_im = implode(',', $arr_sst_idx);
-                                                                    unset($list_sst);
-                                                                    $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
-                                                                    $DB->where('sst_show', 'Y');
-                                                                    $DB->groupBy("mt_idx");
-                                                                    $DB->orderBy("sst_sdate", "asc");
-                                                                    $DB->orderBy("sst_edate", "asc");
-                                                                    $list_sst = $DB->get('smap_schedule_t');
-                                                                    if ($list_sst) {
-                                                                        unset($list_sst_a);
-                                                                        $DB->where("sst_idx in (" . $arr_sst_idx_im . ")");
-                                                                        $DB->where('sst_show', 'Y');
-                                                                        $DB->orderBy("sst_all_day", "asc");
-                                                                        $DB->orderBy("sst_sdate", "asc");
-                                                                        $DB->orderBy("sst_edate", "asc");
-                                                                        $list_sst_a = $DB->get('smap_schedule_t');
-                                                                        if ($list_sst_a) {
-                                                                            $count = 1;
-                                                                            foreach ($list_sst_a as $row_sst_a) {
-                                                                                $current_date = date('Y-m-d H:i:s');
-                                                                                if ($row_sst_a['sst_all_day'] == 'Y') {
-                                                                                    $point_status = 'point_ing';
-                                                                                } else if ($current_date >= $row_sst_a['sst_edate']) {
-                                                                                    $point_status = 'point_done';
-                                                                                } else if ($current_date >= $row_sst_a['sst_sdate'] && $current_date <= $row_sst_a['sst_edate']) {
-                                                                                    $point_status = 'point_ing';
-                                                                                } else {
-                                                                                    $point_status = 'point_gonna';
-                                                                                }
-                                                                                if ($row_sst_a['sst_update_chk'] == '1,2,3') {
-                                                                                    $grant = '전체';
-                                                                                } else {
-                                                                                    $grantNumbers = explode(',', $row_sst_a['sst_update_chk']);
-                                                                                    // 권한 문자열을 담을 배열 초기화
-                                                                                    $grantStrings = array();
-
-                                                                                    // 각 권한 번호에 따른 권한 문자열 배열에 추가
-                                                                                    foreach ($grantNumbers as $number) {
-                                                                                        if (isset($arr_grant[$number])) {
-                                                                                            $grantStrings[] = $arr_grant[$number];
-                                                                                        }
-                                                                                    }
-
-                                                                                    // 권한 문자열 합치기
-                                                                                    $grant = implode(', ', $grantStrings);
-                                                                                }
-                                                                    ?>
-                                                                                <li class="py-2">
-                                                                                    <a href="./schedule_form?sst_idx=<?= $row_sst_a['sst_idx'] ?>" class="d-flex align-items-center justify-content-between">
-                                                                                        <div class="d-flex align-items-center">
-                                                                                            <div class="task <?= $point_status ?>">
-                                                                                                <span class="point_inner">
-                                                                                                    <span class="point_txt"><?= $count ?></span>
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            <div class="mx-3">
-                                                                                                <p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text"><?= $row_sst_a['sst_title'] ?></p>
-                                                                                                <p class="fs_10 fw_300 text_gray line_h1_3"><span><?= translate('수정권한', $userLang) ?> : </span> <?= translate($grant, $userLang) ?></p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <!-- 수정권한 없을때 지워주세요 -->
-                                                                                        <p><i class="xi-angle-right-min text_light_gray fs_13"></i></p>
-                                                                                    </a>
-                                                                                </li>
-                                                                    <?
-                                                                                $count++;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    ?>
-                                                                </ul>
-                                                            </div>
-                                                        <? } ?>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                            <?          }
-                                    }
-                                }
-                            } ?>
-                        </ul>
-                    </div>
-        <? }
-            }
+    // 초대된 그룹 정보 가져오기
+    $list_sgt = [];
+    if (!empty($user_group_info['invited_group_ids'])) {
+        $list_sgt = $DB->rawQuery("
+        SELECT * FROM smap_group_t
+        WHERE sgt_idx IN (" . $user_group_info['invited_group_ids'] . ")
+        ORDER BY sgt_idx ASC, sgt_udate DESC
+    ");
+    }
+    
+    if ($list_sgt) {
+        foreach ($list_sgt as $row_sgt) {
+            $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
         }
-        ?>
-    </div>
-    <script>
-        function share_link_modal(i) {
-            var form_data = new FormData();
-            form_data.append("act", "link_modal");
-            form_data.append("sgt_idx", i);
+    }
+    
+    $list_sst_a = getSchedules($_POST['sgdt_idx'], $_POST['event_start_date'], $_SESSION['_mt_idx']);
 
-            $.ajax({
-                url: "./group_update",
-                enctype: "multipart/form-data",
-                data: form_data,
-                type: "POST",
-                async: true,
-                contentType: false,
-                processData: false,
-                cache: true,
-                timeout: 5000,
-                success: function(data) {
-                    if (data == 'N') {
-                        jalert('초대코드를 다 사용하였습니다.');
-                    } else {
-                        $('#share_url').val(data);
-                    }
-                },
-                error: function(err) {
-                    console.log(err);
-                },
-            });
-            $('#link_modal').modal('show');
-        }
-    </script>
-<? } elseif ($_POST['act'] == "get_schedule_member") {
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $DB->where('sgdt_show', 'Y');
+    $sgdt_row = $DB->getone('smap_group_detail_t');
+
+    // JSON 응답 생성
+    $response = [
+        'event_start_date' => $_POST['event_start_date'],
+        'event_start_date_t' => DateType($_POST['event_start_date'], 20),
+        'arr_sst_idx' => $arr_sst_idx,
+        'list_sst' => $list_sst,
+        'user_groups' => $user_group_info,
+        'user_group_info' => $user_group_info,
+        'sgt_cnt' => $sgt_cnt,
+        'sgdt_cnt' => $sgdt_cnt,
+        'group_list' => $list_sgt,
+        'txt_schedule_of' => $translations['txt_schedule_of'],
+        'txt_no_data' => $translations['txt_no_data'],
+        'mt_idx' => $_SESSION['_mt_idx'],
+        'mt_nickname' => $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'],
+        'mt_file1' => $_SESSION['_mt_file1'],
+        'ct_no_profile_img_url' => $ct_no_profile_img_url,
+        'CDN_HTTP' => CDN_HTTP,
+        'list_sst_a' => $list_sst_a,
+        'list_sgdt' => $list_sgdt,
+        'sgdt_idx' => $sgdt_row['sgdt_idx'],
+    ];
+
+    echo json_encode($response);
+} elseif ($_POST['act'] == "get_schedule_member") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     } ?>
     <ul class="member_group" id="accordionExample">
         <?php
@@ -473,7 +243,7 @@ if ($_POST['act'] == "event_source") {
                                                     <div>
                                                         <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2" style="word-break: break-all;"><?= $val['mt_nickname'] ?></p>
                                                         <div class="d-flex align-items-center flex-wrap">
-                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1" style="word-break: break-all;"><?= translate($val['sgdt_owner_leader_chk_t'], $userLang) ?></p>
+                                                            <p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1" style="word-break: break-all;"><?= $translations['txt_' . $val['sgdt_owner_leader_chk_t']] ?></p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -494,7 +264,7 @@ if ($_POST['act'] == "event_source") {
             <li>
                 <div class="pt-5 text-center">
                     <img src="<?= CDN_HTTP ?>/img/warring.png" width="82px" alt="자료없음">
-                    <p class="mt_20 fc_gray_900 text-center"><?= translate('등록된 멤버가 없습니다.', $userLang) ?></p>
+                    <p class="mt_20 fc_gray_900 text-center"><?= $translations['txt_no_members_registered'] ?></p>
                 </div>
                 <!-- 멤버가 없을때 -->
             </li>
@@ -505,7 +275,7 @@ if ($_POST['act'] == "event_source") {
 <? } elseif ($_POST['act'] == "get_schedule_map") { ?>
     <form method="post" name="frm_schedule_map" id="frm_schedule_map">
         <div class="modal-header">
-            <p class="modal-title line1_text fs_20 fw_700">위치 선택</p>
+            <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_select_location'] ?></p>
             <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
         </div>
         <div class="modal-body scroll_bar_y" style="min-height: 600px;">
@@ -515,7 +285,7 @@ if ($_POST['act'] == "event_source") {
                         <ul>
                             <li class="d-flex">
                                 <div class="name flex-fill">
-                                    <span class="fs_12 fw_600 text-primary"><?= translate('선택한 위치', $userLang) ?></span>
+                                    <span class="fs_12 fw_600 text-primary"><?= $translations['txt_selected_location'] ?></span>
                                     <div class="fs_14 fw_600 text_dynamic mt-1 line_h1_3"></div>
                                 </div>
                                 <button type="button" class="mark_btn on"></button>
@@ -531,13 +301,13 @@ if ($_POST['act'] == "event_source") {
             </div>
         </div>
         <div class="modal-footer border-0 p-0">
-            <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('위치 선택완료', $userLang) ?></button>
+            <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_select_location_complete'] ?></button>
         </div>
     </form>
     <?php
 } elseif ($_POST['act'] == "map_location_input") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -574,7 +344,7 @@ if ($_POST['act'] == "event_source") {
     echo $_last_idx;
 } elseif ($_POST['act'] == "list_like_location") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
@@ -620,7 +390,7 @@ if ($_POST['act'] == "event_source") {
         <li>
             <div class="pt-5 text-center">
                 <img src="<?= CDN_HTTP ?>/img/warring.png" width="82px" alt="자료없음">
-                <p class="mt_20 fc_gray_500 text-center line_h1_4"><?= translate('등록된 위치가 없습니다.', $userLang) ?></p>
+                <p class="mt_20 fc_gray_500 text-center line_h1_4"><?= $translations['txt_no_registered_locations'] ?></p>
             </div>
             <!-- 멤버가 없을때 -->
         </li>
@@ -628,7 +398,7 @@ if ($_POST['act'] == "event_source") {
     }
 } elseif ($_POST['act'] == "map_location_like_delete") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['slt_idx'] == '') {
         p_alert('잘못된 접근입니다. slt_idx');
@@ -654,7 +424,7 @@ if ($_POST['act'] == "event_source") {
     }
 } elseif ($_POST['act'] == "list_contact") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     unset($list_sctg);
@@ -721,7 +491,7 @@ if ($_POST['act'] == "event_source") {
     }
 } elseif ($_POST['act'] == "contact_input") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sst_idx']) {
         unset($arr_query);
@@ -758,7 +528,7 @@ if ($_POST['act'] == "event_source") {
     echo "Y";
 } elseif ($_POST['act'] == "schedule_form") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sst_title'] == '') {
         p_alert('잘못된 접근입니다. sst_title');
@@ -820,7 +590,7 @@ if ($_POST['act'] == "event_source") {
         $start_date = new DateTime($repeat_sdate);
         $end_date = new DateTime($repeat_edate);
 
-        if ($repeat_array['r1'] == 3) { // 매주 반복일 시 요일 찾은 후 반복 실행
+        if ($repeat_array['r1'] == 3) { // 매�� 반복일 시 요일 찾은 후 반복 실행
             if (isset($repeat_array['r2']) && !empty($repeat_array['r2'])) {
                 // "r2" 값을 쉼표로 분리하여 배열로 변환
                 $r2_values = explode(',', $repeat_array['r2']);
@@ -1136,11 +906,14 @@ if ($_POST['act'] == "event_source") {
                         $plt_condition = '그룹원이 자신의 일정 수정';
                         $plt_memo = '해당 그룹의 그룹오너/리더에게 일정이 수정되었다는 푸시알림';
                         // $mt_id = $member_row['mt_idx'];
-                        $mt_id = $member_row['mt_id'];
+                        $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
                         $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
                         $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-                        $plt_title =  "일정 수정알림 ✏️";
-                        $plt_content =  $mem_nickname . '님이 \'' . $sst_row['sst_title'] . '\' 일정을 수정했습니다.';
+                        $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+                        $plt_title =  $translations_schedule['txt_schedule_updated']; //일정 수정알림 ✏️
+                        $plt_content = $translations_schedule['txt_schedule_updated_content'];
+                        $plt_content = str_replace('{nick_name}', $mem_nickname, $plt_content);
+                        $plt_content = str_replace('{sst_title}', $sst_row['sst_title'], $plt_content);
 
                         $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
                     }
@@ -1155,11 +928,14 @@ if ($_POST['act'] == "event_source") {
             $plt_condition = '그룹오너가 그룹원 일정 수정';
             $plt_memo = '해당 그룹원에게 일정이 수정되었다는 푸시알림';
             // $mt_id = $member_row['mt_idx'];
-            $mt_id = $member_row['mt_id'];
+            $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
             $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
             $owner_nickname = $owner_row['mt_nickname'] ? $owner_row['mt_nickname'] : $owner_row['mt_name'];
-            $plt_title = '일정 수정알림 ✏️';
-            $plt_content = $owner_nickname . '님이 \'' . $sst_row['sst_title'] . '\' 일정을 수정했습니다. 확인해보세요.';
+            $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+            $plt_title = $translations_schedule['txt_schedule_updated']; //일정 수정알림 ✏️
+            $plt_content = $translations_schedule['txt_schedule_updated_content_member'];
+            $plt_content = str_replace('{nick_name}', $owner_nickname, $plt_content);
+            $plt_content = str_replace('{sst_title}', $sst_row['sst_title'], $plt_content);
 
             $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
         }
@@ -1311,11 +1087,13 @@ if ($_POST['act'] == "event_source") {
                         $plt_condition = '그룹원이 자신의 일정 입력';
                         $plt_memo = '해당 그룹의 그룹오너/리더에게 일정이 생성되었다는 푸시알림';
                         // $mt_id = $member_row['mt_idx'];
-                        $mt_id = $member_row['mt_id'];
+                        $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
                         $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
                         $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-                        $plt_title = '일정 생성알림 ➕';
-                        $plt_content = $mem_nickname . '님이 새로운 일정을 생성했습니다.';
+                        $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+                        $plt_title = $translations_schedule['txt_schedule_created']; //일정 생성알림 ➕
+                        $plt_content = $translations_schedule['txt_schedule_created_content']; //님이 새로운 일정을 생성했습니다.
+                        $plt_content = str_replace('{nick_name}', $mem_nickname, $plt_content);
 
                         $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
                     }
@@ -1330,11 +1108,13 @@ if ($_POST['act'] == "event_source") {
             $plt_condition = '그룹오너가 그룹원 일정 입력';
             $plt_memo = '해당 그룹원에게 일정이 생성되었다는 푸시알림';
             // $mt_id = $member_row['mt_idx'];
-            $mt_id = $member_row['mt_id'];
+            $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
             $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
             $owner_nickname = $owner_row['mt_nickname'] ? $owner_row['mt_nickname'] : $owner_row['mt_name'];
-            $plt_title = '일정 생성알림 ➕';
-            $plt_content = $owner_nickname . '님이 새로운 일정을 생성했습니다. 확인해보세요.';
+            $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+            $plt_title = $translations_schedule['txt_schedule_created']; //일정 생성알림 ➕
+            $plt_content = $translations_schedule['txt_schedule_created_content_member']; //님이 새로운 일정을 생성했습니다.
+            $plt_content = str_replace('{nick_name}', $owner_nickname, $plt_content);
 
             $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
         }
@@ -1355,7 +1135,7 @@ if ($_POST['act'] == "event_source") {
     echo "Y";
 } elseif ($_POST['act'] == "schedule_delete") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sst_idx'] == '') {
         p_alert('잘못된 접근입니다. sst_idx');
@@ -1397,11 +1177,14 @@ if ($_POST['act'] == "event_source") {
                     $plt_condition = '그룹원이 자신의 일정 삭제';
                     $plt_memo = '해당 그룹의 그룹오너/리더에게 일정이 삭제되었다는 푸시알림';
                     // $mt_id = $member_row['mt_idx'];
-                    $mt_id = $member_row['mt_id'];
+                    $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
                     $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
                     $mem_nickname = $mem_row['mt_nickname'] ? $mem_row['mt_nickname'] : $mem_row['mt_name'];
-                    $plt_title = '일정 삭제 알림 ❌';
-                    $plt_content = $mem_nickname . '님이 \'' . $sst_row['sst_title'] . '\' 일정을 삭제했습니다.';
+                    $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+                    $plt_title = $translations_schedule['txt_schedule_deleted']; //일정 삭제 알림 ❌
+                    $plt_content = $translations_schedule['txt_schedule_deleted_content'];
+                    $plt_content = str_replace('{nick_name}', $mem_nickname, $plt_content);
+                    $plt_content = str_replace('{sst_title}', $sst_row['sst_title'], $plt_content);
 
                     $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
                 }
@@ -1416,11 +1199,14 @@ if ($_POST['act'] == "event_source") {
         $plt_condition = '그룹오너가 그룹원 일정 삭제';
         $plt_memo = '해당 그룹원에게 일정이 삭제되었다는 푸시알림';
         // $mt_id = $member_row['mt_idx'];
-        $mt_id = $member_row['mt_id'];
+        $mt_id = $member_row['mt_id'] ? $member_row['mt_id'] : $member_row['mt_email'];
         $member_nickname = $member_row['mt_nickname'] ? $member_row['mt_nickname'] : $member_row['mt_name'];
         $owner_nickname = $owner_row['mt_nickname'] ? $owner_row['mt_nickname'] : $owner_row['mt_name'];
-        $plt_title = '일정 삭제알림 ❌';
-        $plt_content = $owner_nickname . '님이 \'' . $sst_row['sst_title'] . '\' 일정을 삭제했습니다. 확인해보세요.';
+        $translations_schedule = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $member_row['mt_lang'] . '.php';
+        $plt_title = $translations_schedule['txt_schedule_deleted']; //일정 삭제 알림 ❌
+        $plt_content = $translations_schedule['txt_schedule_deleted_content_member'];
+        $plt_content = str_replace('{nick_name}', $owner_nickname, $plt_content);
+        $plt_content = str_replace('{sst_title}', $sst_row['sst_title'], $plt_content);
 
         $result = api_push_send($plt_type, $sst_idx, $plt_condition, $plt_memo, $mt_id, $plt_title, $plt_content);
     }
@@ -1428,7 +1214,7 @@ if ($_POST['act'] == "event_source") {
     echo "Y";
 } elseif ($_POST['act'] == "calendar_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     if ($_POST['sgdt_mt_idx']) {
@@ -1607,7 +1393,7 @@ if ($_POST['act'] == "event_source") {
     </form>
 <? } elseif ($_POST['act'] == "group_member_list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); // 오너인 그룹수
@@ -1686,14 +1472,14 @@ if ($_POST['act'] == "event_source") {
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= translate('그룹원추가', $userLang) ?></p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= $translations['txt_invite_group_members'] ?></p>
                 </div>
             <?php } else { ?>
                 <div class="swiper-slide mem_box add_mem_box" style="visibility: hidden;">
                     <button class="btn mem_add">
                         <i class="xi-plus-min fs_20"></i>
                     </button>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= translate('그룹원추가', $userLang) ?></p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_4 text_dynamic"><?= $translations['txt_invite_group_members'] ?></p>
                 </div>
             <?php } ?>
         </div>
@@ -1715,7 +1501,7 @@ if ($_POST['act'] == "event_source") {
     }
 
     if (empty($_SESSION['_mt_idx'])) {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
         exit;
     }
 
@@ -1741,69 +1527,220 @@ if ($_POST['act'] == "event_source") {
 
         //나의 일정
         unset($list);
-        $DB->where('sgdt_idx', $sgdt_idx);
+        if ($sgdt_idx != '') {
+            $DB->where('sgdt_idx', $sgdt_idx);
+        } else {
+            $DB->where('mt_idx', $mt_idx);
+        }
         $DB->where(" ( sst_sdate <= '" . $event_start_date . " 23:59:59' and sst_edate >= '" . $event_start_date . " 00:00:00' )");
         $DB->where('sst_show', 'Y');
+        $DB->orderBy('sst_sdate', 'ASC');
         $list = $DB->get('smap_schedule_t');
 
         return $list;
     }
 
-    $DB->where('sgdt_idx', $_POST['sgdt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $sgdt_row = $DB->getone('smap_group_detail_t');
+    if ($_POST['sgdt_idx'] != '' && $_POST['sgdt_idx'] != 'undefined') {
+        // 그룹 상세 정보 조회
+        $DB->where('sgdt_idx', $_POST['sgdt_idx']);
+        $DB->where('sgdt_show', 'Y');
+        $DB->where('sgdt_discharge', 'N');
+        $DB->where('sgdt_exit', 'N');
+        $sgdt_row = $DB->getone('smap_group_detail_t');
 
-    // // logToFile("sgdt_row: " . print_r($sgdt_row, true));
+        // logToFile("[" . date("Y-m-d H:i:s") . "] sgdt_row: " . print_r($sgdt_row, true));
 
-    if (!$sgdt_row) {
-        echo json_encode(['error' => '그룹 상세 정보를 찾을 수 없습니다.']);
-        exit;
+        if (!$sgdt_row) {
+            echo json_encode(['error' => '그룹 상세 정보를 찾을 수 없습니다.']);
+            exit;
+        }
+
+        // 그룹 멤버 정보 조회
+        $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
+        $DB->where('sgdt_show', 'Y');
+        $DB->where('sgdt_discharge', 'N');
+        $DB->where('sgdt_exit', 'N');
+        $DB->orderBy('sgdt_owner_chk', 'ASC');
+        $DB->orderBy('sgdt_leader_chk', 'ASC');
+        $DB->orderBy('sgdt_wdate', 'ASC');
+        $sgdt_list = $DB->get('smap_group_detail_t');
+
+        // logToFile("[" . date("Y-m-d H:i:s") . "] sgdt_list: " . print_r($sgdt_list, true));
+    }
+    $owner_count = 0;
+    if ($sgdt_list) {
+        foreach ($sgdt_list as $member) {
+            if ($member['sgdt_owner_chk'] == 'Y') {
+                $owner_count++;
+            }
+        }
+    }
+    $result = ['result' => 'N', 'sgdt_idx' => $sgdt_row['sgdt_idx'], 'members' => [], 'owner_count' => $owner_count, 'sgt_cnt' => f_get_owner_cnt($_SESSION['_mt_idx'])]; // 결과를 저장할 배열, result 값 초기화
+
+
+    // 캐시 설정 (예: Redis 사용)
+    $redis = new Redis();
+    $redis->connect('127.0.0.1', 6379);
+
+    // 캐시 키 생성을 위한 함수
+    function getCacheKey($mt_idx)
+    {
+        return "location_info:{$mt_idx}";
     }
 
-    $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_discharge', 'N');
-    $DB->where('sgdt_exit', 'N');
-    $sgdt_list = $DB->get('smap_group_detail_t');
+    // 배치로 모든 멤버의 위치 정보를 가져오는 함수
+    function batchGetLocationInfo($DB, $member_indices)
+    {
+        $query = "SELECT mlt.mt_idx, mlt.mlt_battery, mlt.mlt_speed, mlt.mlt_lat, mlt.mlt_long
+                FROM member_location_log_t mlt
+                INNER JOIN (
+                    SELECT mt_idx, MAX(mlt_gps_time) as max_time
+                    FROM member_location_log_t
+                    WHERE mt_idx IN (" . implode(',', $member_indices) . ")
+                    GROUP BY mt_idx
+                ) latest ON mlt.mt_idx = latest.mt_idx AND mlt.mlt_gps_time = latest.max_time";
 
-    // // logToFile("sgdt_list: " . print_r($sgdt_list, true));
+        return $DB->rawQuery($query);
+    }
 
-    $result = ['result' => 'N', 'members' => []]; // 결과를 저장할 배열, result 값 초기화
+    if ($sgdt_list && $sgdt_list != '') {
+        $member_indices = array_column($sgdt_list, 'mt_idx');
+        $cached_locations = [];
+        $uncached_indices = [];
 
-    foreach ($sgdt_list as $sgdt_member) {
-        // 멤버 정보
-        $DB->where('mt_idx', $sgdt_member['mt_idx']);
-        $member_info = $DB->getone('member_t', 'mt_idx, mt_name, mt_sido, mt_gu, mt_dong, mt_file1');
+        // 캐시에서 위치 정보 확인
+        foreach ($member_indices as $mt_idx) {
+            $cache_key = getCacheKey($mt_idx);
+            $cached_data = $redis->get($cache_key);
+            if ($cached_data) {
+                $cached_locations[$mt_idx] = json_decode($cached_data, true);
+            } else {
+                $uncached_indices[] = $mt_idx;
+            }
+        }
 
-        // 위치 정보
-        $DB->where('mt_idx', $sgdt_member['mt_idx']);
-        $DB->orderby('mlt_gps_time', 'desc');
-        $location_info = $DB->getone('member_location_log_t', 'mlt_battery, mlt_speed, mlt_lat, mlt_long');
+        // 캐시되지 않은 위치 정보 배치로 가져오기
+        if (!empty($uncached_indices)) {
+            $fresh_locations = batchGetLocationInfo($DB, $uncached_indices);
+            foreach ($fresh_locations as $location) {
+                $mt_idx = $location['mt_idx'];
+                $cache_key = getCacheKey($mt_idx);
+                $redis->setex($cache_key, 300, json_encode($location)); // 5분 동안 캐시
+                $cached_locations[$mt_idx] = $location;
+            }
+        }
 
-        // 위치 정보가 없는 경우 빈 배열로 초기화
-        $location_info = $location_info ?: [];
+        foreach ($sgdt_list as $sgdt_member) {
+            // 멤버 언어 업데이트
+            if ($_SESSION['mt_idx'] == $sgdt_member['mt_idx']) {
+                $DB->where('mt_idx', $sgdt_member['mt_idx']);
+                $DB->update('member_t', ['mt_lang' => $_POST['mt_lang']]);
+            }
+
+            // 멤버 정보 조회
+            $DB->where('mt_idx', $sgdt_member['mt_idx']);
+            $member_info = $DB->getone('member_t', 'mt_idx, mt_name, mt_nickname, mt_sido, mt_gu, mt_dong, mt_file1, mt_lat, mt_long, mt_lang');
+            $member_info['my_profile'] = $member_info['mt_file1'] == "" ? $ct_no_img_url : get_image_url($member_info['mt_file1']);
+            $member_info['sgdt_idx'] = $sgdt_member['sgdt_idx'];
+            $member_info['sgt_idx'] = $sgdt_member['sgt_idx'];
+
+            // logToFile("[" . date("Y-m-d H:i:s") . "] member_info: " . print_r($member_info, true));
+
+            // 캐시된 위치 정보 사용
+            $location_info = $cached_locations[$sgdt_member['mt_idx']] ?? null;
+
+            // 위치 정보가 없는 경우 빈 배열로 초기화
+            if (!$location_info) {
+                $DB->where('mt_idx', $sgdt_member['mt_idx']);
+                $DB->orderby('mlt_gps_time', 'desc');
+                $location_info = $DB->getone('member_location_log_t');
+            }
+            $member_info['mt_lat'] = $location_info['mlt_lat'];
+            $member_info['mt_long'] = $location_info['mlt_long'];
+
+            // 배터리 정보 조회
+            $battery_info = getBatteryInfo(intval($location_info['mlt_battery'] ?? 0));
+
+            // 일정 정보 조회
+            $schedules = getSchedules($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+
+            // 경로 데이터 조회
+            $arr_sst_idx = get_schedule_main($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+            $schedule_count = count($arr_sst_idx);
+            $arr_sst_date = get_schedule_date($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+
+            // result_data['members'] 배열 초기화 (sgdt_idx를 키로 사용)
+            $result['members'][$sgdt_member['sgdt_idx']] = [
+                'result' => 'N',
+                'sllt_json_text' => null,
+                'sllt_json_walk' => null,
+                'member_info' => $member_info,
+                'location_info' => $location_info,
+                'battery_info' => $battery_info,
+                'schedules' => $schedules,
+            ];
+
+            if (!empty($arr_sst_date)) {
+                $latest_date = max($arr_sst_date);
+                $wdate = date('Y-m-d');
+                $DB->where('sgdt_idx', $sgdt_member['sgdt_idx']);
+                $DB->where('sllt_date', $wdate);
+                $DB->orderby('sllt_wdate', 'desc');
+                $sllt_row = $DB->getone('smap_loadpath_log_t');
+
+                $result['result'] = 'Y'; // 전체 결과도 Y로 변경
+
+                // logToFile($sllt_row['sllt_schedule_count'] . ' ' . count($arr_sst_date));
+                if ($sllt_row && $sllt_row['sllt_schedule_count'] === count($arr_sst_date) - 1) {
+                    $result['members'][$sgdt_member['sgdt_idx']]['result'] = 'Y'; // 멤버별 결과도 Y로 변경
+                    $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_text'] = $sllt_row['sllt_json_text'];
+                    $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_walk'] = $sllt_row['sllt_json_walk'];
+                } else {
+                    $result['members'][$sgdt_member['sgdt_idx']]['result'] = 'N'; // 멤버별 결과도 N로 변경
+                    $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_text'] = null;
+                    $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_walk'] = null;
+                }
+            }
+
+            if ($member_info) {
+                $result['result'] = 'Y'; // 전체 결과도 Y로 변경
+            }
+        }
+    } else {
+        $DB->where('mt_idx', $_SESSION['_mt_idx']);
+        $member_info = $DB->getone('member_t', 'mt_idx, mt_name, mt_sido, mt_gu, mt_dong, mt_file1, mt_lat, mt_long');
+        $member_info['sgdt_idx'] = '';
+
+        // 위치 정보 (캐시 사용)
+        $cache_key = getCacheKey($_SESSION['_mt_idx']);
+        $cached_location = $redis->get($cache_key);
+        if ($cached_location) {
+            $location_info = json_decode($cached_location, true);
+        } else {
+            $DB->where('mt_idx', $_SESSION['_mt_idx']);
+            $DB->orderby('mlt_gps_time', 'desc');
+            $location_info = $DB->getone('member_location_log_t', 'mlt_battery, mlt_speed, mlt_lat, mlt_long');
+            if ($location_info) {
+                $redis->setex($cache_key, 300, json_encode($location_info)); // 5분 동안 캐시
+            }
+        }
 
         // 배터리 정보
         $battery_info = getBatteryInfo(intval($location_info['mlt_battery'] ?? 0));
 
         // 일정 정보
-        $schedules = getSchedules($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
+        $schedules = getSchedules($_POST['sgdt_idx'], $_POST['event_start_date'], $_SESSION['_mt_idx']);
 
-        // 경로 데이터
-        $arr_sst_idx = get_schedule_main($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
-        $schedule_count = count($arr_sst_idx);
-        $arr_sst_date = get_schedule_date($sgdt_member['sgdt_idx'], $_POST['event_start_date'], $sgdt_member['mt_idx']);
-
-        // logToFile("sgdt_member: " . print_r($sgdt_member, true));
-        // logToFile("arr_sst_idx: " . print_r($arr_sst_idx, true));
-        // logToFile("schedule_count: " . $schedule_count);
-        // logToFile("arr_sst_date: " . print_r($arr_sst_date, true));
-        // logToFile("schedules: " . print_r($schedules, true));
-
-        // result_data['members'] 배열 초기화 (sgdt_idx를 키로 사용)
-        $result['members'][$sgdt_member['sgdt_idx']] = [
+        // 위치 정보가 없는 경우 빈 배열로 초기화
+        if (!$location_info) {
+            $location_info = [
+                'mlt_battery' => 0,
+                'mlt_speed' => 0,
+                'mlt_lat' => $member_info['mt_lat'],
+                'mlt_long' => $member_info['mt_long']
+            ];
+        }
+        $result['members'][$_SESSION['_mt_idx']] = [
             'result' => 'N',
             'sllt_json_text' => null,
             'sllt_json_walk' => null,
@@ -1812,34 +1749,15 @@ if ($_POST['act'] == "event_source") {
             'battery_info' => $battery_info,
             'schedules' => $schedules,
         ];
-
-        if (!empty($arr_sst_date)) {
-            $latest_date = max($arr_sst_date);
-            $wdate = date('Y-m-d');
-            $DB->where('sgdt_idx', $sgdt_member['sgdt_idx']);
-            $DB->where('sllt_schedule_count', $schedule_count);
-            $DB->where("sllt_wdate >= '" . $latest_date  . "'");
-            $DB->where('sllt_date', $wdate);
-            $DB->orderby('sllt_wdate', 'desc');
-            $sllt_row = $DB->getone('smap_loadpath_log_t');
-
-            // logToFile("latest_date: " . $latest_date);
-            // logToFile("wdate: " . $wdate);
-            // logToFile("sllt_row: " . print_r($sllt_row, true));
-
-            if ($sllt_row) {
-                $result['result'] = 'Y'; // 전체 결과도 Y로 변경
-                $result['members'][$sgdt_member['sgdt_idx']]['result'] = 'Y'; // 멤버별 결과도 Y로 변경
-                $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_text'] = $sllt_row['sllt_json_text'];
-                $result['members'][$sgdt_member['sgdt_idx']]['sllt_json_walk'] = $sllt_row['sllt_json_walk'];
-            }
+        if ($member_info) {
+            $result['result'] = 'Y'; // 전체 결과도 Y로 변경
+            $result['members'][$_SESSION['_mt_idx']]['member_info']['mt_lat'] = $location_info['mlt_lat'] == "" ? $member_info['mt_lat'] : $location_info['mlt_lat'];
+            $result['members'][$_SESSION['_mt_idx']]['member_info']['mt_long'] = $location_info['mlt_long'] == "" ? $member_info['mt_long'] :  $location_info['mlt_long'];
+            $result['members'][$_SESSION['_mt_idx']]['member_info']['my_profile'] = $member_info['mt_file1'] == "" ? $ct_no_img_url : get_image_url($member_info['mt_file1']);
         }
-
-        // my_lat, mt_long, my_profile 추가
-        $result['members'][$sgdt_member['sgdt_idx']]['member_info']['my_lat'] = $location_info['mlt_lat'] == "" ? $member_info['mt_lat'] : $location_info['mlt_lat'];
-        $result['members'][$sgdt_member['sgdt_idx']]['member_info']['mt_long'] = $location_info['mlt_long'] == "" ? $member_info['mt_long'] :  $location_info['mlt_long'];
-        $result['members'][$sgdt_member['sgdt_idx']]['member_info']['my_profile'] = $member_info['mt_file1'] == "" ? $ct_no_img_url : get_image_url($member_info['mt_file1']);
     }
+
+
 
     // logToFile("result: " . print_r($result, true));
 
@@ -1848,7 +1766,7 @@ if ($_POST['act'] == "event_source") {
     exit;
 } elseif ($_POST['act'] == "member_location_reload") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     if ($_POST['sgdt_idx']) {
         $DB->where('sgdt_idx', $_POST['sgdt_idx']);
@@ -1874,13 +1792,48 @@ if ($_POST['act'] == "event_source") {
                 $battery_color = '#FF204E'; // 빨간색 계열
                 $battery_image = './img/battery_red.png';
             }
+
+            function generateAddress($mem_row)
+            {
+                $components = [
+                    $mem_row['mem_sido'],
+                    $mem_row['mt_gu'],
+                    $mem_row['mt_dong']
+                ];
+
+                $address = '';
+                $seen = [];
+
+                foreach ($components as $component) {
+                    $parts = explode(' ', trim($component));
+                    foreach ($parts as $part) {
+                        if (!empty($part) && !in_array($part, $seen)) {
+                            $address .= $part . ' ';
+                            $seen[] = $part;
+                        }
+                    }
+                }
+
+                $address = rtrim($address);  // 마지막 공백 제거
+
+                return $address;
+            }
+
+            // 사용 예시
+            $mem_row = [
+                'mem_sido' => $mem_row['mem_sido'],
+                'mt_gu' => $mem_row['mt_gu'],
+                'mt_dong' => $mem_row['mt_dong']
+            ];
+
+            $address = generateAddress($mem_row);
     ?>
             <div class="border-bottom  pb-3">
                 <div class="task_header_tit">
-                    <p class="fs_16 fw_600 line_h1_2 mr-3"><?= translate('현재 위치', $userLang); ?></p>
+                    <p class="fs_16 fw_600 line_h1_2 mr-3"><?= $translations['txt_current_location'] ?></p>
                     <div class="d-flex align-items-center justify-content-end">
                         <!-- <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?>이동중</span> <?= round($mt_location_info['mlt_speed']) ?>km/h<? } ?></p> -->
-                        <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?>이동중</span><? } ?></p>
+                        <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?><?= $translations['txt_moving'] ?></span><? } ?></p>
                         <!-- <p class="d-flex bettery_txt fs_13"><span class="d-flex align-items-center flex-shrink-0 mr-2"><img src="./img/battery.png?v=20240404" width="14px" class="battery_img" alt="베터리시용량"></span> <?= $mt_location_info['mlt_battery'] ?>%</p> -->
                         <p class="d-flex fs_13">
                             <span class="d-flex align-items-center flex-shrink-0 mr-2">
@@ -1890,7 +1843,7 @@ if ($_POST['act'] == "event_source") {
                         </p>
                     </div>
                 </div>
-                <p class="fs_14 fw_500 text_light_gray text_dynamic line_h1_3 mt-2"><?= $mem_row['mt_sido'] . ' ' . $mem_row['mt_gu'] . ' ' . $mem_row['mt_dong'] ?></p>
+                <p class="fs_14 fw_500 text_light_gray text_dynamic line_h1_3 mt-2"><?= $address ?></p>
             </div>
         <?php
         }
@@ -1918,10 +1871,10 @@ if ($_POST['act'] == "event_source") {
         ?>
         <div class="border-bottom  pb-3">
             <div class="task_header_tit">
-                <p class="fs_16 fw_600 line_h1_2 mr-3"><?= translate('현재 위치', $userLang); ?></p>
+                <p class="fs_16 fw_600 line_h1_2 mr-3"><?= $translations['txt_current_location'] ?></p>
                 <div class="d-flex align-items-center justify-content-end">
                     <!-- <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?>이동중</span> <?= round($mt_location_info['mlt_speed']) ?>km/h<? } ?></p> -->
-                    <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?>이동중</span><? } ?></p>
+                    <p class="move_txt fs_13 mr-3"><span class="mr-1"><? if ($mt_location_info['mlt_speed'] > 1) { ?><?= $translations['txt_moving'] ?></span><? } ?></p>
                     <!-- <p class="d-flex bettery_txt fs_13"><span class="d-flex align-items-center flex-shrink-0 mr-2"><img src="./img/battery.png?v=20240404" width="14px" class="battery_img" alt="베터리시용량"></span> <?= $mt_location_info['mlt_battery'] ?>%</p> -->
                     <p class="d-flex fs_13">
                         <span class="d-flex align-items-center flex-shrink-0 mr-2">
@@ -1938,7 +1891,7 @@ if ($_POST['act'] == "event_source") {
 } elseif ($_POST['act'] == "schedule_map_list") {
     define('CACHE_EXPIRE_TIME', 120); // 2분
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $cache_key = "schedule_map_list_" . $_POST['sgdt_idx'] . "_" . $_SESSION['_mt_idx'];
@@ -2016,7 +1969,7 @@ if ($_POST['act'] == "event_source") {
     }
 
     $result_data = [
-        "my_lat" => $my_data['lat'],
+        "mt_lat" => $my_data['lat'],
         "mt_long" => $my_data['long'],
         "my_profile" => $my_data['profile'],
     ];
@@ -2079,7 +2032,7 @@ if ($_POST['act'] == "event_source") {
 
                 $sst_sdate_e1 = get_date_ttime($row_sst_a['sst_sdate']);
                 $sst_sdate_e2 = get_date_ttime($row_sst_a['sst_edate']);
-                $sst_all_day_t = ($row_sst_a['sst_all_day'] == 'Y') ? '하루종일' : "$sst_sdate_e1 ~ $sst_sdate_e2";
+                $sst_all_day_t = ($row_sst_a['sst_all_day'] == 'Y') ? $translations['all_day'] : "$sst_sdate_e1 ~ $sst_sdate_e2";
 
                 $status = ($row_sst_a['sst_all_day'] == 'Y' || ($current_date >= $row_sst_a['sst_sdate'] && $current_date <= $row_sst_a['sst_edate'])) ? 'point_ing' : (($current_date >= $row_sst_a['sst_edate']) ? 'point_done' : 'point_gonna');
                 $point_class = ($status == 'point_ing') ? 'point2' : (($status == 'point_done') ? 'point1' : 'point3');
@@ -2171,7 +2124,7 @@ if ($_POST['act'] == "event_source") {
     exit;
 } elseif ($_POST['act'] == "load_path_chk") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     // 회원구분
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
@@ -2274,7 +2227,7 @@ if ($_POST['act'] == "event_source") {
     exit;
 } elseif ($_POST['act'] == "pedestrian_path_chk") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     // logToFile("pedestrian_path_chk start");
     // smap_group_detail_t에서 sgdt_idx를 통해서 그룹 sgt_idx를 찾는다.
@@ -2317,20 +2270,23 @@ if ($_POST['act'] == "event_source") {
             $sllt_row = $DB->getone('smap_loadpath_log_t');
             // logToFile("sllt_row : " . print_r($sllt_row, true));
 
-            // sllt_row가 존재하지 않더라도 멤버 정보를 result_data에 추가
-            $result_data['result'] = 'Y'; // 경로 데이터 유무와 관계없이 result를 Y로 변경
-            $result_data['mt_idx'] = $sllt_row['mt_idx'] ?? null; // sllt_row가 없으면 mt_idx는 null
-            $result_data['members'][$sgdt_member['sgdt_idx']] = array(
-                'sllt_json_text' => $sllt_row['sllt_json_text'] ?? null, // sllt_row가 없으면 null
-                'sllt_json_walk' => $sllt_row['sllt_json_walk'] ?? null  // sllt_row가 없으면 null
-            );
+            if ($sllt_row && $sllt_row['sllt_schedule_count'] === count($arr_sst_date) - 1) {
+                $result_data['result'] = 'Y'; // 경로 데이터 유무와 관계없이 result를 Y로 변경
+                $result_data['mt_idx'] = $sllt_row['mt_idx'] ?? null; // sllt_row가 없으면 mt_idx는 null
+                $result_data['members'][$sgdt_member['sgdt_idx']] = array(
+                    'sllt_json_text' => $sllt_row['sllt_json_text'] ?? null, // sllt_row가 없으면 null
+                    'sllt_json_walk' => $sllt_row['sllt_json_walk'] ?? null  // sllt_row가 없으면 null
+                );
+            } else {
+                $result_data['result'] = 'N';
+            }
         }
     }
     // logToFile("result_data : " . print_r($result_data, true));
     echo json_encode($result_data);
 } elseif ($_POST['act'] == "loadpath_add") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_show', 'Y');
@@ -2358,7 +2314,7 @@ if ($_POST['act'] == "event_source") {
     echo 'Y';
 } elseif ($_POST['act'] == "my_location_search") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
     $DB->where('mt_idx', $_POST['mt_idx']);
@@ -2378,7 +2334,7 @@ if ($_POST['act'] == "event_source") {
     echo $rtn;
 } elseif ($_POST['act'] == "marker_reload") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert('로그인이 필요합니다.', './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
     $DB->where('sgdt_idx', $_POST['sgdt_idx']);
     $DB->where('sgdt_discharge', 'N');
@@ -2396,7 +2352,7 @@ if ($_POST['act'] == "event_source") {
 
         unset($result_data);
         $result_data = array(
-            "my_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
+            "mt_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
             "mt_long" => $mt_location_info['mlt_long'] == "" ? $mem_row['mt_long'] :  $mt_location_info['mlt_long'],
             "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
         );
@@ -2405,7 +2361,7 @@ if ($_POST['act'] == "event_source") {
         $mem_row = $DB->getone('member_t');
         unset($result_data);
         $result_data = array(
-            "my_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
+            "mt_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
             "mt_long" => $_SESSION['_mt_long'] == "" ? $mem_row['mt_long'] : $_SESSION['_mt_long'],
             "my_profile" => $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'],
         );

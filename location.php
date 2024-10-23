@@ -2,19 +2,19 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '4';
 $h_menu = '5';
-$$location_page = '1';
-$_SUB_HEAD_TITLE = translate("내장소", $userLang);
+$location_page = '1'; // 변수명 수정: $$location_page -> $location_page
+$_SUB_HEAD_TITLE = $translations['txt_my_places']; // 번역 배열 사용
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
-if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+if (empty($_SESSION['_mt_idx'])) {
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', $userLang), './logout');
+        alert($translations['txt_login_attempt_other_device'], './logout');
     }
 }
 
@@ -33,8 +33,11 @@ $DB->where('sgdt_show', 'Y');
 $DB->where('sgdt_exit', 'N');
 $DB->where('sgdt_owner_chk', 'Y');
 $DB->where('sgdt_discharge', 'N');
-$sgdt_row = $DB->getone('smap_group_detail_t');
-if (!$sgdt_row['sgdt_idx']) {
+$sgdt_row_temp = $DB->getone('smap_group_detail_t');
+
+if ($sgdt_row_temp) {
+    $sgdt_row = $sgdt_row_temp;
+} else {
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $DB->where('sgdt_show', 'Y');
     $DB->where('sgdt_exit', 'N');
@@ -42,6 +45,7 @@ if (!$sgdt_row['sgdt_idx']) {
     $DB->where('sgdt_discharge', 'N');
     $sgdt_row = $DB->getone('smap_group_detail_t');
 }
+
 $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
 
 //오너제외한 그룹원 수
@@ -56,6 +60,8 @@ $DB->where('sgdt_discharge', 'N');
 $DB->where('sgdt_exit', 'N');
 $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
 $expt_cnt = $row['cnt'];
+
+$s_date = date("Y-m-d");
 
 ?>
 <style>
@@ -131,6 +137,14 @@ $expt_cnt = $row['cnt'];
 </style>
 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
 <div class="container sub_pg px-0 py-0">
+    <!-- 로딩 화면 추가 -->
+    <div id="map-loading" style="display: none;">
+        <div class="dots-spinner">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
     <section class="pg_map_wrap">
         <input type="hidden" name="sst_location_title" id="sst_location_title" value="" />
         <input type="hidden" name="sst_location_add" id="sst_location_add" value="" />
@@ -138,14 +152,6 @@ $expt_cnt = $row['cnt'];
         <input type="hidden" name="sst_location_long" id="sst_location_long" value="" />
         <input type="hidden" id="slt_idx" name="slt_idx" value="">
         <div class="pg_map_inner" id="map">
-            <!-- 로딩 화면 추가 -->
-            <div id="map-loading" style="display: none;">
-                <div class="dots-spinner">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
         </div>
         <div class="pg_map_inner" id="map_info_box">
             <div class="flt_map_wrap">
@@ -170,7 +176,7 @@ $expt_cnt = $row['cnt'];
                                             </div>
                                             <div class="">
                                                 <div class="rect_bner">
-                                                    <img src="<?= $ct_img_url . '/' . $bt_row['bt_file'] ?>" alt="배너이미지" onerror="this.src='<?= $ct_no_img_url ?>'" />
+                                                    <img src="<?= $ct_img_url . '/' . $bt_row['bt_file'] ?>" alt="<?= $translations['txt_banner_image'] ?>" onerror="this.src='<?= $ct_no_img_url ?>'" />
                                                 </div>
                                             </div>
                                         </div> <?
@@ -187,32 +193,31 @@ $expt_cnt = $row['cnt'];
                         <ul>
                             <li>
                                 <div class="address_btn" onclick="f_modal_map_search();">
-                                    <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span><?= translate('지번, 도로명, 건물명으로 검색', $userLang) ?></p>
+                                    <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="<?= $translations['txt_search'] ?>" /></span><?= $translations['txt_search_by_address_details'] ?></p>
                                 </div>
                             </li>
                             <li class="d-flex">
                                 <div class="name flex-fill">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <span class="fs_12 fw_600 text-primary"><?= translate('선택한 위치', $userLang) ?></span>
-                                        <!-- <a class="fc_gray_900 fs_12 fw_500" href="javascript:f_modal_map_search();">주소검색하기 <i class="xi-angle-right-min"></i></a> -->
+                                        <span class="fs_12 fw_600 text-primary"><?= $translations['txt_selected_location'] ?></span>
                                     </div>
-                                    <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add" name="location_add"><?= translate('위치를 선택해주세요', $userLang) ?></div>
+                                    <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add" name="location_add"><?= $translations['txt_select_a_location'] ?></div>
                                 </div>
                             </li>
                             <!-- .loc_nickname_wp에 .on추가하면 나타탑니다. -->
                             <li class="mt-3 loc_nickname_wp">
                                 <div class="name d-flex flex-fill flex-column">
-                                    <label class="fs_12 fw_600 text-primary"><?= translate('별칭', $userLang) ?></label>
-                                    <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="<?= translate('별칭을 입력해주세요', $userLang) ?>" style="word-break: break-all;">
+                                    <label class="fs_12 fw_600 text-primary"><?= $translations['txt_loc_alias'] ?></label>
+                                    <input class="fs_14 fw_600 fc_gray_600 form-control text_dynamic mt-1 line_h1_3 loc_nickname" name="slt_title" id="slt_title" value="" placeholder="<?= $translations['txt_loc_enter_alias'] ?>" style="word-break: break-all;">
                                 </div>
                             </li>
                         </ul>
                     </div>
                     <!-- .myplace_btn에 .on추가하면 버튼이 나타납니다. -->
                     <div class="d-flex align-items-center myplace_btn_wr w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 myplace_btn flt_close"><?= translate('닫기', $userLang) ?></button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0 myplace_btn flt_close"><?= $translations['txt_close'] ?></button>
                         <!-- <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn">내장소 저장 횟수 초과</button> -->
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn" onclick="location_add()"><?= translate('내장소 등록', $userLang) ?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0 myplace_btn" onclick="location_add()"><?= $translations['txt_loc_registered'] ?></button>
                     </div>
                 </div>
             </div>
@@ -230,8 +235,8 @@ $expt_cnt = $row['cnt'];
     <section class="opt_bottom" style="transform: translateY(<?= $translateY ?>%);">
         <div class="top_bar_wrap text-center pt_08">
             <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
-                <img src="./img/top_bar.png" class="top_bar" width="34px" alt="탑바" />
-                <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="탑업" />
+                <img src="./img/top_bar.png" class="top_bar" width="34px" alt="<?= $translations['txt_top_bar'] ?>" />
+                <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="<?= $translations['txt_top_up'] ?>" />
             <?php } ?>
         </div>
         <div>
@@ -277,7 +282,7 @@ $expt_cnt = $row['cnt'];
                                             <input type="radio" name="rd2" <?= $val['sgdt_owner_chk'] == 'Y' ? 'checked' : '' ?> onclick="mem_schedule(<?= $val['sgdt_idx'] ?>);">
                                             <div class="prd_img mx-auto">
                                                 <div class="rect_square rounded_14">
-                                                    <img src="<?= $val['mt_file1_url'] ?>" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                                                    <img src="<?= $val['mt_file1_url'] ?>" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
                                                 </div>
                                             </div>
                                             <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic"><?= $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'] ?></p>
@@ -299,20 +304,17 @@ $expt_cnt = $row['cnt'];
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹만들기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= $translations['txt_create_group'] ?></span></p>
             </div>
             <div class="flt_body pb-5 d-flex align-items-start justify-content-between">
                 <div>
-                    <p class="text_dynamic line_h1_3 fs_17 fw_700 mt-3"><span class="text-primary">'내 장소'</span>는 여러분만의
-                        맞춤 지도입니다.</p>
-                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-3 fw_500">장소를 추가하면 그룹원이 해당 장소에
-                        도착하거나 떠날 때 실시간 알림으로 알려드립니다.
-                        지금 바로 그룹을 만들고 이 기능을 사용해 볼까요?
+                    <?= $translations['txt_is_your_custom_map'] ?>
+                    <p class="text_dynamic line_h1_3 text_gray fs_14 mt-3 fw_500"><?= $translations['txt_add_new_place_create_group'] ?>
                     </p>
                 </div>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'">다음</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?= $translations['txt_next'] ?></button>
             </div>
         </div>
     </div>
@@ -321,19 +323,13 @@ $expt_cnt = $row['cnt'];
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge">그룹원 초대하기</span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= $translations['txt_invite_members'] ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><span class="text-primary">그룹원</span>들의 안전을 지키는
-                    스마트한 방법!
-                </p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500">SMAP-내장소에서는 그룹원들이
-                    자주 가는 장소를 등록할 수 있어요.
-                    그룹원이 해당 장소에 들어가거나 나갈 때
-                    그룹 오너에게 푸시알림을 보내드려요.</p>
+                <?= $translations['txt_location_summary'] ?>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'">초대하러 가기</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_info?sgt_idx=<?= $row_sgt['sgt_idx'] ?>'"><?= $translations['txt_goto_invite'] ?></button>
             </div>
         </div>
     </div>
@@ -341,7 +337,7 @@ $expt_cnt = $row['cnt'];
 <!-- 토스트 Toast 토스트 넣어두었습니다. 필요하시면 사용하심됩니다.! 사용할 버튼에 id="ToastBtn" 넣으면 사용가능! -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i>위치가 등록되었습니다.</p> <!-- 성공메시지 -->
+        <p><i class="xi-check-circle mr-2"></i><?= $translations['txt_location_notif'] ?></p> <!-- 성공메시지 -->
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -350,13 +346,13 @@ $expt_cnt = $row['cnt'];
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">위치 알림을 설정합니다.</p>
-                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center">그룹원이 들어가거나 나올 때마다 알림을 받을 수 있어요.</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_location_notification_setting'] ?></p>
+                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center"><?= $translations['txt_enter_or_leave_location'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close">아니요</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_alarm_location();">알림설정하기</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_alarm_location();"><?= $translations['txt_set_alarm'] ?></button>
                 </div>
             </div>
         </div>
@@ -367,13 +363,13 @@ $expt_cnt = $row['cnt'];
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">위치 알림을 해제합니다.</p>
-                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center">더 이상 해당 장소에 대한 알림을 받지 않게되요</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_location_notification_cancel'] ?></p>
+                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center"><?= $translations['txt_no_longer_receive_alarm'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close">아니요</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_alarm_location();">알림해제하기</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_alarm_location();"><?= $translations['txt_disable_alarm'] ?></button>
                 </div>
             </div>
         </div>
@@ -384,13 +380,13 @@ $expt_cnt = $row['cnt'];
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">위치를 삭제합니다.</p>
-                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center">위치 삭제 시 연관된 일정도 전체 삭제됩니다.</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_delete_location'] ?></p>
+                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center"><?= $translations['txt_delete_location_related_schedule'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close">아니요</button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_location();">삭제하기</button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_location();"><?= $translations['txt_delete'] ?></button>
                 </div>
             </div>
         </div>
@@ -402,7 +398,7 @@ $expt_cnt = $row['cnt'];
         <div class="modal-content" id="map_search_content">
             <form method="post" name="frm_map_search" id="frm_map_search">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('주소검색', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_address_search'] ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
@@ -419,10 +415,8 @@ $expt_cnt = $row['cnt'];
             <input type="hidden" name="pedestrian_path_modal_sgdt_idx" id="pedestrian_path_modal_sgdt_idx" value="" />
             <input type="hidden" name="path_day_count" id="path_day_count" value="" />
             <div class="modal-body text-center pb-4">
-                <img src="./img/location_pin.png" width="48px" class="pt-3" alt="내장소 등록 제한" />
-                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4">무료 회원은 4곳까지만 등록 가능합니다.
-                    Plus 구독하면 무제한 등록 가능해요.
-                </p>
+                <img src="./img/location_pin.png" width="48px" class="pt-3" alt="<?= $translations['txt_location_limit'] ?>" />
+                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4"><?= $translations['txt_free_member_limit'] ?></p>
             </div>
             <style>
                 .btn-text-large {
@@ -439,12 +433,12 @@ $expt_cnt = $row['cnt'];
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
                     <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="location.href='./location'">
-                        <span class="btn-text-large">괜찮아요</span>
-                        <!-- <span class="btn-text-small">구독하지 않습니다</span> -->
+                        <span class="btn-text-large"><?= $translations['txt_ok'] ?></span>
+                        <!-- <span class="btn-text-small"><?= $translations['txt_not_subscribe'] ?></span> -->
                     </button>
                     <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="location.href='./plan_information'">
-                        <span class="btn-text-large">구독하기</span>
-                        <!-- <span class="btn-text-small">구독합니다</span> -->
+                        <span class="btn-text-large"><?= $translations['txt_subscribe'] ?></span>
+                        <!-- <span class="btn-text-small"><?= $translations['txt_subscribe'] ?></span> -->
                     </button>
                 </div>
             </div>
@@ -473,7 +467,7 @@ $expt_cnt = $row['cnt'];
 </script>
 <?php
 // 한국어 사용자를 위한 네이버 지도 API 스크립트
-if ($userLang == 'ko') {
+if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 ?>
     <script>
         map = new naver.maps.Map("map", {
@@ -612,7 +606,7 @@ if ($userLang == 'ko') {
                             results.forEach((result, i) => {
                                 htmlAddresses.push(`${i + 1}. ${result.formatted_address}`);
                             });
-                            htmlAddresses.push(`[GPS] 위도: ${latLng.lat()}, 경도: ${latLng.lng()}`);
+                            htmlAddresses.push(`[GPS                           ] <?= $translations['txt_latitude'] ?>: ${latLng.lat()}, <?= $translations['txt_longitude'] ?>: ${latLng.lng()}`);
 
                             // You can use htmlAddresses to display the information as needed
                             console.log(htmlAddresses.join('\n'));
@@ -644,12 +638,18 @@ if ($userLang == 'ko') {
 <?php } ?>
 <script>
     $(document).ready(function() {
-        createGroupMember(<?= $sgdt_row['sgdt_idx'] ?>);
-        createLocationList(<?= $sgdt_row['sgt_idx'] ?>, <?= $sgdt_row['sgdt_idx'] ?>, <?= $sgdt_row['mt_idx'] ?>);
+        if (<?= json_encode($sgdt_row) ?> !== null) {
+            createGroupMember(<?= json_encode($sgdt_row['sgdt_idx']) ?>);
+            createLocationList(<?= json_encode($sgdt_row['sgt_idx']) ?>, <?= json_encode($sgdt_row['sgdt_idx']) ?>, <?= json_encode($sgdt_row['mt_idx']) ?>);
+        } else {
+            // $sgdt_row가 비어 있을 때의 로직
+            // 예: 기본값 설정 또는 다른 작업 수행
+            createLocationList('', '', <?= $_SESSION['_mt_idx'] ?>);
+        }
         f_get_box_list2();
         f_get_box_list();
         setTimeout(() => {
-            location_map(<?= $sgdt_row['sgdt_idx'] ?>);
+            location_map(<?= json_encode($sgdt_row['sgdt_idx']) ?>);
             calcScreenOffset();
         }, 100);
 
@@ -662,7 +662,7 @@ if ($userLang == 'ko') {
         // 전체 HTML 구조 생성
         const html = `
         <div class="border bg-white rounded-lg px_16 py_16">
-            <p class="fs_16 fw_600 mb-3">${'<?= translate('그룹원', $userLang) ?>'}</p>
+            <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
             <style>
                 @keyframes loading {
                     0% {
@@ -706,36 +706,43 @@ if ($userLang == 'ko') {
         let html = '';
 
         // 본인 정보 추가
-        html += `
-        <div class="swiper-slide checks mem_box">
-            <label>
-                <input type="radio" name="rd2" checked onclick="mem_schedule(${data.my_info.sgt_idx}, ${data.my_info.sgdt_idx});">
-                <div class="prd_img mx-auto">
-                    <div class="rect_square rounded_14">
-                        <img src="${data.my_info.profile_image}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
-                    </div>
-                </div>
-                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.my_info.nickname}</p>
-            </label>
-        </div>
-    `;
-
-        // 그룹 멤버 정보 추가
-        data.group_members.forEach(member => {
+        if (data.members && data.members[data.sgdt_idx]) {
             html += `
             <div class="swiper-slide checks mem_box">
                 <label>
-                    <input type="radio" name="rd2" onclick="mem_schedule(${member.sgt_idx}, ${member.sgdt_idx});">
-                    <div class="prd_img mx-auto"> 
+                    <input type="radio" name="rd2" checked onclick="mem_schedule(${data.members[data.sgdt_idx].member_info.sgt_idx}, ${data.members[data.sgdt_idx].member_info.sgdt_idx});">
+                    <div class="prd_img mx-auto">
                         <div class="rect_square rounded_14">
-                            <img src="${member.profile_image}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                            <img src="${data.members[data.sgdt_idx].member_info.my_profile}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
                         </div>
                     </div>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.nickname}</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.members[data.sgdt_idx].member_info.mt_nickname}</p>
                 </label>
             </div>
         `;
-        });
+        }
+
+        // 그룹 멤버 정보 추가
+        if (data.members && typeof data.members === 'object') {
+            Object.keys(data.members).forEach(key => {
+                const member = data.members[key];
+                if (key !== data.sgdt_idx.toString()) {
+                    html += `
+                <div class="swiper-slide checks mem_box">
+                    <label>
+                        <input type="radio" name="rd2" onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
+                        <div class="prd_img mx-auto"> 
+                            <div class="rect_square rounded_14">
+                                <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                            </div>
+                        </div>
+                        <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.member_info.mt_nickname}</p>
+                    </label>
+                </div>
+            `;
+                }
+            });
+        }
 
         // 그룹원추가 버튼 추가
         html += `
@@ -743,9 +750,8 @@ if ($userLang == 'ko') {
             <button class="btn mem_add">
                 <i class="xi-plus-min fs_20"></i>
             </button>
-            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" style="word-break: break-all; line-height:0.7;">
-                ${'<?= translate(' 그룹원 ', $userLang) ?>'}<br>
-                ${'<?= translate(' 추가 ', $userLang) ?>'}
+            <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
+                <?= $translations['txt_add_member'] ?>
             </p>
         </div>
     `;
@@ -761,10 +767,8 @@ if ($userLang == 'ko') {
         let html = `
         <div class="trace_box trace_add_place swiper-slide" onclick="map_info_box_show()" style="height: 135px;">
             <div class="trace_box_txt_box text-center" style="height: 91.5px;">
-                <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center" style="line-height: 0.7;">${'<?= translate('내장소를', $userLang) ?>'}<br>
-                    ${'<?= translate('추가해보세요!', $userLang) ?>'}
-                </p>
-                <button type="button" class="btn trace_addbtn"></button>
+                <p class="fs_13 fw_400 text_dynamic line_h1_4 text-center" style="line-height: 1.2; margin-bottom: 10px;"><?= $translations['txt_add_new_place'] ?></p>
+                <button type="button" class="btn trace_addbtn" style="margin-top: 5px;"></button>
             </div>
         </div>
     `;
@@ -814,7 +818,7 @@ if ($userLang == 'ko') {
         // locationPointListWrap을 location_map_list_box 아래에 추가
         locationMapListBox.html(`
             <div class="border bg-white rounded-lg px_16 py_16 pb_3">
-                <p class="fs_16 fw_600 mb-3">${'<?= translate('리스트', $userLang) ?>'}</p>
+                <p class="fs_16 fw_600 mb-3"><?= $translations['txt_list'] ?></p>
                 <div class="swiper locSwiper location_point_list_wrap pb-0">
                     <div class="swiper-wrapper lo_grid_wrap">
                         ${html} 
@@ -900,7 +904,7 @@ if ($userLang == 'ko') {
             position: new naver.maps.LatLng(st_lat, st_lng),
             map: map,
             icon: {
-                content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + my_profile + '" alt="이미지" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
+                content: '<div class="point_wrap"><div class="map_user"><div class="map_rt_img rounded_14"><div class="rect_square"><img src="' + my_profile + '" alt="<? $translations['txt_image'] ?>" onerror="this.src=\'<?= $ct_no_img_url ?>\'"/></div></div></div></div>',
                 size: new naver.maps.Size(44, 44),
                 origin: new naver.maps.Point(0, 0),
                 anchor: new naver.maps.Point(22, 22)
@@ -1032,7 +1036,7 @@ if ($userLang == 'ko') {
                     }
 
                     if (latlng._lat && latlng._lng) {
-                        htmlAddresses.push("[GPS] 위도:" + latlng._lat + ", 경도: " + latlng._lng);
+                        htmlAddresses.push("[GPS] 도:" + latlng._lat + ", 경도: " + latlng._lng);
                     }
 
                     $(".flt_map_pin_wrap").addClass("on");
@@ -1113,16 +1117,12 @@ if ($userLang == 'ko') {
     }
 
     async function initGoogleMap(my_profile, st_lat, st_lng, markerData) {
+        showMapLoading();
         await loadGoogleMapsScript();
 
         // sgdt_idx에 해당하는 멤버의 위치 정보를 사용하여 지도 중심 설정
         if (!map) {
             await initMap(st_lat, st_lng);
-        } else {
-            map.setCenter({
-                lat: parseFloat(st_lat),
-                lng: parseFloat(st_lng)
-            });
         }
         console.log("Google Map initialized with custom data");
 
@@ -1218,7 +1218,7 @@ if ($userLang == 'ko') {
                     lng: locationLng
                 },
                 content: pointWrapDiv,
-                zIndex: 1
+                zIndex: 9999
             });
 
             markers.push(locationMarker);
@@ -1268,7 +1268,7 @@ if ($userLang == 'ko') {
             img.src = imageUrl;
             img.alt = '이미지';
             img.onerror = function() {
-                this.src = 'https://app.smap.site/img/no_image.png';
+                this.src = 'https://app2.smap.site/img/no_image.png';
             };
             rectSquareDiv.appendChild(img);
 
@@ -1338,7 +1338,7 @@ if ($userLang == 'ko') {
                     selectMarker.setMap(null);
                 }
                 selectMarker = new google.maps.Marker({
-                    position: latlng,
+                    position: latLng,
                     map: map
                 });
             } else {
@@ -1348,47 +1348,85 @@ if ($userLang == 'ko') {
     }
 
     function createGroupMember(sgdt_idx) {
+        showMapLoading();
         // sessionStorage에서 데이터를 먼저 확인
         let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
         if (cachedData) {
             // 캐싱된 데이터가 있으면 사용
             let response = JSON.parse(cachedData);
-            if (response.result === 'success') {
-                renderMemberList(response.data);
-                return; // 함수 종료
+            if (response.result === 'Y') {
+                renderMemberList(response);
+                return response; // 함수 종료
             }
         }
-        var form_data = new FormData();
-        form_data.append("act", "group_member_list");
-        form_data.append("group_sgdt_idx", sgdt_idx);
+        // var form_data = new FormData();
+        // form_data.append("act", "group_member_list");
+        // form_data.append("group_sgdt_idx", sgdt_idx);
 
-        $.ajax({
-            url: "./location_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 10000,
-            dataType: 'json',
-            success: function(response) {
-                if (response.result === 'success') {
-                    // sessionStorage에 데이터 저장
-                    sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
-                    renderMemberList(response.data);
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function(err) {
-                console.log(err);
-            },
+        // $.ajax({
+        //     url: "./location_update",
+        //     enctype: "multipart/form-data",
+        //     data: form_data,
+        //     type: "POST",
+        //     async: true,
+        //     contentType: false,
+        //     processData: false,
+        //     cache: true,
+        //     timeout: 10000,
+        //     dataType: 'json',
+        //     success: function(response) {
+        //         if (response.result === 'success') {
+        //             // sessionStorage에 데이터 저장
+        //             sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
+        //             renderMemberList(response.data);
+        //         } else {
+        //             alert(response.message);
+        //         }
+        //     },
+        //     error: function(err) {
+        //         console.log(err);
+        //     },
+        // });
+        return new Promise((resolve, reject) => {
+            var form_data = new FormData();
+            form_data.append("act", "member_schedule_list");
+            form_data.append("sgdt_idx", sgdt_idx);
+            form_data.append("event_start_date", '<?= $s_date ?>');
+            form_data.append("mt_lang", '<?= $userLang ?>');
+
+            $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 5000,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.result === 'Y') {
+                        hideMapLoading();
+                        sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
+                        renderMemberList(data);
+                        resolve(data);
+                    } else {
+                        console.log("No loadMemberSchedule data available");
+                        resolve(null);
+                    }
+                },
+                error: function(err) {
+                    console.error('AJAX request failed: ', err);
+                    hideMapLoading();
+                    reject(err);
+                },
+            });
         });
     }
 
     function createLocationList(sgt_idx, sgdt_idx, mt_idx) {
+        showMapLoading();
         var form_data = new FormData();
         form_data.append("act", "location_map_list");
         form_data.append("sgdt_idx", sgdt_idx);
@@ -1421,7 +1459,7 @@ if ($userLang == 'ko') {
         });
     }
 
-    function location_map(sgdt_idx) {
+    async function location_map(sgdt_idx) {
         showMapLoading();
         var form_data = new FormData();
         form_data.append("act", "my_location_list");
@@ -1439,25 +1477,30 @@ if ($userLang == 'ko') {
             cache: true,
             timeout: 10000,
             dataType: 'json',
-            success: function(data) {
-                if (data) {
+            success: async function(data) {
+                if (data && data.my_lat && data.mt_long) {
                     var my_profile = data.my_profile;
-                    var st_lat = data.my_lat;
-                    var st_lng = data.mt_long;
+                    var st_lat = parseFloat(data.my_lat);
+                    var st_lng = parseFloat(data.mt_long);
 
-                    if ('ko' === '<?= $userLang ?>') {
+                    if ('ko' == '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
                         initNaverMap(my_profile, st_lat, st_lng, data);
-                    } else if ('ko' !== '<?= $userLang ?>') {
+                        hideMapLoading();
+                    } else {
                         initGoogleMap(my_profile, st_lat, st_lng, data);
+                        hideMapLoading();
                     }
-
-                    map_panto(st_lat, st_lng)
+                    map_panto(st_lat, st_lng);
                 } else {
-                    console.log(err);
+                    console.error("Invalid data received:", data);
+                    hideMapLoading();
+                    // 오류 처리 로직 추가
                 }
             },
             error: function(err) {
-                console.log(err);
+                console.error("AJAX request failed:", err);
+                hideMapLoading();
+                // 오류 처리 로직 추가
             },
             complete: function() {
                 hideMapLoading(); // AJAX 요청 완료 후 무조건 실행 (success 또는 error 후에도 실행)
@@ -1556,12 +1599,12 @@ if ($userLang == 'ko') {
         var slt_long = $('#sst_location_long').val();
 
         if (!slt_lat || !slt_long) {
-            jalert('위치를 선택해주세요.');
+            jalert('<?= $translations['txt_select_a_location'] ?>');
             return false;
         }
 
         if (!slt_title) {
-            jalert('별칭을 입력해주세요.');
+            jalert('<?= $translations['txt_enter_alias'] ?>');
             return false;
         }
 
@@ -1598,7 +1641,7 @@ if ($userLang == 'ko') {
                     $('#map_info_box').addClass('d-none-temp');
                     $('#slt_title').val('');
                 } else {
-                    jalert("내장소 등록에 실패했습니다.");
+                    jalert("<?= $translations['txt_no_registered_locations'] ?>");
                 }
             },
             error: function(err) {
@@ -1713,7 +1756,9 @@ if ($userLang == 'ko') {
 
     // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        document.getElementById("map-loading").style.display = 'none';
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
     }
 
     function generateSpinnerColor() {
@@ -1738,7 +1783,7 @@ if ($userLang == 'ko') {
         var mapHeight = mapContainer.getBoundingClientRect().height;
         var verticalCenterOffset = (mapHeight - bottomSheetHeight) / 2 / 2;
 
-        if ('ko' === '<?= $userLang ?>') { // 네이버 지도
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') { // 네이버 지도
             map.setCenter(new naver.maps.LatLng(lat, lng));
 
             if (optBottom) {
@@ -1821,7 +1866,7 @@ if ($userLang == 'ko') {
     }
 
     function map_panto_location(lat, lng) {
-        if ('ko' === '<?= $userLang ?>') {
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             map.setCenter(new naver.maps.LatLng(lat, lng));
 
             optbottom = document.querySelector('.opt_bottom');
@@ -1937,12 +1982,12 @@ if ($userLang == 'ko') {
         for (var i = 0; i < markers.length; i++) {
             var marker = markers[i];
 
-            if ('ko' === '<?= $userLang ?>') { // 네이버 지도
+            if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') { // 네이버 지도
                 var position = marker.getPosition(); // 네이버 지도는 getPosition() 사용
                 if (Math.abs(position._lat - lat) < tolerance && Math.abs(position._lng - lng) < tolerance) {
                     return marker;
                 }
-            } else if (typeof google !== 'undefined') { // 구글 지도
+            } else { // 구글 지도
                 var position = marker.position; // 구글 지도는 position 속성 사용
                 if (Math.abs(position.Fg - lat) < tolerance && Math.abs(position.Hg - lng) < tolerance) {
                     return marker;
@@ -1976,10 +2021,10 @@ if ($userLang == 'ko') {
 
     function panMapDown() {
         originalCenter = map.getCenter();
-        let newLat = 'ko' === '<?= $userLang ?>' ? (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 : (currentLat || originalCenter.lat()) - (300 / 111000) * 1.8;
-        let newCenter = 'ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
+        let newLat = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 : (currentLat || originalCenter.lat()) - (300 / 111000) * 1.8;
+        let newCenter = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
 
-        if ('ko' === '<?= $userLang ?>') {
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             map.panTo(newCenter, {
                 duration: 700,
                 easing: 'easeOutCubic'
@@ -1998,7 +2043,7 @@ if ($userLang == 'ko') {
             });
             map.panTo(newCenter);
 
-            // 애니메이션 시간 이후 애니메이션 옵션 초기화
+            // 애니메���션 시간 이후 애니메이션 옵션 초기화
             setTimeout(() => {
                 map.setOptions({
                     animation: null
@@ -2010,9 +2055,9 @@ if ($userLang == 'ko') {
     }
 
     function panMapUp() {
-        let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
+        let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
 
-        if ('ko' === '<?= $userLang ?>') {
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             map.panTo(targetLatLng, {
                 duration: 700,
                 easing: 'easeOutCubic',
@@ -2061,7 +2106,7 @@ if ($userLang == 'ko') {
             var f = document.frm_schedule_map;
 
             if ($('#sst_location_add').val() == '') {
-                jalert('위치를 선택해주세요.');
+                jalert('<?= $translations['txt_select_a_location'] ?>');
                 return false;
             }
 
@@ -2077,7 +2122,7 @@ if ($userLang == 'ko') {
         },
         messages: {
             sst_location_add: {
-                required: "위치를 선택해주세요.",
+                required: "<?= $translations['txt_select_a_location'] ?>",
             },
         },
         errorPlacement: function(error, element) {

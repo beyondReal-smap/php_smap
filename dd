@@ -1,0 +1,6 @@
+'txt_schedule_created_content' => '님이 새로운 일정을 생성했습니다.',
+'txt_schedule_created' => '일정 생성알림 ➕',
+'txt_schedule_created_content_member' => '님이 새로운 일정을 생성했습니다. 확인해보세요.',
+'txt_schedule_deleted' => '일정 삭제 알림 ❌',
+'txt_nim' => '님이',
+'txt_schedule_deleted_content' => '일정을 삭제했습니다.',

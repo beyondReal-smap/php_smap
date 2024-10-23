@@ -8,28 +8,28 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 ?>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">사용하실 비밀번호를 입력해주세요.</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= $translations['txt_enter_password'] ?></p>
         <form method="post" name="frm_form" id="frm_form" action="./form_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="form_password" />
             <div class="mt-5">
                 <div class="ip_wr">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= $translations['txt_password'] ?></h5>
                     </div>
-                    <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="비밀번호를 입력해주세요.">
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2">비밀번호는 영문+숫자+특수문자 포함 8자리 이상이며, 특수문자는 !@#$%^만 지원됩니다.</div>
+                    <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="<?= $translations['txt_enter_password_placeholder'] ?>">
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2"><?= $translations['txt_password_requirements'] ?></div>
                 </div>
                 <div class="ip_wr mt_25 ip_invalid">
                     <div class="ip_tit">
-                        <h5>비밀번호 확인</h5>
+                        <h5><?= $translations['txt_confirm_password'] ?></h5>
                     </div>
-                    <input type="password" name="mt_pass_confirm" id="mt_pass_confirm" class="form-control" maxlength="20" placeholder="비밀번호를 한번 더 입력해주세요.">
+                    <input type="password" name="mt_pass_confirm" id="mt_pass_confirm" class="form-control" maxlength="20" placeholder="<?= $translations['txt_reenter_password_placeholder'] ?>">
                 </div>
             </div>
             <div class="bottom_btn_flex_end_wrap" style="height: 320px;">
                 <div class="bottom_btn_flex_end_box">
-                    <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" disabled><?= translate('입력했어요!', $userLang) ?></button>
+                    <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" disabled><?= $translations['txt_input_complete'] ?></button>
                 </div>
             </div>
         </form>
@@ -52,7 +52,7 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 
         $.validator.addMethod("regex", function(value, element, regexpr) {
             return regexpr.test(value);
-        }, "비밀번호는 영문+숫자+특수문자 포함 8자리 이상이며, 특수문자는 !@#$%^만 지원됩니다.");
+        }, "<?= $translations['txt_password_requirements'] ?>");
 
         $("#frm_form").validate({
             submitHandler: function() {
@@ -73,12 +73,12 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
             },
             messages: {
                 mt_pass: {
-                    required: "비밀번호를 입력하세요.",
-                    minlength: "최소 {0}글자이상이어야 합니다",
+                    required: "<?= $translations['txt_enter_password_error'] ?>",
+                    minlength: "<?= $translations['txt_min_length_error'] ?>",
                 },
                 mt_pass_confirm: {
-                    required: "비밀번호 확인을 입력해 주세요.",
-                    equalTo: "비밀번호가 동일하지 않습니다."
+                    required: "<?= $translations['txt_confirm_password_error'] ?>",
+                    equalTo: "<?= $translations['txt_password_mismatch_error'] ?>"
                 },
             },
             errorPlacement: function(error, element) {

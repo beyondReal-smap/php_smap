@@ -1,7 +1,0 @@
-<svg id="mark_arrival" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-  <g id="타원_3" data-name="타원 3" fill="#f34b4b" stroke="#d72602" stroke-linejoin="round" stroke-width="1">
-    <circle cx="12" cy="12" r="12" stroke="none"/>
-    <circle cx="12" cy="12" r="11.5" fill="none"/>
-  </g>
-  <path id="패스_42551" data-name="패스 42551" d="M-3.568-2.878h2.412v-.559H-5.861V-5.9h4.631v-.566h-5.32v3.586h2.3V-.852H-7.465v.578H-.311V-.852H-3.568ZM2.651-4.292a3.115,3.115,0,0,0,1.936,1.65l.336-.553A2.466,2.466,0,0,1,2.983-5.4v-.174H4.742v-.559H3v-1H2.3v1H.535v.559H2.3V-5.4A2.6,2.6,0,0,1,.329-3.039L.677-2.5A3.168,3.168,0,0,0,2.651-4.292ZM6.427-5.01V-7.1h-.69v4.767h.69V-4.419H7.6v-.59Zm-.69,3.655V.727h.69V-1.921H1.311v.566Z" transform="translate(12 15)" fill="#fff"/>
-</svg>

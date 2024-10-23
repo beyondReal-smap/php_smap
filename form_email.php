@@ -8,21 +8,21 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 ?>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">이메일을 입력해주세요.</p>
-        <p class="fs_12 fc_gray_600 mt-3 line_h1_2">이메일 확인을 위한 인증메일이 발송될 예정입니다.</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= $translations['enter_email'] ?></p>
+        <p class="fs_12 fc_gray_600 mt-3 line_h1_2"><?= $translations['email_verification_notice'] ?></p>
         <form method="post" name="frm_form" id="frm_form" action="./form_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="form_email" />
             <div class="mt-5">
                 <div class="ip_wr ip_valid">
                     <div class="ip_tit">
-                        <h5 class="">이메일</h5>
+                        <h5 class=""><?= $translations['email'] ?></h5>
                     </div>
-                    <input type="email" name="mt_id" id="mt_id" class="form-control lower" placeholder="test@test.com">
+                    <input type="email" name="mt_id" id="mt_id" class="form-control lower" placeholder="example@domain.com">
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" disabled><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" disabled><?= $translations['input_complete'] ?></button>
             </div>
         </form>
         <script>
@@ -80,10 +80,10 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
             },
             messages: {
                 mt_id: {
-                    required: "아이디(이메일)를 입력하세요",
-                    minlength: "최소 {0}글자이상이어야 합니다",
-                    email: "아이디(이메일)규칙에 어긋납니다.",
-                    mt_id_chk: "중복된 이메일이 존재합니다.",
+                    required: "<?= $translations['enter_email_id'] ?>",
+                    minlength: "<?= $translations['min_length_error'] ?>",
+                    email: "<?= $translations['invalid_email_format'] ?>",
+                    mt_id_chk: "<?= $translations['duplicate_email'] ?>",
                 },
             },
             errorPlacement: function(error, element) {

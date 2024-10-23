@@ -24,13 +24,13 @@ if ($_POST['act'] == "member_profile_get") {
             }
         }
     } else {
-        p_alert("잘못된 접근입니다. mt_agree");
+        p_alert($translations['txt_invalid_access']  . " mt_agree");
     }
 
     p_gotourl("./form_email");
 } elseif ($_POST['act'] == "chk_mt_id") {
     if($_POST['mt_id'] == '') {
-        p_alert("잘못된 접근입니다. mt_id");
+        p_alert($translations['txt_invalid_access']  . " mt_id");
     }
 
     $DB->where('mt_id', $_POST['mt_id']);
@@ -47,19 +47,19 @@ if ($_POST['act'] == "member_profile_get") {
         $row = $DB->getone('member_t');
 
         if($row['mt_idx']) {
-            p_alert("잘못된 접근입니다. mt_idx");
+            p_alert($translations['txt_invalid_access']  . " mt_idx");
         } else {
             $_SESSION['_mt_id_join'] = $_POST['mt_id'];
             $_SESSION['_m_confirm_num'] = mt_sms_make();
 
             //이메일 인증번호 전송
-            $subject = '['.APP_TITLE.']회원가입 인증번호 입니다.';
-            $content = '회원가입 인증번호 : '.$_SESSION['_m_confirm_num'];
+            $subject = '['.APP_TITLE.']'.$translations['txt_email_verification_subject'];
+            $content = $translations['txt_email_verification_content'].$_SESSION['_m_confirm_num'];
 
             // $rtn1 = mailer_new(FNAME, FMAIL, $_POST['mt_id'], $_POST['mt_id'], $subject, $content);
         }
     } else {
-        p_alert("잘못된 접근입니다. mt_id");
+        p_alert($translations['txt_invalid_access']  . " mt_id");
     }
 
     p_gotourl("./form_verify");
@@ -75,8 +75,8 @@ if ($_POST['act'] == "member_profile_get") {
             $_SESSION['_m_confirm_num'] = mt_sms_make();
 
             //이메일 인증번호 전송
-            $subject = '['.APP_TITLE.']회원가입 인증번호 입니다.';
-            $content = '회원가입 인증번호 : '.$_SESSION['_m_confirm_num'];
+            $subject = '['.APP_TITLE.']'.$translations['txt_email_verification_subject'];
+            $content = $translations['txt_email_verification_content'].$_SESSION['_m_confirm_num'];
 
             // $rtn1 = mailer_new(FNAME, FMAIL, $_POST['mt_id'], $_POST['mt_id'], $subject, $content);
 
@@ -87,7 +87,7 @@ if ($_POST['act'] == "member_profile_get") {
     }
 } elseif ($_POST['act'] == "chk_m_confirm") {
     if($_POST['m_confirm_num'] == '') {
-        p_alert("잘못된 접근입니다. m_confirm_num");
+        p_alert($translations['txt_invalid_access']  . " m_confirm_num");
     }
 
     // if($_POST['m_confirm_num'] == $_SESSION['_m_confirm_num']) {
@@ -98,26 +98,26 @@ if ($_POST['act'] == "member_profile_get") {
     }
 } elseif ($_POST['act'] == "form_verify") {
     if($_SESSION['_mt_id_join'] == '') {
-        p_alert("잘못된 접근입니다. _mt_id_join");
+        p_alert($translations['txt_invalid_access']  . " _mt_id_join");
     }
     // if($_POST['m_confirm_num'] != $_SESSION['_m_confirm_num']) {
     if($_POST['m_confirm_num'] != '123456') {
-        p_alert("잘못된 접근입니다. m_confirm_num");
+        p_alert($translations['txt_invalid_access']  . " m_confirm_num");
     }
 
     p_gotourl("./form_password");
 } elseif ($_POST['act'] == "form_password") {
     if($_SESSION['_mt_id_join'] == '') {
-        p_alert("잘못된 접근입니다. _mt_id_join");
+        p_alert($translations['txt_invalid_access']  . " _mt_id_join");
     }
     if($_POST['mt_pass'] == "") {
-        p_alert("잘못된 접근입니다. mt_pass");
+        p_alert($translations['txt_invalid_access']  . " mt_pass");
     }
     if($_POST['mt_pass_confirm'] == "") {
-        p_alert("잘못된 접근입니다. mt_pass_confirm");
+        p_alert($translations['txt_invalid_access']  . " mt_pass_confirm");
     }
     if($_POST['mt_pass'] != $_POST['mt_pass_confirm']) {
-        p_alert("잘못된 접근입니다. mt_pass mt_pass_confirm".$_POST['mt_pass']." ".$_POST['mt_pass_confirm']);
+        p_alert($translations['txt_invalid_access']  . " mt_pass mt_pass_confirm".$_POST['mt_pass']." ".$_POST['mt_pass_confirm']);
     }
 
     unset($arr_query);
@@ -158,11 +158,11 @@ if ($_POST['act'] == "member_profile_get") {
 
         p_gotourl("./form_add_info");
     } else {
-        p_alert("잘못된 접근입니다. _last_idx");
+        p_alert($translations['txt_invalid_access']  . " _last_idx");
     }
 } elseif ($_POST['act'] == "chk_mt_nick") {
     if($_POST['mt_nickname'] == '') {
-        p_alert("잘못된 접근입니다. mt_nickname");
+        p_alert($translations['txt_invalid_access']  . " mt_nickname");
     }
 
     $DB->where('mt_nickname', $_POST['mt_nickname']);
@@ -179,10 +179,10 @@ if ($_POST['act'] == "member_profile_get") {
     }
 } elseif ($_POST['act'] == "form_add_info") {
     if($_POST['mt_name'] == '') {
-        p_alert("잘못된 접근입니다. mt_name");
+        p_alert($translations['txt_invalid_access']  . " mt_name");
     }
     if($_POST['mt_nickname'] == '') {
-        p_alert("잘못된 접근입니다. mt_nickname");
+        p_alert($translations['txt_invalid_access']  . " mt_nickname");
     }
 
     unset($arr_query);

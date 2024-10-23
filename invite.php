@@ -10,7 +10,7 @@ if ($_GET['sit_code']) {
 
     if ($sit_row['sit_idx']) {
         if ($sit_row['sit_status'] != '2') {
-            alert('이미 사용한 초대코드입니다.', 'back');
+            alert($translations['txt_invitation_code_already_used'], 'back');
         } else {
             $DB->where('mt_idx', $sit_row['mt_idx']);
             $DB->where('mt_show', 'Y');
@@ -18,10 +18,10 @@ if ($_GET['sit_code']) {
             $owner_row = $DB->getone('member_t');
         }
     } else {
-        alert('존재하지 않는 초대코드입니다.', 'back');
+        alert($translations['txt_invalid_invitation_code'], 'back');
     }
 } else {
-    // alert('잘못된 접근입니다', 'back');
+    alert($translations['txt_invalid_access'], 'back');
 }
 ?>
 <style>
@@ -69,17 +69,16 @@ if ($_GET['sit_code']) {
     <div class="sub_pg_in">
         <div class="ev_bg">
             <div class="ivt_inst_box">
-                <p class="ivt_inst_tit line_h1_4 text_dynamic"><span><?= $owner_row['mt_name'] ? $owner_row['mt_name'] : '스맵' ?></span> 님이
-                    초대링크를 보냈어요!</p>
-                <p class="ivt_inst_subtxt">앱설치 후 서비스를 이용해주세요.</p>
-                <p class="ivt_inst_subtxt">초대코드 : <?= $_GET['sit_code'] ?></p>
+                <p class="ivt_inst_tit line_h1_4 text_dynamic"><span><?= $owner_row['mt_name'] ? $owner_row['mt_name'] : 'SMAP' ?></span> <?= $translations['txt_sent_invitation_link'] ?></p>
+                <p class="ivt_inst_subtxt"><?= $translations['txt_install_app_and_use_service'] ?></p>
+                <p class="ivt_inst_subtxt"><?= $translations['txt_invitation_code'] ?> : <?= $_GET['sit_code'] ?></p>
             </div>
             <div class="ivt_btn_wrap">
                 <div class="ivt_btn_inner">
                     <!-- <a href="https://drive.google.com/file/d/18mFoM_BFrhP-rj0MNnfS2ysTlDUkGaV8/view" class="btn go_site_btn" target="_blank"><span>SMAP으로 바로가기<i class="xi-long-arrow-right ml-3"></i></span></a> -->
-                    <a onclick="f_app_open('<?= $_GET['sit_code'] ?>')" class="btn go_site_btn" target="_blank"><span>SMAP으로 바로가기<i class="xi-long-arrow-right ml-3"></i></span></a>
+                    <a onclick="f_app_open('<?= $_GET['sit_code'] ?>')" class="btn go_site_btn" target="_blank"><span><?= $translations['txt_go_to_smap'] ?><i class="xi-long-arrow-right ml-3"></i></span></a>
 
-                    <a class="btn go_site_btn mt-2" id="copy_sitcode"><span>초대코드 복사하기</span></a>
+                    <a class="btn go_site_btn mt-2" id="copy_sitcode"><span><?= $translations['txt_copy_invitation_code'] ?></span></a>
 
                     <div class="inv_downbtn_wrap">
                         <a href="https://play.google.com/store/apps/details?id=com.dmonster.smap" class="go_appdown_btn" target="_blank">
@@ -134,7 +133,7 @@ if ($_GET['sit_code']) {
         tempElem.select();
         document.execCommand("copy");
         document.body.removeChild(tempElem);
-        jalert('초대코드가 복사되었습니다.');
+        jalert($translations['txt_invitation_code_copied']);
     });
 
     function isAppInstalled() {

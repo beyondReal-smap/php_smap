@@ -33,7 +33,209 @@ $arr_query = array(
 $DB->where('mt_idx', $_SESSION['_mt_idx']);
 $DB->update('member_t', $arr_query);
 
-
+$userLangHead = getUserLang() ? getUserLang() : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+$trans = [
+    'ko' => [
+        'key_required' => '필수 항목입니다.',
+        'key_remote' => '항목을 수정하세요.',
+        'key_email' => '유효하지 않은 E-Mail주소입니다.',
+        'key_url' => '유효하지 않은 URL입니다.',
+        'key_date' => '올바른 날짜를 입력하세요.',
+        'key_dateISO' => '올바른 날짜(ISO)를 입력하세요.',
+        'key_number' => '유효한 숫자가 아닙니다.',
+        'key_digits' => '숫자만 입력 가능합니다.',
+        'key_creditcard' => '신용카드 번호가 바르지 않습니다.',
+        'key_equalTo' => '같은 값을 다시 입력하세요.',
+        'key_extension' => '올바른 확장자가 아닙니다.',
+        'key_maxlength' => '{0}자를 넘을 수 없습니다.',
+        'key_minlength' => '{0}자 이상 입력하세요.',
+        'key_rangelength' => '문자 길이가 {0} 에서 {1} 사이의 값을 입력하세요.',
+        'key_range' => '{0} 에서 {1} 사이의 값을 입력하세요.',
+        'key_max' => '{0} 이하의 값을 입력하세요.',
+        'key_min' => '{0} 이상의 값을 입력하세요.',
+        'key_confirm' => '확인',
+        'key_cancel' => '취소',
+        'key_attention' => '주의',
+        'key_move_main' => '메인으로 이동하시겠습니까? 추가정보는 설정에서 입력가능합니다.',
+        'key_add_info' => '추가정보는 설정에서 입력가능합니다.',
+        'key_set_info' => '설정',
+    ],
+    'vi' => [
+        'key_required' => 'Trường bắt buộc.',
+        'key_remote' => 'Vui lòng sửa trường này.',
+        'key_email' => 'Vui lòng nhập địa chỉ email hợp lệ.',
+        'key_url' => 'Vui lòng nhập URL hợp lệ.',
+        'key_date' => 'Vui lòng nhập ngày hợp lệ.',
+        'key_dateISO' => 'Vui lòng nhập ngày hợp lệ (ISO).',
+        'key_number' => 'Vui lòng nhập số hợp lệ.',
+        'key_digits' => 'Vui lòng chỉ nhập số.',
+        'key_creditcard' => 'Vui lòng nhập số thẻ tín dụng hợp lệ.',
+        'key_equalTo' => 'Vui lòng nhập lại giá trị giống nhau.',
+        'key_extension' => 'Vui lòng nhập giá trị có phần mở rộng hợp lệ.',
+        'key_maxlength' => 'Vui lòng nhập không quá {0} ký tự.',
+        'key_minlength' => 'Vui lòng nhập ít nhất {0} ký tự.',
+        'key_rangelength' => 'Vui lòng nhập giá trị có độ dài từ {0} đến {1} ký tự.',
+        'key_range' => 'Vui lòng nhập giá trị từ {0} đến {1}.',
+        'key_max' => 'Vui lòng nhập giá trị nhỏ hơn hoặc bằng {0}.',
+        'key_min' => 'Vui lòng nhập giá trị lớn hơn hoặc bằng {0}.',
+        'key_confirm' => 'Xác nhận',
+        'key_cancel' => 'Hủy',
+        'key_attention' => 'Chú ý',
+        'key_move_main' => 'Bạn có muốn chuyển về trang chủ không? Thông tin bổ sung có thể được nhập trong cài đặt.',
+        'key_add_info' => 'Thông tin bổ sung có thể được nhập trong cài đặt.',
+        'key_set_info' => 'Cài đặt',
+    ],
+    'th' => [
+        'key_required' => 'จำเป็นต้องกรอกข้อมูล',
+        'key_remote' => 'โปรดแก้ไขรายการนี้',
+        'key_email' => 'ที่อยู่อีเมลไม่ถูกต้อง',
+        'key_url' => 'URL ไม่ถูกต้อง',
+        'key_date' => 'โปรดป้อนวันที่ที่ถูกต้อง',
+        'key_dateISO' => 'โปรดป้อนวันที่ที่ถูกต้อง (ISO)',
+        'key_number' => 'ไม่ใช่ตัวเลขที่ถูกต้อง',
+        'key_digits' => 'โปรดป้อนเฉพาะตัวเลข',
+        'key_creditcard' => 'หมายเลขบัตรเครดิตไม่ถูกต้อง',
+        'key_equalTo' => 'โปรดป้อนค่าเดียวกันอีกครั้ง',
+        'key_extension' => 'นามสกุลไฟล์ไม่ถูกต้อง',
+        'key_maxlength' => 'ไม่สามารถเกิน {0} ตัวอักษร',
+        'key_minlength' => 'โปรดป้อนอย่างน้อย {0} ตัวอักษร',
+        'key_rangelength' => 'โปรดป้อนค่าที่มีความยาวระหว่าง {0} ถึง {1} ตัวอักษร',
+        'key_range' => 'โปรดป้อนค่าระหว่าง {0} ถึง {1}',
+        'key_max' => 'โปรดป้อนค่าน้อยกว่าหรือเท่ากับ {0}',
+        'key_min' => 'โปรดป้อนค่ามากกว่าหรือเท่ากับ {0}',
+        'key_confirm' => 'ยืนยัน',
+        'key_cancel' => 'ยกเลิก',
+        'key_attention' => 'สำคัญ',
+        'key_move_main' => 'คุณต้องการย้ายไปยังหน้าหลักหรือไม่? ข้อมูลเพิ่มเติมสามารถป้อนได้ในการตั้งค่า',
+        'key_add_info' => 'ข้อมูลเพิ่มเติมสามารถป้อนได้ในการตั้งค่า',
+        'key_set_info' => 'ตั้งค่า',
+    ],
+    'ja' => [
+        'key_required' => '必須項目です。',
+        'key_remote' => '項目を修正してください。',
+        'key_email' => '有効なEメールアドレスではありません。',
+        'key_url' => '有効なURLではありません。',
+        'key_date' => '正しい日付を入力してください。',
+        'key_dateISO' => '正しい日付(ISO)を入力してください。',
+        'key_number' => '有効な数字ではありません。',
+        'key_digits' => '数字のみ入力可能です。',
+        'key_creditcard' => 'クレジットカード番号が正しくありません。',
+        'key_equalTo' => '同じ値をもう一度入力してください。',
+        'key_extension' => '有効な拡張子ではありません。',
+        'key_maxlength' => '{0}文字を超えることはできません。',
+        'key_minlength' => '{0}文字以上入力してください。',
+        'key_rangelength' => '文字の長さが{0}から{1}の間である値を入力してください。',
+        'key_range' => '{0}から{1}の間の値を入力してください。',
+        'key_max' => '{0}以下の値を入力してください。',
+        'key_min' => '{0}以上の値を入力してください。',
+        'key_confirm' => '確認',
+        'key_cancel' => 'キャンセル',
+        'key_attention' => '注意',
+        'key_move_main' => 'メインに移動しますか？ 追加情報は設定で入力できます。',
+        'key_add_info' => '追加情報は設定で入力できます。',
+        'key_set_info' => '設定',
+    ],
+    'id' => [
+        'key_required' => 'Diperlukan.',
+        'key_remote' => 'Silakan perbaiki bidang ini.',
+        'key_email' => 'Silakan masukkan alamat email yang valid.',
+        'key_url' => 'Silakan masukkan URL yang valid.',
+        'key_date' => 'Silakan masukkan tanggal yang valid.',
+        'key_dateISO' => 'Silakan masukkan tanggal yang valid (ISO).',
+        'key_number' => 'Silakan masukkan angka yang valid.',
+        'key_digits' => 'Silakan masukkan hanya angka.',
+        'key_creditcard' => 'Silakan masukkan nomor kartu kredit yang valid.',
+        'key_equalTo' => 'Silakan masukkan nilai yang sama lagi.',
+        'key_extension' => 'Silakan masukkan nilai dengan ekstensi yang valid.',
+        'key_maxlength' => 'Silakan masukkan tidak lebih dari {0} karakter.',
+        'key_minlength' => 'Silakan masukkan setidaknya {0} karakter.',
+        'key_rangelength' => 'Silakan masukkan nilai antara {0} dan {1} karakter panjang.',
+        'key_range' => 'Silakan masukkan nilai antara {0} dan {1}.',
+        'key_max' => 'Silakan masukkan nilai kurang dari atau sama dengan {0}.',
+        'key_min' => 'Silakan masukkan nilai lebih dari atau sama dengan {0}.',
+        'key_confirm' => 'Konfirmasi',
+        'key_cancel' => 'Batal',
+        'key_attention' => 'Perhatian',
+        'key_move_main' => 'Apakah Anda ingin pindah ke halaman utama? Informasi tambahan dapat diinput di pengaturan.',
+        'key_add_info' => 'Informasi tambahan dapat diinput di pengaturan.',
+        'key_set_info' => 'Pengaturan',
+    ],
+    'hi' => [
+        'key_required' => 'आवश्यक है।',
+        'key_remote' => 'कृपया इस क्षेत्र को ठीक करें।',
+        'key_email' => 'कृपया एक मान्य ईमेल पता दर्ज करें।',
+        'key_url' => 'कृपया एक मान्य URL दर्ज करें।',
+        'key_date' => 'कृपया एक मान्य तिथि दर्ज करें।',
+        'key_dateISO' => 'कृपया एक मान्य तिथि (ISO) दर्ज करें।',
+        'key_number' => 'कृपया एक मान्य संख्या दर्ज करें।',
+        'key_digits' => 'कृपया केवल अंक दर्ज करें।',
+        'key_creditcard' => 'कृपया एक मान्य क्रेडिट कार्ड नंबर दर्ज करें।',
+        'key_equalTo' => 'कृपया वही मान फिर से दर्ज करें।',
+        'key_extension' => 'कृपया एक मान्य एक्सटेंशन के साथ मान दर्ज करें।',
+        'key_maxlength' => 'कृपया {0} वर्णों से अधिक न दर्ज करें।',
+        'key_minlength' => 'कृपया कम से कम {0} वर्ण दर्ज करें।',
+        'key_rangelength' => 'कृपया {0} और {1} वर्णों के बीच का मान दर्ज करें।',
+        'key_range' => 'कृपया {0} और {1} के बीच का मान दर्ज करें।',
+        'key_max' => 'कृपया {0} से कम या उसके बराबर मान दर्ज करें।',
+        'key_min' => 'कृपया {0} से अधिक या उसके बराबर मान दर्ज करें।',
+        'key_confirm' => 'अनुमोदन',
+        'key_cancel' => 'अनुमोदन',
+        'key_attention' => 'अनुमोदन',
+        'key_move_main' => 'क्या आप मुख्य पृष्ठ पर जाना चाहते हैं? अतिरिक्त जानकारी को सेटिंग में दर्ज किया जा सकता है।',
+        'key_add_info' => 'अतिरिक्त जानकारी को सेटिंग में दर्ज किया जा सकता है।',
+        'key_set_info' => 'सेटिंग',
+    ],
+    'es' => [
+        'key_required' => 'Este campo es obligatorio.',
+        'key_remote' => 'Por favor, corrija este campo.',
+        'key_email' => 'Por favor, introduce una dirección de correo electrónico válida.',
+        'key_url' => 'Por favor, introduce una URL válida.',
+        'key_date' => 'Por favor, introduce una fecha válida.',
+        'key_dateISO' => 'Por favor, introduce una fecha válida (ISO).',
+        'key_number' => 'Por favor, introduce un número válido.',
+        'key_digits' => 'Por favor, introduce solo dígitos.',
+        'key_creditcard' => 'Por favor, introduce un número de tarjeta de crédito válido.',
+        'key_equalTo' => 'Por favor, introduce el mismo valor de nuevo.',
+        'key_extension' => 'Por favor, introduce una extensión válida.',
+        'key_maxlength' => 'Por favor, no introduzcas más de {0} caracteres.',
+        'key_minlength' => 'Por favor, introduce al menos {0} caracteres.',
+        'key_rangelength' => 'Por favor, introduce un valor entre {0} y {1} caracteres de largo.',
+        'key_range' => 'Por favor, introduce un valor entre {0} y {1}.',
+        'key_max' => 'Por favor, introduce un valor menor o igual a {0}.',
+        'key_min' => 'Por favor, introduce un valor mayor o igual a {0}.',
+        'key_confirm' => 'Confirmar',
+        'key_cancel' => 'Cancelar',
+        'key_attention' => 'Atención',
+        'key_move_main' => '¿Desea ir a la página principal? La información adicional se puede ingresar en la configuración.',
+        'key_add_info' => 'La información adicional se puede ingresar en la configuración.',
+        'key_set_info' => 'Configuración',
+    ],
+    'en' => [
+        'key_required' => 'This field is required.',
+        'key_remote' => 'Please fix this field.',
+        'key_email' => 'Please enter a valid email address.',
+        'key_url' => 'Please enter a valid URL.',
+        'key_date' => 'Please enter a valid date.',
+        'key_dateISO' => 'Please enter a valid date (ISO).',
+        'key_number' => 'Please enter a valid number.',
+        'key_digits' => 'Please enter only digits.',
+        'key_creditcard' => 'Please enter a valid credit card number.',
+        'key_equalTo' => 'Please enter the same value again.',
+        'key_extension' => 'Please enter a valid extension.',
+        'key_maxlength' => 'Please enter no more than {0} characters.',
+        'key_minlength' => 'Please enter at least {0} characters.',
+        'key_rangelength' => 'Please enter a value between {0} and {1} characters long.',
+        'key_range' => 'Please enter a value between {0} and {1}.',
+        'key_max' => 'Please enter a value less than or equal to {0}.',
+        'key_min' => 'Please enter a value greater than or equal to {0}.',
+        'key_confirm' => 'Confirm',
+        'key_cancel' => 'Cancel',
+        'key_attention' => 'Attention',
+        'key_move_main' => 'Do you want to go to the main page? Additional information can be entered in the settings.',
+        'key_add_info' => 'Additional information can be entered in the settings.',
+        'key_set_info' => 'Settings',
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="ko">
@@ -120,23 +322,23 @@ $DB->update('member_t', $arr_query);
     <script type="text/javascript">
         <!--
         $.extend($.validator.messages, {
-            required: "필수 항목입니다.",
-            remote: "항목을 수정하세요.",
-            email: "유효하지 않은 E-Mail주소입니다.",
-            url: "유효하지 않은 URL입니다.",
-            date: "올바른 날짜를 입력하세요.",
-            dateISO: "올바른 날짜(ISO)를 입력하세요.",
-            number: "유효한 숫자가 아닙니다.",
-            digits: "숫자만 입력 가능합니다.",
-            creditcard: "신용카드 번호가 바르지 않습니다.",
-            equalTo: "같은 값을 다시 입력하세요.",
-            extension: "올바른 확장자가 아닙니다.",
-            maxlength: $.validator.format("{0}자를 넘을 수 없습니다. "),
-            minlength: $.validator.format("{0}자 이상 입력하세요."),
-            rangelength: $.validator.format("문자 길이가 {0} 에서 {1} 사이의 값을 입력하세요."),
-            range: $.validator.format("{0} 에서 {1} 사이의 값을 입력하세요."),
-            max: $.validator.format("{0} 이하의 값을 입력하세요."),
-            min: $.validator.format("{0} 이상의 값을 입력하세요."),
+            required: "<?= $trans[$userLangHead]['key_required'] ?>", // 필수 항목입니다.
+            remote: "<?= $trans[$userLangHead]['key_remote'] ?>", // 항목을 수정하세요.
+            email: "<?= $trans[$userLangHead]['key_email'] ?>", // 유효하지 않은 E-Mail주소입니다.
+            url: "<?= $trans[$userLangHead]['key_url'] ?>", // 유효하지 않은 URL입니다.
+            date: "<?= $trans[$userLangHead]['key_date'] ?>", // 올바른 날짜를 입력하세요.
+            dateISO: "<?= $trans[$userLangHead]['key_dateISO'] ?>", // 올바른 날짜(ISO)를 입력하세요.
+            number: "<?= $trans[$userLangHead]['key_number'] ?>", // 유효한 숫자가 아닙니다.
+            digits: "<?= $trans[$userLangHead]['key_digits'] ?>", // 숫자만 입력 가능합니다.
+            creditcard: "<?= $trans[$userLangHead]['key_creditcard'] ?>", // 신용카드 번호가 바르지 않습니다.
+            equalTo: "<?= $trans[$userLangHead]['key_equalTo'] ?>", // 같은 값을 다시 입력하세요.
+            extension: "<?= $trans[$userLangHead]['key_extension'] ?>", // 올바른 확장자가 아닙니다.
+            maxlength: $.validator.format("<?= $trans[$userLangHead]['key_maxlength'] ?>"), // {0}자를 넘을 수 없습니다.
+            minlength: $.validator.format("<?= $trans[$userLangHead]['key_minlength'] ?>"), // {0}자 이상 입력하세요.
+            rangelength: $.validator.format("<?= $trans[$userLangHead]['key_rangelength'] ?>"), // 문자 길이가 {0} 에서 {1} 사이의 값을 입력하세요.
+            range: $.validator.format("<?= $trans[$userLangHead]['key_range'] ?>"), // {0} 에서 {1} 사이의 값을 입력하세요.
+            max: $.validator.format("<?= $trans[$userLangHead]['key_max'] ?>"), // {0} 이하의 값을 입력하세요.
+            min: $.validator.format("<?= $trans[$userLangHead]['key_min'] ?>"), // {0} 이상의 값을 입력하세요.
         });
 
         $.validator.setDefaults({
@@ -153,7 +355,7 @@ $DB->update('member_t', $arr_query);
                         buttons: {
                             confirm: {
                                 btnClass: 'btn-default btn-lg btn-block',
-                                text: "확인",
+                                text: "<?= $trans[$userLangHead]['key_confirm'] ?>",
                                 action: function() {
                                     errorList[0].element.focus()
                                 },
@@ -358,18 +560,18 @@ $DB->update('member_t', $arr_query);
                 $.confirm({
                     type: "blue",
                     typeAnimated: true,
-                    title: "주의",
-                    content: "메인으로 이동하시겠습니까? 추가정보는 설정에서 입력가능합니다.",
+                    title: "<?= $trans[$userLangHead]['key_attention'] ?>",
+                    content: "<?= $trans[$userLangHead]['key_move_main'] ?>",
                     buttons: {
                         confirm: {
-                            text: "확인",
+                            text: "<?= $trans[$userLangHead]['key_confirm'] ?>",
                             action: function() {
                                 location.href = './';
                             },
                         },
                         cancel: {
                             btnClass: "btn-outline-default",
-                            text: "취소",
+                            text: "<?= $trans[$userLangHead]['key_cancel'] ?>",
                             action: function() {
                                 close();
                             },
@@ -503,24 +705,23 @@ if ($_SESSION['_mt_idx']) {
     coupon_end_check();
 }
 ?>
-
 <body id="wrap">
     <?php if ($h_menu == '1') { ?>
         <!-- head_01 -->
         <div class="h_menu head_01">
-            <div class="logo_wr"><a class="logo" href="<?= CDN_HTTP ?>/"><img src="<?= CDN_HTTP ?>/img/logo.png" alt="<?= translate('홈으로 이동', $userLang) ?>"></a></div>
+            <div class="logo_wr"><a class="logo" href="<?= CDN_HTTP ?>/"><img src="<?= CDN_HTTP ?>/img/logo.png" alt="<?=$trans['txt_go_to_home'] ?>"></a></div>
             <div class="mr-5 h_tit">
                 <p class="fs_18 fw_600 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div class="d-flex">
-                <a href="./setting" class="mr-3" onclick="sendEvent('click_setting', 'engagement', 'setting');"><img src="<?= CDN_HTTP ?>/img/ico_set.png" width="24px" alt="<?= translate('설정', $userLang) ?>" /></a>
-                <a href="./alarm_list" class="arm_btn <?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?= translate('알람', $userLang) ?>" /></a>
+                <a href="./setting" class="mr-3" onclick="sendEvent('click_setting', 'engagement', 'setting');"><img src="<?= CDN_HTTP ?>/img/ico_set.png" width="24px" alt="<?=$trans['txt_settings'] ?>" /></a>
+                <a href="./alarm_list" class="arm_btn <?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?=$trans['txt_alarm'] ?>" /></a>
             </div><!-- on 추가되면 활성화-->
         </div>
     <?php } elseif ($h_menu == '2') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="history.back();"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="history.back();"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?=$trans['txt_back'] ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -529,11 +730,11 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '3') { ?>
         <!-- head_03 -->
         <div class="h_menu head_03">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?=$trans['txt_back'] ?>" /></button></div>
             <div class="h_tit">
                 <p class="fs_17 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
-            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./inquiry_form'"><?= translate('문의하기', $userLang) ?></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./inquiry_form'"><?=$trans['txt_contact_us_button'] ?></button></div>
         </div>
     <?php } elseif ($h_menu == '4') { ?>
         <!-- head_07 -->
@@ -542,7 +743,7 @@ if ($_SESSION['_mt_idx']) {
                 <p class="fs_17 fw_700 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div></div>
-            <div><a href="alarm_list" class="arm_btn<?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?= translate('알람', $userLang) ?>" /></a></div><!-- on 추가되면 활성화-->
+            <div><a href="alarm_list" class="arm_btn<?= $alarm_t ?>" onclick="sendEvent('click_alarm', 'engagement', 'alarm');"><img src="<?= CDN_HTTP ?>/img/ico_arm.png" width="24px" alt="<?=$trans['txt_alarm'] ?>" /></a></div><!-- on 추가되면 활성화-->
         </div>
     <?php } elseif ($h_menu == '5') { ?>
         <!-- head_08 -->
@@ -556,7 +757,7 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '6') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="location.href='<?= $h_url ?>'"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?=$trans['txt_back'] ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -565,7 +766,7 @@ if ($_SESSION['_mt_idx']) {
     <?php } elseif ($h_menu == '7') { ?>
         <!-- head_02 -->
         <div class="h_menu head_02">
-            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="<?= $h_func ?>"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?= translate('뒤로', $userLang) ?>" /></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0" onclick="<?= $h_func ?>"><img src="<?= CDN_HTTP ?>/img/top_back_b.png" width="24px" alt="<?=$trans['txt_back'] ?>" /></button></div>
             <div class="mr-4 h_tit">
                 <p class="fs_16 fw_700"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
@@ -584,7 +785,7 @@ if ($_SESSION['_mt_idx']) {
                 <p class="fs_22 fw_700 mr_24"><?= $_SUB_HEAD_TITLE ?></p>
             </div>
             <div></div>
-            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./plan_information'"><?= translate('플랜', $userLang) ?></button></div>
+            <div><button type="button" class="btn hd_btn px-0 py-0 fs_14 fw_400 text-primary" onclick="location.href='./plan_information'"><?=$trans['txt_plan'] ?></button></div>
         </div>
     <?php } elseif ($h_menu == '9') { ?>
         <!-- head_07 -->

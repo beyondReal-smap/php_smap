@@ -3,16 +3,16 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 $b_menu = '';
 $h_menu = '6';
 $h_url = './group';
-$_SUB_HEAD_TITLE = "새 그룹";
+$_SUB_HEAD_TITLE = $translations['txt_new_group'];
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', './logout');
+        alert($translations['txt_login_another_device'], './logout');
     }
 }
 ?>
@@ -24,14 +24,14 @@ if ($_SESSION['_mt_idx'] == '') {
             <div class="mt-5">
                 <div class="ip_wr mt_25">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
-                        <h5 class="">그룹명</h5>
+                        <h5 class=""><?php echo $translations['txt_group_name']; ?></h5>
                         <p class="text_num fs_12 fc_gray_600">(<span id="sgt_title_cnt">0</span>/15)</p>
                     </div>
-                    <input type="text" class="form-control txt-cnt" id="sgt_title" name="sgt_title" minlength="2" maxlength="15" data-length-id="sgt_title_cnt" oninput="maxLengthCheck(this)" placeholder="그룹명 입력">
+                    <input type="text" class="form-control txt-cnt" id="sgt_title" name="sgt_title" minlength="2" maxlength="15" data-length-id="sgt_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?php echo $translations['txt_enter_group_name']; ?>">
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block">새 그룹명 저장</button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?php echo $translations['txt_save_new_group_name']; ?></button>
             </div>
         </form>
         <script>
@@ -76,8 +76,8 @@ if ($_SESSION['_mt_idx'] == '') {
             },
             messages: {
                 sgt_title: {
-                    required: "그룹명을 입력해주세요.",
-                    sgt_title_chk: "중복된 그룹명이 존재합니다.",
+                    required: "<?php echo $translations['txt_enter_group_name']; ?>",
+                    sgt_title_chk: "<?php echo $translations['txt_duplicate_group_name']; ?>",
                 },
             },
             errorPlacement: function(error, element) {

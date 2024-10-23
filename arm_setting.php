@@ -1,17 +1,20 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
+        alert($translations['txt_login_attempt_other_device'], './logout'); 
     }
 }
+
+$mt_info = get_member_t_info();
 ?>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script type="text/javascript" src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
@@ -110,14 +113,13 @@ if ($_SESSION['_mt_idx'] == '') {
             <!-- 일정알림 -->
             <div>
                 <div class="d-flex align-items-center sc_arm_wrap">
-                    <p class="tit_h1 wh_pre line_h1_3"><?= translate("일정알림", $userLang) ?></p>
+                    <p class="tit_h1 wh_pre line_h1_3"><?=$translations['txt_schedule_notification_label'] ?></p> 
                     <div class="btn-group tooltip_wrap pl-2">
                         <button type="button" class="btn tooltip_btn w-auto h-auto p-1" data-toggle="dropdown" data-display="static" aria-expanded="true">
                             <i class="xi-info-o fc_gray_500 fs_13"></i>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-left">
-                            <p class=""><i class="xi-info-o"></i><?= translate("일정알림", $userLang) ?></p>
-                            <p class="line_h1_3 text_dynamic pl-3 pt-2"><?= translate("사용자가 설정한 1분~60분, 1시간~24시간, 1일~30일 사이의 시간에 따라 일정 시작 전에 전송되는 알림입니다.", $userLang) ?></p>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <p class="line_h1_3 text_dynamic pl-3 pt-2"><?=$translations['txt_schedule_notification_explanation'] ?></p> 
                         </div>
                     </div>
                 </div>
@@ -135,12 +137,12 @@ if ($_SESSION['_mt_idx'] == '') {
                             </div>
                             <div class="swiper-container select_type">
                                 <div class="swiper-wrapper">
-                                    <div class="swiper-slide" data-mm="day"><?= translate('일', $userLang) ?></div>
-                                    <div class="swiper-slide" data-mm="minute"><?= translate('분', $userLang) ?></div>
-                                    <div class="swiper-slide" data-mm="hour"><?= translate('시간', $userLang) ?></div>
-                                    <div class="swiper-slide" data-mm="other_day"><?= translate('일', $userLang) ?></div>
-                                    <div class="swiper-slide" data-mm="other_minute"><?= translate('분', $userLang) ?></div>
-                                    <div class="swiper-slide" data-mm="other_hour"><?= translate('시간', $userLang) ?></div>
+                                    <div class="swiper-slide" data-mm="day"><?=$translations['txt_day'] ?></div> 
+                                    <div class="swiper-slide" data-mm="minute"><?=$translations['txt_minute'] ?></div> 
+                                    <div class="swiper-slide" data-mm="hour"><?=$translations['txt_hour'] ?></div> 
+                                    <div class="swiper-slide" data-mm="other_day"><?=$translations['txt_day'] ?></div> 
+                                    <div class="swiper-slide" data-mm="other_minute"><?=$translations['txt_minute'] ?></div> 
+                                    <div class="swiper-slide" data-mm="other_hour"><?=$translations['txt_hour'] ?></div> 
                                 </div>
                                 <div class=""></div>
                             </div>
@@ -156,7 +158,7 @@ if ($_SESSION['_mt_idx'] == '') {
                                                                                                                         } ?> onchange="toggleSpinner()">
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p">
-                                    <p class="text_dynamic text_gray"><?= translate('일정알림 안함', $userLang) ?></p>
+                                    <p class="text_dynamic text_gray"><?=$translations['txt_no_schedule_notifications'] ?></p> 
                                 </div>
                             </label>
                         </div>
@@ -386,13 +388,13 @@ if ($_SESSION['_mt_idx'] == '') {
                 function get_hh_mm_txt(hh_data, mm_data) {
                     var stype;
                     if (mm_data == 'day' || mm_data == 'other_day') {
-                        stype = "<?= translate('일', $userLang) ?>";
+                        stype = "<?=$translations['txt_day'] ?>"; 
                         group_type = "day";
                     } else if (mm_data == 'minute' || mm_data == 'other_minute') {
-                        stype = "<?= translate('분', $userLang) ?>";
+                        stype = "<?=$translations['txt_minute'] ?>"; 
                         group_type = "minute";
                     } else {
-                        stype = "<?= translate('시간', $userLang) ?>";
+                        stype = "<?=$translations['txt_hour'] ?>"; 
                         group_type = "hour";
                     }
                     if (typeof hh_data === 'undefined') {} else {
@@ -403,7 +405,7 @@ if ($_SESSION['_mt_idx'] == '') {
                 }
             </script>
             <div class="b_botton px-0">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()"><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="schedule_alarm_chk()"><?=$translations['txt_done'] ?></button> 
             </div>
         </form>
     </div>
@@ -412,7 +414,7 @@ if ($_SESSION['_mt_idx'] == '') {
 <script>
     function schedule_alarm_chk() {
         var pick_type = $('#pick_type').val();
-        var pick_result = parseInt($('#pick_result').val(), 10); // pick_result를 정수로 파싱
+        var pick_result = parseInt($('#pick_result').val(), 10); 
         var sst_schedule_alarm_chk = $('#sst_schedule_alarm_chk').val();
         var sgdt_adate;
         <?
@@ -420,85 +422,12 @@ if ($_SESSION['_mt_idx'] == '') {
         echo 'var mt_idx = ' . json_encode($_GET['mt_idx']) . ';';
         ?>
 
-        // 부모 페이지의 함수 호출하여 값을 전달
         window.parent.onArmSettingComplete({
             pick_type: pick_type,
             pick_result: pick_result,
             sst_schedule_alarm_chk: sst_schedule_alarm_chk
         });
 
-        // 모달 닫기
         window.parent.closeArmSettingModal();
-
-
-        /*
-        // URL에 매개변수 추가
-        var redirectURL = './schedule_form?sst_location_alarm=' + encodeURIComponent(sst_location_alarm) +
-            '&sst_pick_type=' + encodeURIComponent(pick_type) +
-            '&sst_pick_result=' + encodeURIComponent(pick_result) +
-            '&sst_schedule_alarm_chk=' + encodeURIComponent(sst_schedule_alarm_chk) +
-            '&sdate=' + encodeURIComponent(sdate) +
-            '&mt_idx=' + encodeURIComponent(mt_idx);
-
-        // 페이지 이동
-        window.location.href = redirectURL;
-        return false;
-        */
-        /*
-        if (sst_schedule_alarm_chk === 'N') {
-            // 현재 날짜를 가져옴
-            var currentDate = new Date();
-            // pick_type에 따라서 시간 계산
-            if (pick_type === 'day') {
-                timestamp = currentDate.setDate(currentDate.getDate() + pick_result);
-            } else if (pick_type === 'minute') {
-                timestamp = currentDate.setMinutes(currentDate.getMinutes() + pick_result);
-            } else if (pick_type === 'hour') {
-                timestamp = currentDate.setHours(currentDate.getHours() + pick_result);
-            }
-            var date = new Date(timestamp);
-            var year = date.getFullYear();
-            var month = (date.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 1을 더하고 두 자리로 맞춤
-            var day = date.getDate().toString().padStart(2, '0');
-            var hours = date.getHours().toString().padStart(2, '0');
-            var minutes = date.getMinutes().toString().padStart(2, '0');
-            var seconds = date.getSeconds().toString().padStart(2, '0');
-
-            var sgdt_adate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        }
-        var form_data = new FormData();
-        form_data.append("act", "arm_setting");
-        form_data.append("sst_location_alarm", sst_location_alarm);
-        form_data.append("sst_schedule_alarm_chk", sst_schedule_alarm_chk);
-        form_data.append("sst_pick_type", pick_type);
-        form_data.append("sst_pick_result", pick_result);
-        // form_data.append("sgdt_adate", sgdt_adate);
-        console.log(sst_location_alarm);
-        console.log(sst_schedule_alarm_chk);
-        console.log(pick_type);
-        console.log(pick_result);
-
-        $.ajax({
-            url: "./group_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 5000,
-            success: function(data) {
-                console.log(data);
-                if (data == 'Y') {
-                    document.location.href = './group';
-                }
-            },
-            error: function(err) {
-                console.log(err);
-            },
-        });
-        return false;
-        */
     }
 </script>

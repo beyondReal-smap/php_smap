@@ -1,22 +1,38 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
+
+// 번역 파일 로드 (lib.inc.php에 추가 - 필요에 따라 경로 수정)
+$langFiles = [
+    'ko' => $_SERVER['DOCUMENT_ROOT'] . '/lang/ko.php',
+    'en' => $_SERVER['DOCUMENT_ROOT'] . '/lang/en.php',
+    // 다른 언어 추가 가능
+];
+
+$userLang = isset($_SESSION['lang']) ? $_SESSION['lang'] : 'ko'; // 사용자 언어 설정 (세션 또는 다른 방법으로 설정)
+
+if (isset($langFiles[$userLang])) {
+    include $langFiles[$userLang];
+} else {
+    $translations[$userLang] = []; // 기본 언어 설정 없을 경우 빈 배열
+}
+
 $b_menu = '';
 $h_menu = '6';
 $h_url = './group';
 
 // $_SESSION['_mt_idx'] = '15';
-if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+if (empty($_SESSION['_mt_idx'])) {
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout');
+        alert($translations['txt_login_other_device'], './logout'); 
     }
 }
 
-if ($_GET['sgt_idx']) {
+if (isset($_GET['sgt_idx'])) {
     $DB->where('sgt_idx', $_GET['sgt_idx']);
     $DB->where('sgt_show', 'Y');
     $row_sgt = $DB->getone('smap_group_t');
@@ -37,24 +53,24 @@ if ($_GET['sgt_idx']) {
 
         $chk_leader_owner = false;
         if ($row_sgdt['sgdt_owner_chk'] == 'Y') {
-            $sgdt_owner_leader_chk_t = translate('오너', $userLang);
+            $sgdt_owner_leader_chk_t = $translations['txt_owner']; 
             $chk_leader_owner = true;
         } else {
             if ($row_sgdt['sgdt_leader_chk'] == 'Y') {
-                $sgdt_owner_leader_chk_t = translate('리더', $userLang);
+                $sgdt_owner_leader_chk_t = $translations['txt_leader']; 
                 $chk_leader_owner = true;
             } else {
                 $sgdt_owner_leader_chk_t = '';
             }
         }
     } else {
-        alert(translate('잘못된 접근입니다.', $userLang), './');
+        alert($translations['txt_invalid_access'], './'); 
     }
 } else {
-    alert(translate('잘못된 접근입니다.', $userLang), './');
+    alert($translations['txt_invalid_access'], './');
 }
 
-$_SUB_HEAD_TITLE = translate('그룹편집', $userLang);
+$_SUB_HEAD_TITLE = $translations['txt_group_edit']; 
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 ?>
 <style>
@@ -141,7 +157,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         } else if (isiOS()) {
                             window.webkit.messageHandlers.smapIos.postMessage(message);
                         }
-                        jalert('<?= translate('초대 링크가 복사되었습니다.', $userLang) ?>');
+                        jalert('<?=$translations['txt_invitation_link_copied']?>'); 
                     } else if (t == "contact") {
                         var message = {
                             "type": "urlOpenSms",
@@ -177,15 +193,15 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     <p class="fs_16 fw_800 mr-2"><?= $row_sgt['sgt_title'] ?><span class="fs_15"> <span id="member_cnt">(<?= $member_cnt_t ?>)</span></p>
                     <?php if ($row_sgdt['sgdt_owner_chk'] == 'Y') { ?>
                         <!-- 오너일때 필요 -->
-                        <button type="button" class="btn h_fit_im px-0 py-0" data-toggle="modal" data-target="#name_edit_modal"><img src="<?= CDN_HTTP ?>/img/ico_edit.png" width="19px" alt="<?= translate('그룹명수정', $userLang) ?>" /></button>
+                        <button type="button" class="btn h_fit_im px-0 py-0" data-toggle="modal" data-target="#name_edit_modal"><img src="<?= CDN_HTTP ?>/img/ico_edit.png" width="19px" alt="<?=$translations['txt_group_name_edit']?>" /></button> 
                     <?php } ?>
                 </div>
                 <?php if ($row_sgdt['sgdt_owner_chk'] != 'Y') { ?>
                     <!--맴버 / 그룹리더 -->
-                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_idx_t ?>');"><?= translate('그룹나가기', $userLang) ?></button>
+                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_idx_t ?>');"><?=$translations['txt_group_exit']?></button> 
                 <?php } else { ?>
                     <!--그룹오너 -->
-                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 text-right" onclick="f_modal_group_delete('<?= $row_sgt['sgt_idx'] ?>');"><?= translate('그룹삭제', $userLang) ?></button>
+                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 text-right" onclick="f_modal_group_delete('<?= $row_sgt['sgt_idx'] ?>');"><?=$translations['txt_group_delete']?></button> 
                 <?php } ?>
             </div>
             <div class="py_20 bg-white px_16">
@@ -215,15 +231,15 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <?php if ($invite_cnt) { ?>
                 <div class="pt-2">
                     <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_08">
-                        <?= $invite_cnt ?><?= translate('명 초대중', $userLang) ?>
+                        <?= $invite_cnt ?><?=$translations['txt_people_inviting']?>
                     </p>
                 </div>
             <?php } else { ?>
                 <?php if ($member_cnt_t < 1) { ?>
                     <div class="">
                         <div class="pt-5 text-center">
-                            <img src="<?= CDN_HTTP ?>/img/warring.png" width="82px" alt="<?= translate('그룹원추가', $userLang) ?>" />
-                            <p class="mt_20 fc_gray_900 text-center"><?= translate('그룹원을 추가해주세요!', $userLang) ?></p>
+                            <img src="<?= CDN_HTTP ?>/img/warring.png" width="82px" alt="<?=$translations['txt_add_group_member']?>" />
+                            <p class="mt_20 fc_gray_900 text-center"><?=$translations['txt_please_add_group_member']?></p> 
                         </div>
                     </div>
                 <?php } ?>
@@ -508,7 +524,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         timeout: 5000,
                         success: function(data) {
                             if (data == 'N') {
-                                //jalert('초대코드를 모두 사용하였습니다.');
                                 $('.b_botton').addClass('d-none');
                             } else {
                                 $('#share_url').val(data);
@@ -552,7 +567,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
         <?php if ($chk_leader_owner) { ?>
             <!-- 리더/ 오너일 때 사용 -->
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " data-toggle="modal" data-target="#link_modal"><i class="xi-plus-min mr-3"></i><?= translate('그룹원 초대하기', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " data-toggle="modal" data-target="#link_modal"><i class="xi-plus-min mr-3"></i><?=$translations['txt_invite_group_member']?></button>
             </div>
         <?php } ?>
     </div>
@@ -564,13 +579,13 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             </div>
             <div class="modal-body">
                 <div class="rounded-lg overflow-hidden ">
-                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_add_leader" style="display:none;" onclick=""><?= translate('리더 추가하기', $userLang) ?></button>
-                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_release_leader" style="display:none;" onclick=""><?= translate('리더 해제하기', $userLang) ?></button>
-                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_group_out" onclick=""><?= translate('그룹원 내보내기', $userLang) ?></button>
+                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_add_leader" style="display:none;" onclick=""><?=$translations['txt_add_leader']?></button>
+                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_release_leader" style="display:none;" onclick=""><?=$translations['txt_release_leader']?></button>
+                    <button type="button" class="btn btn-block mt-0 rounded-0 bottom_mdl_btn" id="btn_group_out" onclick=""><?=$translations['txt_expel_group_member']?></button>
                 </div>
             </div>
             <div class="modal-footer mt-3 mb-3">
-                <button type="button" class="btn text-black btn-block fs_15 fw_600 bg-white mx-0 my-0" data-dismiss="modal"><?= translate('취소', $userLang) ?></button>
+                <button type="button" class="btn text-black btn-block fs_15 fw_600 bg-white mx-0 my-0" data-dismiss="modal"><?=$translations['txt_cancel']?></button>
             </div>
         </div>
     </div>
@@ -582,12 +597,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <input type="hidden" name="group_out_modal_sgdt_idx" id="group_out_modal_sgdt_idx" value="" />
 
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= translate('그룹을 나가시겠습니까?', $userLang) ?></p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?=$translations['txt_are_you_sure_leave_group']?></p>
             </div>
             <div class=" modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang) ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();"><?= translate('나가기', $userLang) ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_no']?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_group();"><?=$translations['txt_leave']?></button>
                 </div>
             </div>
         </div>
@@ -602,12 +617,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 <input type="hidden" name="leader_add_modal_sgdt_idx" id="leader_add_modal_sgdt_idx" value="" />
 
                 <div class="modal-body pt_40 pb_27 px-3 ">
-                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_leader_add_modal"></span><?= translate('님을 [', $userLang) ?><?= $row_sgt['sgt_title'] ?>] <?= translate('그룹의 리더로 추가하시겠어요?', $userLang) ?></p>
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_leader_add_modal"></span><?=$translations['txt_really_add_leader']?><?= $row_sgt['sgt_title'] ?>] <?=$translations['txt_group_leader']?>?</p>
                 </div>
                 <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                     <div class="d-flex align-items-center w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang) ?></button>
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_add_leader();"><?= translate('추가하기', $userLang) ?></button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_no']?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_add_leader();"><?=$translations['txt_add']?></button>
                     </div>
                 </div>
             </div>
@@ -621,12 +636,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 <input type="hidden" name="leader_delete_modal_sgdt_idx" id="leader_delete_modal_sgdt_idx" value="" />
 
                 <div class="modal-body pt_40 pb_27 px-3 ">
-                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_leader_delete_modal"></span><?= translate('님을 [', $userLang) ?><?= $row_sgt['sgt_title'] ?>] <?= translate('그룹의 리더에서 제외하시겠어요?', $userLang) ?></p>
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_leader_delete_modal"></span><?=$translations['txt_really_remove_leader']?><?= $row_sgt['sgt_title'] ?>] <?=$translations['txt_from_group_leader']?>?</p>
                 </div>
                 <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                     <div class="d-flex align-items-center w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang) ?></button>
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_leader();"><?= translate('제외하기', $userLang) ?></button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_no']?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_leader();"><?=$translations['txt_remove']?></button>
                     </div>
                 </div>
             </div>
@@ -642,26 +657,26 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     <input type="hidden" name="sgt_idx" id="sgt_idx" value="<?= $row_sgt['sgt_idx'] ?>" />
                     <input type="hidden" name="act" id="act" value="chg_sgt_title" />
                     <div class="modal-header">
-                        <p class="modal-title line1_text fs_20 fw_700"><?= translate('그룹명 수정', $userLang) ?></p>
+                        <p class="modal-title line1_text fs_20 fw_700"><?=$translations['txt_group_name_edit']?></p>
                         <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                     </div>
                     <div class="modal-body scroll_bar_y">
                         <div class="ip_wr">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class=""><?= translate('변경전', $userLang) ?></h5>
+                                <h5 class=""><?=$translations['txt_before_change']?></h5>
                             </div>
                             <input type="text" class="form-control" id="sgt_title" name="sgt_title" placeholder="" value="<?= $row_sgt['sgt_title'] ?>" readonly>
                         </div>
                         <div class="ip_wr mt_25">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class=""><?= translate('변경후', $userLang) ?></h5>
+                                <h5 class=""><?=$translations['txt_after_change']?></h5>
                                 <p class="text_num fs_12 fc_gray_600">(<span id="sgt_title_chg_cnt">0</span>/15)</p>
                             </div>
-                            <input type="text" class="form-control txt-cnt" id="sgt_title_chg" name="sgt_title_chg" minlength="2" maxlength="15" oninput="maxLengthCheck(this)" data-length-id="sgt_title_chg_cnt" placeholder="<?= translate('변경할 그룹명', $userLang) ?>">
+                            <input type="text" class="form-control txt-cnt" id="sgt_title_chg" name="sgt_title_chg" minlength="2" maxlength="15" oninput="maxLengthCheck(this)" data-length-id="sgt_title_chg_cnt" placeholder="<?=$translations['txt_enter_group_name']?>">
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-0">
-                        <button type="submit" class="btn btn-lg btn-block btn-primary mx-0 my-0"><?= translate('그룹명 수정하기', $userLang) ?></button>
+                        <button type="submit"                       class="btn btn-lg btn-block btn-primary mx-0 my-0"><?=$translations['txt_change_group_name']?></button>
                     </div>
                 </form>
                 <script>
@@ -678,7 +693,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         },
                         messages: {
                             sgt_title_chg: {
-                                required: "<?= translate('그룹명을 입력해주세요.', $userLang) ?>",
+                                required: "<?=$translations['txt_please_enter_group_name']?>",
                             },
                         },
                         errorPlacement: function(error, element) {
@@ -700,14 +715,14 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 <input type="hidden" name="group_delete_modal_sgt_idx" id="group_delete_modal_sgt_idx" value="" />
 
                 <div class="modal-body pt_40 pb_27 px-3 ">
-                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">[<?= $row_sgt['sgt_title'] ?>] <?= translate('그룹을 삭제할까요?', $userLang) ?></p>
-                    <p class="fs_12 text_dynamic text-center text_gray mt-2 line_h1_2"><?= translate('그룹을 삭제하면 그룹원들을 다시 초대해야 해요.<br> 정말 삭제할까요?', $userLang) ?></p>
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">[<?= $row_sgt['sgt_title'] ?>] <?=$translations['txt_delete_group']?>?</p>
+                    <p class="fs_12 text_dynamic text-center text_gray mt-2 line_h1_2"><?=$translations['txt_if_you_delete_group']?><br> <?=$translations['txt_really_delete']?>?</p>
 
                 </div>
                 <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                     <div class="d-flex align-items-center w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('나중에', $userLang) ?></button>
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_group();"><?= translate('삭제하기', $userLang) ?></button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_later']?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_delete_group();"><?=$translations['txt_delete']?></button>
                     </div>
                 </div>
             </div>
@@ -724,15 +739,15 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     <div class="d-inline-block w-100 text-right">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" width="24px"></button>
                     </div>
-                    <p class="fs_18 fw_700 text_dynamic line_h1_2"><?= translate('초대장은 어떻게 보낼까요?', $userLang) ?></p>
+                    <p class="fs_18 fw_700 text_dynamic line_h1_2"><?=$translations['txt_how_to_send_invitation']?></p>
                 </div>
                 <div class="modal-body">
                     <ul>
                         <li>
                             <a href="javascript:;" onclick="f_share_link('kakao');" class="d-flex align-items-center justify-content-between py_07">
                                 <div class="d-flex align-items-center">
-                                    <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="<?= translate('카카오톡 열기', $userLang) ?>" width="40px" class="mr_12" id="kakao_image" />
-                                    <p class="fs_15 fw_500 gray_900" id="kakao_text"><?= translate('카카오톡 열기', $userLang) ?></p>
+                                    <img src="<?= CDN_HTTP ?>/img/ico_kakao.png" alt="<?=$translations['txt_open_kakao']?>" width="40px" class="mr_12" id="kakao_image" />
+                                    <p class="fs_15 fw_500 gray_900" id="kakao_text"><?=$translations['txt_open_kakao']?></p>
                                 </div>
                                 <i class=" xi-angle-right-min fs_15 text_gray"></i>
                             </a>
@@ -740,8 +755,8 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         <li>
                             <a href="javascript:;" onclick="f_share_link('clipboard');" class="d-flex align-items-center justify-content-between py_07 btn_copy">
                                 <div class="d-flex align-items-center">
-                                    <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="<?= translate('초대 링크 복사', $userLang) ?>" width="40px" class="mr_12" />
-                                    <p class="fs_15 fw_500 gray_900"><?= translate('초대 링크 복사', $userLang) ?></p>
+                                    <img src="<?= CDN_HTTP ?>/img/ico_link.png" alt="<?=$translations['txt_copy_invitation_link']?>" width="40px" class="mr_12" />
+                                    <p class="fs_15 fw_500 gray_900"><?=$translations['txt_copy_invitation_link']?></p>
                                 </div>
                                 <i class="xi-angle-right-min fs_15 text_gray"></i>
                             </a>
@@ -749,8 +764,8 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         <li>
                             <a href="javascript:;" onclick="f_share_link('contact');" class="d-flex align-items-center justify-content-between py_07">
                                 <div class="d-flex align-items-center">
-                                    <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="<?= translate('연락처 열기', $userLang) ?>" width="40px" class="mr_12" />
-                                    <p class="fs_15 fw_500 gray_900"><?= translate('연락처 열기', $userLang) ?></p>
+                                    <img src="<?= CDN_HTTP ?>/img/ico_address.png" alt="<?=$translations['txt_open_contacts']?>" width="40px" class="mr_12" />
+                                    <p class="fs_15 fw_500 gray_900"><?=$translations['txt_open_contacts']?></p>
                                 </div>
                                 <i class="xi-angle-right-min fs_15 text_gray"></i>
                             </a>
@@ -764,13 +779,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
         $(document).ready(function() {
             if (isAndroid()) {
                 /*
-                $('#kakao_text').text('카카오톡 열기');
                 document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_kakao.png";
                 */
-                $('#kakao_text').text('<?= translate('공유하기', $userLang) ?>');
+                $('#kakao_text').text("<?=$translations['txt_share_button']?>");
                 document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
             } else if (isiOS()) {
-                $('#kakao_text').text('<?= translate('공유하기', $userLang) ?>');
+                $('#kakao_text').text("<?=$translations['txt_share_button']?>");
                 document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
             }
         });
@@ -782,12 +796,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 <input type="hidden" name="mem_out_modal_sgdt_idx" id="mem_out_modal_sgdt_idx" value="" />
 
                 <div class="modal-body pt_40 pb_27 px-3 ">
-                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_mem_out_modal"></span><?= translate('님을', $userLang) ?><?= $row_sgt['sgt_title'] ?>] <?= translate('그룹에서 제외하시겠어요?', $userLang) ?></p>
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><span id="name_mem_out_modal"></span><?=$translations['txt_really_expel']?><?= $row_sgt['sgt_title'] ?>] <?=$translations['txt_group_out']?>?</p>
                 </div>
                 <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                     <div class="d-flex align-items-center w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang) ?></button>
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_mem();"><?= translate('제외하기', $userLang) ?></button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_no']?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="f_out_mem();"><?=$translations['txt_remove']?></button>
                     </div>
                 </div>
             </div>

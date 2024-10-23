@@ -28,7 +28,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 text_dynamic"> 이메일 주소를 입력해주세요.</p>
+        <p class="tit_h1 wh_pre line_h1_3 text_dynamic"><?= $translations['txt_enter_email_address'] ?></p>
         <!-- <p class="fs_12 fc_gray_600 mt-3 line_h1_2">이메일 주소를 입력해주세요.</p> -->
         <form action="" onkeypress="return event.keyCode != 13;">
             <input type="hidden" name="HTTP_REFERER" id="HTTP_REFERER" value="<?= $_SERVER["HTTP_REFERER"] ?>">
@@ -37,19 +37,19 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <div class="mt-5">
                 <div class="ip_wr">
                     <div class="ip_tit">
-                        <h5 class="">이메일</h5>
+                        <h5 class=""><?= $translations['txt_email'] ?></h5>
                     </div>
-                    <input type="email" class="form-control" placeholder="test@test.com" id="mt_email" name="mt_email" maxlength="100" value="<?= $_GET['mtEmail'] ?>">
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 이메일형식에 맞게 입력해주세요.</div>
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> 이미 사용중인 이메일입니다.</div>
+                    <input type="email" class="form-control" placeholder="example@domain.com" id="mt_email" name="mt_email" maxlength="100" value="<?= $_GET['mtEmail'] ?>">
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_enter_email_address'] ?></div>
+                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_email_already_in_use'] ?></div>
                 </div>
             </div>
             <div class="b_botton">
                 <!-- 이메일 중복일 경우 data-toggle="modal" data-target="#dpl_email" 버튼태기에 넣어주세요 -->
-                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_psd.php'"><?= translate('입력했어요!', $userLang) ?></button>-->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" id="mt_id_chk_button" onclick="check_id()"><?= translate('입력했어요!', $userLang) ?></button>
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= translate('입력했어요!', $userLang) ?></button>
+                <!--<button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_psd.php'"><?= $translations['txt_input_complete'] ?></button>-->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" id="mt_id_chk_button" onclick="check_id()"><?= $translations['txt_input_complete'] ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= $translations['txt_input_complete'] ?></button>
             </div>
             <div id="layoutViewport"></div>
         </form>
@@ -61,11 +61,10 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">이미 사용중인 메일주소에요.
-                    다른 메일주소를 입력해 주세요!</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_email_already_in_use'] ?></p>
             </div>
             <div class="modal-footer px-0 py-0">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" data-dismiss="modal" aria-label="Close">확인하기</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_confirm'] ?></button>
             </div>
         </div>
     </div>
@@ -75,12 +74,12 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">잠깐! 회원가입을 마치지 않고 가시려고요?</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_leave_without_completing'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="location.replace('./join_entry')">네</button>
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close">아니요</button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="location.replace('./join_entry')"><?= $translations['txt_yes'] ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
                 </div>
             </div>
         </div>

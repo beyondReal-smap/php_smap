@@ -3,16 +3,18 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 $b_menu = '';
 $h_menu = '3';
 $h_url = './setting';
-$_SUB_HEAD_TITLE = translate("1:1문의", $userLang); // "1:1문의" 번역
+
+$_SUB_HEAD_TITLE = $translations['txt_contact_us']; 
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
+
 if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', ''); // "로그인이 필요합니다." 번역
+    alert($translations['txt_login_required'], './login', ''); 
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout'); // "다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다." 번역
+        alert($translations['txt_login_attempt_other_device'], './logout'); 
     }
 }
 ?>

@@ -44,7 +44,7 @@ function f_location_like_delete(i) {
         buttons: {
             confirm: {
                 btnClass: "btn-default btn-lg btn-block",
-                text: "확인",
+                text: "<?=$translations['txt_confirm']?>", // 확인
                 action: function() {
                     var form_data = new FormData();
                     form_data.append("act", "map_location_like_delete");
@@ -92,7 +92,7 @@ function f_location_like() {
         buttons: {
             confirm: {
                 btnClass: "btn-default btn-lg btn-block",
-                text: "확인",
+                text: "<?=$translations['txt_confirm']?>", // 확인
                 action: function() {
                     var form_data = new FormData();
                     form_data.append("act", "map_location_input");

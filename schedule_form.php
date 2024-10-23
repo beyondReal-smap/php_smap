@@ -2,14 +2,15 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '2';
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
 // if ($_SESSION['_mt_idx'] == '') {
-//     alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+//     alert($translations['txt_login_required'], './login', '');
 // } else {
 //     // 앱토큰값이 DB와 같은지 확인
 //     $DB->where('mt_idx', $_SESSION['_mt_idx']);
 //     $mem_row = $DB->getone('member_t');
 //     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-//         alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout');
+//         alert($translations['txt_login_attempt_other_device'], './logout');
 //     }
 // }
 if ($_GET['sst_idx']) { // 수정
@@ -41,9 +42,9 @@ if ($_GET['sst_idx']) { // 수정
         $get_mem_row = $DB->getone('member_t');
     }
     if ($get_mem_row['mt_nickname']) {
-        $_SUB_HEAD_TITLE = $get_mem_row['mt_nickname'] . translate("의 일정 입력", $userLang);
+        $_SUB_HEAD_TITLE = $get_mem_row['mt_nickname'] . $translations['txt_schedule_input'];
     } else {
-        $_SUB_HEAD_TITLE = $get_mem_row['mt_name'] . translate("의 일정 입력", $userLang);
+        $_SUB_HEAD_TITLE = $get_mem_row['mt_name'] . $translations['txt_schedule_input'];
     }
 } else { // 입력
     if ($_GET['sgdt_idx']) { //그룹원 일정추가할때
@@ -77,21 +78,21 @@ if ($_GET['sst_idx']) { // 수정
         $get_mem_row = $DB->getone('member_t');
     }
     if ($get_mem_row['mt_nickname']) {
-        $_SUB_HEAD_TITLE = $get_mem_row['mt_nickname'] . translate("의 일정 입력", $userLang);
+        $_SUB_HEAD_TITLE = $get_mem_row['mt_nickname'] . $translations['txt_schedule_input'];
     } else {
-        $_SUB_HEAD_TITLE = $get_mem_row['mt_name'] . translate("의 일정 입력", $userLang);
+        $_SUB_HEAD_TITLE = $get_mem_row['mt_name'] . $translations['txt_schedule_input'];
     }
 }
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout');
+        alert($translations['txt_login_attempt_other_device'], './logout');
     }
 }
 
@@ -103,7 +104,7 @@ $DB->where('sgdt_show', 'Y');
 $group_chk = $DB->get('smap_group_detail_t');
 $group_count = count($group_chk);
 if ($group_count < 1) { // 그룹이 없을 경우
-    alert(translate('그룹을 먼저 생성해주세요!', $userLang), 'back');
+    alert($translations['txt_create_group_first'], 'back');
 }
 
 if ($_GET['sdate']) {
@@ -137,19 +138,20 @@ function get_pad($v)
 
 function get_time_format($d)
 {
+    global $translations;
     $hour = date("G", strtotime($d));
     $min  = date("i", strtotime($d));
 
     if ($hour > 12) {
         $hour = $hour - 12;
-        $time_now_t = translate("오후", $userLang) . " " . get_pad($hour) . ":" . $min;
+        $time_now_t = $translations['txt_pm'] . " " . get_pad($hour) . ":" . $min;
     } else {
         if ($hour == 12 && $min == '00') {
-            $time_now_t = translate("정오", $userLang) . " " . get_pad($hour) . ":" . $min;
+            $time_now_t = $translations['txt_noon'] . " " . get_pad($hour) . ":" . $min;
         } elseif ($hour == 0 && $min == '00') {
-            $time_now_t = translate("자정", $userLang) . " " . get_pad($hour) . ":" . $min;
+            $time_now_t = $translations['txt_midnight'] . " " . get_pad($hour) . ":" . $min;
         } else {
-            $time_now_t = translate("오전", $userLang) . " " . get_pad($hour) . ":" . $min;
+            $time_now_t = $translations['txt_am'] . " " . get_pad($hour) . ":" . $min;
         }
     }
 
@@ -262,13 +264,13 @@ $time_now_et = get_time_format($row_sst['sst_edate']);
 
             // Common
 
-            headerTitle: "<?= translate("선택", $userLang) ?>",
-            setButton: "<?= translate("설정", $userLang) ?>",
-            clearButton: "<?= translate("지우기", $userLang) ?>",
-            nowButton: "<?= translate("지금", $userLang) ?>",
-            cancelButton: "<?= translate("취소", $userLang) ?>",
-            dateSwitch: "<?= translate("날짜", $userLang) ?>",
-            timeSwitch: "<?= translate("시간", $userLang) ?>",
+            headerTitle: "<?= $translations['txt_select_button'] ?>",
+            setButton: "<?= $translations['txt_settings'] ?>",
+            clearButton: "<?= $translations['txt_clear'] ?>",
+            nowButton: "<?= $translations['txt_now'] ?>",
+            cancelButton: "<?= $translations['txt_cancel_button'] ?>",
+            dateSwitch: "<?= $translations['txt_date'] ?>",
+            timeSwitch: "<?= $translations['txt_hour'] ?>",
 
             // DateTime
 
@@ -280,9 +282,9 @@ $time_now_et = get_time_format($row_sst['sst_edate']);
             numbers: "0_1_2_3_4_5_6_7_8_9".split("_"),
             meridiem: {
                 a: ["a", "p"],
-                aa: ["<?= translate("오전", $userLang) ?>", "<?= translate("오후", $userLang) ?>"],
+                aa: ["<?= $translations['txt_am'] ?>", "<?= $translations['txt_pm'] ?>"],
                 A: ["A", "P"],
-                AA: ["<?= translate("오전", $userLang) ?>", "<?= translate("오후", $userLang) ?>"]
+                AA: ["<?= $translations['txt_am'] ?>", "<?= $translations['txt_pm'] ?>"]
             },
             componentLabels: {
                 date: "Date",
@@ -512,15 +514,23 @@ $debug_t = 'hidden';
             <input type="<?= $debug_t ?>" name="sst_sdate" id="sst_sdate" value="<?= $row_sst['sst_sdate'] ?>">
             <input type="<?= $debug_t ?>" name="sst_edate" id="sst_edate" value="<?= $row_sst['sst_edate'] ?>">
             <input type="hidden" name="swipe_init" id="swipe_init" value="N">
-            <div class="ip_wr">
-                <input type="text" class="form-custom" name="sst_title" id="sst_title" value="<?= $row_sst['sst_title'] ?>" maxlength="30" data-length-id="sst_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('일정 내용을 입력해주세요.', $userLang); ?>" <?= $readonly ?> <?= $disable ?>>
-                <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_title_cnt">0</span>/15)</p>
+            <div class="row line_ip mx-0 pl-0">
+                <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/scheduleSubject.png"></div>
+                <div class="col pl-0">
+                    <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_title" id="sst_title" maxlength="30" data-length-id="sst_title_cnt" oninput="maxLengthCheck(this)" placeholder="<?= $translations['txt_enter_schedule_placeholder'] ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_title'] ?></textarea>
+                </div>
             </div>
-
+            <div class="row mx-0 pl-0">
+                <div class="col col-auto line_tit pl-0"><span></span></div>
+                <div class="col px-0 d-flex justify-content-between align-items-center">
+                    <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_enter_schedule_content'] ?></p>
+                    <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_title_cnt">0</span>/30)</p>
+                </div>
+            </div>
             <div class="line_ip_box border rounded-lg px_20 py_20 mt_20">
                 <div class="line_ip">
                     <div class="row justify-content-between align-items-center">
-                        <h5 class="col col-auto"><?= translate('하루 종일', $userLang); ?></h5>
+                        <h5 class="col col-auto"><?= $translations['txt_all_day'] ?></h5>
                         <div class="col">
                             <div class="custom-switch ml-auto">
                                 <input type="checkbox" class="custom-control-input" name="sst_all_day" id="sst_all_day" value="Y" <?php if ($row_sst['sst_all_day'] == 'Y') {
@@ -563,7 +573,7 @@ $debug_t = 'hidden';
                         <div class="col-6 text-center">
                             <div class="mt_13">
                                 <div class="sel_month d-inline-flex">
-                                    <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= translate("월 선택 아이콘", $userLang); ?>" style="width:1.6rem; "></a>
+                                    <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= $translations['txt_month_selection_icon'] ?>" style="width:1.6rem; "></a>
                                     <p class="fs_15 fw_600" id="calendar_date_title"><?= $calendar_date_title ?></p>
                                 </div>
                             </div>
@@ -574,13 +584,13 @@ $debug_t = 'hidden';
                     </div>
                     <div class="cld_head fs_12">
                         <ul>
-                            <li class="sun"><?= translate('일', $userLang); ?></li>
-                            <li><?= translate('월', $userLang); ?></li>
-                            <li><?= translate('화', $userLang); ?></li>
-                            <li><?= translate('수', $userLang); ?></li>
-                            <li><?= translate('목', $userLang); ?></li>
-                            <li><?= translate('금', $userLang); ?></li>
-                            <li class="sat"><?= translate('토', $userLang); ?></li>
+                            <li class="sun text-danger"><?= $translations['txt_sunday'] ?></li>
+                            <li><?= $translations['txt_monday'] ?></li>
+                            <li><?= $translations['txt_tuesday'] ?></li>
+                            <li><?= $translations['txt_wednesday'] ?></li>
+                            <li><?= $translations['txt_thursday'] ?></li>
+                            <li><?= $translations['txt_friday'] ?></li>
+                            <li class="sat text-primary"><?= $translations['txt_saturday'] ?></li>
                         </ul>
                     </div>
                 </div>
@@ -594,33 +604,33 @@ $debug_t = 'hidden';
                         "locale": {
                             "format": "YYYY-MM-DD hh:mm",
                             "separator": " / ",
-                            "applyLabel": "<?= translate("적용", $userLang) ?>",
-                            "cancelLabel": "<?= translate("닫기", $userLang) ?>",
+                            "applyLabel": "<?= $translations['txt_apply'] ?>",
+                            "cancelLabel": "<?= $translations['txt_close'] ?>",
                             "fromLabel": "From",
                             "toLabel": "To",
                             "customRangeLabel": "Custom",
                             "weekLabel": "W",
                             "daysOfWeek": [
-                                "<?= translate("일", $userLang) ?>",
-                                "<?= translate("월", $userLang) ?>",
-                                "<?= translate("화", $userLang) ?>",
-                                "<?= translate("수", $userLang) ?>",
-                                "<?= translate("목", $userLang) ?>",
-                                "<?= translate("금", $userLang) ?>",
-                                "<?= translate("토", $userLang) ?>"
+                                "<?= $translations['txt_sunday'] ?>",
+                                "<?= $translations['txt_monday'] ?>",
+                                "<?= $translations['txt_tuesday'] ?>",
+                                "<?= $translations['txt_wednesday'] ?>",
+                                "<?= $translations['txt_thursday'] ?>",
+                                "<?= $translations['txt_friday'] ?>",
+                                "<?= $translations['txt_saturday'] ?>"
                             ],
                             "monthNames": [
-                                "1" + "<?= translate("월", $userLang) ?>",
-                                "2" + "<?= translate("월", $userLang) ?>",
-                                "3" + "<?= translate("월", $userLang) ?>",
-                                "4" + "<?= translate("월", $userLang) ?>",
-                                "5" + "<?= translate("월", $userLang) ?>",
-                                "6" + "<?= translate("월", $userLang) ?>",
-                                "7" + "<?= translate("월", $userLang) ?>",
-                                "8" + "<?= translate("월", $userLang) ?>",
-                                "9" + "<?= translate("월", $userLang) ?>",
-                                "10" + "<?= translate("월", $userLang) ?>",
-                                "11" + "<?= translate("월", $userLang) ?>",
+                                "1" + "<?= $translations['txt_month'] ?>",
+                                "2" + "<?= $translations['txt_month'] ?>",
+                                "3" + "<?= $translations['txt_month'] ?>",
+                                "4" + "<?= $translations['txt_month'] ?>",
+                                "5" + "<?= $translations['txt_month'] ?>",
+                                "6" + "<?= $translations['txt_month'] ?>",
+                                "7" + "<?= $translations['txt_month'] ?>",
+                                "8" + "<?= $translations['txt_month'] ?>",
+                                "9" + "<?= $translations['txt_month'] ?>",
+                                "10" + "<?= $translations['txt_month'] ?>",
+                                "11" + "<?= $translations['txt_month'] ?>",
                                 "12월"
                             ],
                             "firstDay": 1
@@ -766,16 +776,16 @@ $debug_t = 'hidden';
 
                     function get_time_format(hh_data, mm_data) {
                         if (hh_data > 12) {
-                            var hh_t = "<?= translate("오후", $userLang) ?>";
+                            var hh_t = "<?= $translations['txt_pm'] ?>";
                             hh_data = hh_data - 12;
                             hh_data = get_pad(hh_data);
                         } else {
                             if (hh_data == 12 && mm_data == 0) {
-                                var hh_t = "<?= translate('정오', $userLang) ?>";
+                                var hh_t = "<?= $translations['txt_noon'] ?>";
                             } else if (hh_data == 0 && mm_data == 0) {
-                                var hh_t = "<?= translate('자정', $userLang) ?>";
+                                var hh_t = "<?= $translations['txt_midnight'] ?>";
                             } else {
-                                var hh_t = "<?= translate('오전', $userLang) ?>";
+                                var hh_t = "<?= $translations['txt_am'] ?>";
                             }
                         }
 
@@ -909,42 +919,64 @@ $debug_t = 'hidden';
                         var y2 = today.getFullYear();
                         var m = cday.getMonth() + 1;
                         var d = cday.getDate();
-                        var w = "<?= translate('일월화수목금토', $userLang) ?>".charAt(cday.getUTCDay());
+                        var dayIndex = cday.getUTCDay();
                         var rtn = '';
 
-                        switch ('<?= $userLang ?>') { // PHP 변수 사용
+                        // Step 1: 각 언어별 요일 배열 정의
+                        var daysOfWeek = {
+                            'ko': ['일', '월', '화', '수', '목', '금', '토'],
+                            'en': ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                            'ja': ['日', '月', '火', '水', '木', '金', '土'],
+                            'id': ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                            'vi': ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                            'es': ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+                            'hi': ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि']
+                        };
+
+                        // Step 2: 현재 언어에 맞는 요일 선택
+                        var w = daysOfWeek['<?= $userLang ?>'][dayIndex];
+
+                        // Step 3: 언어별 날짜 형식 지정
+                        switch ('<?= $userLang ?>') {
                             case 'ko':
-                                rtn = (y == y2 ? '' : y + "<?= translate('년', $userLang) ?> ") + m + "<?= translate('월', $userLang) ?>" + " " + d + "<?= translate('일', $userLang) ?>" + " (" + w + ")";
+                                rtn = (y == y2 ? '' : y + "년 ") + m + "월 " + d + "일 (" + w + ")";
                                 break;
                             case 'en':
                                 rtn = cday.toLocaleDateString('en-US', {
                                     weekday: 'short',
                                     month: 'short',
-                                    day: 'numeric'
-                                }); // Tue Sep 10 (Tue)
+                                    day: 'numeric',
+                                    year: y == y2 ? undefined : 'numeric'
+                                });
                                 break;
                             case 'ja':
-                                rtn = (y == y2 ? '' : y + "年 ") + m + "月" + d + "日" + " (" + w + ")";
+                                rtn = (y == y2 ? '' : y + "年 ") + m + "月" + d + "日 (" + w + ")";
                                 break;
                             case 'id':
                                 rtn = cday.toLocaleDateString('id-ID', {
                                     weekday: 'short',
                                     day: 'numeric',
-                                    month: 'short'
-                                }); // 10 Sep (Sel)
+                                    month: 'short',
+                                    year: y == y2 ? undefined : 'numeric'
+                                });
                                 break;
                             case 'vi':
-                                rtn = d + " Tháng " + m + " (" + w + ")"; // 10 Tháng 9 (Thứ 3)
+                                rtn = d + " Tháng " + m + (y == y2 ? '' : " " + y) + " (" + w + ")";
                                 break;
                             case 'es':
                                 rtn = cday.toLocaleDateString('es-ES', {
                                     weekday: 'short',
                                     day: 'numeric',
-                                    month: 'short'
-                                }); // 10 Sep (mar)
+                                    month: 'short',
+                                    year: y == y2 ? undefined : 'numeric'
+                                });
+                                break;
+                            case 'hi':
+                                var months = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
+                                rtn = d + " " + months[m - 1] + (y == y2 ? '' : " " + y) + " (" + w + ")";
                                 break;
                             default:
-                                rtn = (y == y2 ? '' : y + "<?= translate('년', $userLang) ?> ") + m + "<?= translate('월', $userLang) ?>" + " " + d + "<?= translate('일', $userLang) ?>" + " (" + w + ")";
+                                rtn = (y == y2 ? '' : y + "년 ") + m + "월 " + d + "일 (" + w + ")";
                                 break;
                         }
 
@@ -1285,9 +1317,11 @@ $debug_t = 'hidden';
 
                         var sdhtml = dateFormat_week(sd);
                         $('#sdate_txt').html(sdhtml);
+                        console.log("sdhtml " + sdhtml);
 
                         var edhtml = dateFormat_week(ed);
                         $('#edate_txt').html(edhtml);
+                        console.log("edhtml " + edhtml);
 
                         // userLang 값에 따라 로케일 설정 (이전 답변에서 작성한 switch문 사용)
                         let locale;
@@ -1403,7 +1437,7 @@ $debug_t = 'hidden';
                 <div class="line_ip mt_25 d-none-temp">
                     <div class="row">
                         <div class="col col-auto line_tit">
-                            <h5><?= translate('시작', $userLang); ?></h5>
+                            <h5><?= $translations['txt_start'] ?></h5>
                         </div>
                         <div class="col">
 
@@ -1414,7 +1448,7 @@ $debug_t = 'hidden';
                 <div class="line_ip mt_25 d-none-temp">
                     <div class="row">
                         <div class="col col-auto line_tit">
-                            <h5><?= translate('종료', $userLang); ?></h5>
+                            <h5><?= $translations['txt_end'] ?></h5>
                         </div>
                         <div class="col">
 
@@ -1425,10 +1459,10 @@ $debug_t = 'hidden';
                 <!-- 반복 -->
                 <div class="line_ip mt_25">
                     <div class="row">
-                        <div class="col col-auto line_tit"><img src="<?= CDN_HTTP ?>/img/ip_ic_repeat.png" alt="<?= translate('반복 아이콘', $userLang); ?>"></div>
+                        <div class="col col-auto line_tit"><img src="<?= CDN_HTTP ?>/img/ip_ic_repeat.png" alt="<?= $translations['txt_repeat'] ?>"></div>
                         <div class="col">
                             <input type="hidden" name="sst_repeat_json" id="sst_repeat_json" value='<?= $row_sst['sst_repeat_json'] ?>' />
-                            <input type="text" readonly class="form-none cursor_pointer" name="sst_repeat_json_v" id="sst_repeat_json_v" placeholder="<?= translate('반복', $userLang); ?>" value="<?= $row_sst['sst_repeat_json_v'] ?>" <? if (!$readonly) { /*echo 'data-toggle="modal" data-target="#schedule_repeat"';*/
+                            <input type="text" readonly class="form-none cursor_pointer" name="sst_repeat_json_v" id="sst_repeat_json_v" placeholder="<?= $translations['txt_repeat'] ?>" value="<?= $row_sst['sst_repeat_json_v'] ?>" <? if (!$readonly) { /*echo 'data-toggle="modal" data-target="#schedule_repeat"';*/
                                                                                                                                                                                                                                             echo 'onclick="f_schedule_repeat_modal()"';
                                                                                                                                                                                                                                         } ?>>
                             <!-- value 안에 데이터 넣어 주세요 -->
@@ -1448,7 +1482,7 @@ $debug_t = 'hidden';
             <!-- 알림 -->
             <div class="mt_25">
                 <div class="row line_ip mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_notice.png" alt="<?= translate('알림 아이콘', $userLang); ?>"></div>
+                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_notice.png" alt="<?= $translations['txt_notification'] ?>"></div>
                     <div class="col pl-0" <? if (!$readonly) {
                                                 echo 'onclick="openArmSettingModal()"';
                                             } ?>>
@@ -1456,14 +1490,14 @@ $debug_t = 'hidden';
                         <input type="hidden" name="sst_pick_type" id="sst_pick_type" value="<?= $row_sst['sst_pick_type'] ?>" />
                         <input type="hidden" name="sst_pick_result" id="sst_pick_result" value="<?= $row_sst['sst_pick_result'] ?>" />
                         <!-- <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="알림" value="<?= $row_sst['sst_alram_t'] ?>" data-toggle="modal" data-target="#schedule_notice"> -->
-                        <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="<?= translate('알림', $userLang); ?>" value="<?= $row_sst['sst_alram_t'] ? $row_sst['sst_alram_t'] : $_GET['sst_pick_result'] . $pick_type ?>">
+                        <input type="text" readonly class="form-none cursor_pointer" name="sst_alram_t" id="sst_alram_t" placeholder="<?= $translations['txt_notification'] ?>" value="<?= $row_sst['sst_alram_t'] ? $row_sst['sst_alram_t'] : $_GET['sst_pick_result'] . $pick_type ?>">
                         <!-- value 안에 데이터 넣어 주세요 -->
                     </div>
                 </div>
                 <div class="row mx-0 pl-0">
                     <div class="col col-auto line_tit pl-0"><span></span></div>
                     <div class="col px-0 ">
-                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정 관련 알림 및 그룹원의 위치 변동 알림 설정을 입력해주세요.', $userLang); ?></p>
+                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_notification_settings_info'] ?></p>
                     </div>
                 </div>
             </div>
@@ -1472,7 +1506,7 @@ $debug_t = 'hidden';
                 <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <p class="modal-title line1_text fs_20 fw_700"><?= translate('알림', $userLang); ?></p>
+                            <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_notification'] ?></p>
                             <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                         </div>
                         <div class="modal-body scroll_bar_y py-0">
@@ -1488,7 +1522,6 @@ $debug_t = 'hidden';
                     var sst_schedule_alarm_chk = $('#sst_schedule_alarm_chk').val();
                     var sst_pick_type = $('#sst_pick_type').val();
                     var sst_pick_result = $('#sst_pick_result').val();
-
                     var armSettingURL = './arm_setting?sst_schedule_alarm_chk=' + sst_schedule_alarm_chk + '&sst_pick_type=' + sst_pick_type + '&sst_pick_result=' + sst_pick_result;
                     // console.log(armSettingURL);
                     // 추가 데이터 필요시 추가
@@ -1503,13 +1536,13 @@ $debug_t = 'hidden';
                     var timestamp;
                     var pick_result;
                     if (data.pick_type === 'day') {
-                        timestamp = data.pick_result + "<?= translate('일 전', $userLang) ?>";
+                        timestamp = data.pick_result + " <?= $translations['txt_days_ago'] ?>";
                     } else if (data.pick_type === 'minute') {
-                        timestamp = data.pick_result + "<?= translate('분 전', $userLang) ?>";
+                        timestamp = data.pick_result + " <?= $translations['txt_minutes_ago'] ?>";
                     } else if (data.pick_type === 'hour') {
-                        timestamp = data.pick_result + "<?= translate('시간 전', $userLang) ?>";
+                        timestamp = data.pick_result + " <?= $translations['txt_hours_ago'] ?>";
                     } else {
-                        timestamp = "<?= translate('알림설정 안함', $userLang) ?>";
+                        timestamp = "<?= $translations['txt_no_schedule_notifications'] ?>";
                     }
                     if (data.pick_result) {
                         pick_result = data.pick_result;
@@ -1533,12 +1566,12 @@ $debug_t = 'hidden';
             <!-- 장소 -->
             <div class="mt_25">
                 <div class="row line_ip mx-0 pl-0">
-                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_location.png" alt="<?= translate('위치 아이콘', $userLang); ?>"></div>
+                    <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_location.png" alt="<?= $translations['txt_location'] ?>"></div>
                     <div class="col pl-0">
                         <div class="d-flex align-items-center">
                             <!-- <span class="text-primary mr_12">KT&G</span> -->
                             <!-- 별칭 출력 -->
-                            <input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="<?= translate('장소', $userLang); ?>" value="<?= $row_sst['slt_idx_t'] ?>" <? if (!$readonly) {
+                            <input type="text" readonly class="form-none cursor_pointer flex-fill" name="slt_idx_t" id="slt_idx_t" placeholder="<?= $translations['txt_location'] ?>" value="<?= $row_sst['slt_idx_t'] ?>" <? if (!$readonly) {
                                                                                                                                                                                                                                 echo 'onclick="f_modal_schedule_location();"';
                                                                                                                                                                                                                             } ?>>
                         </div>
@@ -1554,24 +1587,24 @@ $debug_t = 'hidden';
                 <div class="row mx-0 pl-0">
                     <div class="col col-auto line_tit pl-0"><span></span></div>
                     <div class="col px-0">
-                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정이 진행될 장소를 입력해주세요.', $userLang); ?></p>
+                        <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_enter_schedule_location'] ?></p>
                         </ div>
                     </div>
                 </div>
                 <!-- 준비물 -->
                 <div class="mt_25">
                     <div class="row line_ip mx-0 pl-0">
-                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_material.png" alt="<?= translate('준비물 아이콘', $userLang) ?> ?>"></div>
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_material.png" alt="<?= $translations['txt_items_to_prepare'] ?>"></div>
                         <div class="col pl-0">
                             <!-- <input type="text" class="form-none txt-cnt" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="준비물" value="<?= $row_sst['sst_supplies'] ?>" <?= $readonly ?> <?= $disable ?>> -->
-                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('준비물', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_supplies'] ?></textarea>
+                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_supplies" id="sst_supplies" maxlength="100" data-length-id="sst_supplies_cnt" oninput="maxLengthCheck(this)" placeholder="<?= $translations['txt_items_to_prepare'] ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_supplies'] ?></textarea>
                         </div>
                         <!-- value 안에 데이터 넣어 주세요 -->
                     </div>
                     <div class="row mx-0 pl-0">
                         <div class="col col-auto line_tit pl-0"><span></span></div>
                         <div class="col px-0 d-flex justify-content-between align-items-center">
-                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정 진행에 필요한 준비물을 입력해주세요.', $userLang); ?></p>
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_enter_preparations'] ?></p>
                             <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_supplies_cnt">0</span>/100)</p>
                         </div>
                     </div>
@@ -1579,15 +1612,15 @@ $debug_t = 'hidden';
                 <!-- 메모 -->
                 <div class="mt_25">
                     <div class="row line_ip mx-0 pl-0">
-                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_memo.png" alt="<?= translate('메모 아이콘', $userLang); ?>"></div>
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_memo.png" alt="<?= $translations['txt_memo'] ?>"></div>
                         <div class="col pl-0">
-                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_memo" id="sst_memo" maxlength="500" data-length-id="sst_memo_cnt" oninput="maxLengthCheck(this)" placeholder="<?= translate('메모', $userLang); ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_memo'] ?></textarea>
+                            <textarea class="form-none line_h1_4 txt-cnt" rows="1" name="sst_memo" id="sst_memo" maxlength="500" data-length-id="sst_memo_cnt" oninput="maxLengthCheck(this)" placeholder="<?= $translations['txt_memo'] ?>" <?= $readonly ?> <?= $disable ?>><?= $row_sst['sst_memo'] ?></textarea>
                         </div>
                     </div>
                     <div class="row mx-0 pl-0">
                         <div class="col col-auto line_tit pl-0"><span></span></div>
                         <div class="col px-0 d-flex justify-content-between align-items-center">
-                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('일정에 대한 추가 정보나 메모를 작성해주세요.', $userLang); ?></p>
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_add_schedule_info'] ?></p>
                             <p class="fc_gray_500 fs_12 text-right mt-2">(<span id="sst_memo_cnt">0</span>/500)</p>
                         </div>
                     </div>
@@ -1595,17 +1628,17 @@ $debug_t = 'hidden';
                 <!-- 연락처 -->
                 <div class="mt_25">
                     <div class="row line_ip mx-0 pl-0">
-                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_contact.png" alt="<?= translate('연락처 아이콘', $userLang) ?> ?>"></div>
+                        <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_contact.png" alt="<?= $translations['txt_contact'] ?>"></div>
                         <div class="col pl-0">
-                            <input type="text" readonly class="form-none cursor_pointer" placeholder="<?= translate('연락처를 입력해주세요.', $userLang) ?>" value="" <? if (!$readonly) {
-                                                                                                                                                                echo 'data-toggle="modal"';
-                                                                                                                                                            } ?> data-target="#schedule_contact">
+                            <input type="text" readonly class="form-none cursor_pointer" placeholder="<?= $translations['txt_enter_contact_info'] ?>" value="" <? if (!$readonly) {
+                                                                                                                                                                    echo 'data-toggle="modal"';
+                                                                                                                                                                } ?> data-target="#schedule_contact">
                         </div>
                     </div>
                     <div class="row mx-0">
                         <div class="col col-auto line_tit pl-0"><span></span></div>
                         <div class="col px-0">
-                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= translate('연락처를 입력해주세요.', $userLang) ?></p>
+                            <p class="fc_gray_700 fs_12 mt-2 line_h1_3"><?= $translations['txt_enter_contact_info'] ?></p>
                         </div>
                     </div>
                     <!-- 연락처미입력시 ↑-->
@@ -1622,14 +1655,14 @@ $debug_t = 'hidden';
                 </div>
                 <!-- 수정권한 -->
                 <div class="mt-5">
-                    <p class="fs_15 fw_500"><?= translate('수정권한을 선택해주세요', $userLang); ?></p>
+                    <p class="fs_15 fw_500"><?= $translations['txt_select_editing_rights'] ?></p>
                     <div class="checks_wr mt-3">
                         <div class="checks">
                             <label>
                                 <input type="checkbox" name="sst_update_chk" value="1" checked disabled>
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p">
-                                    <p class="text_dynamic"><?= translate('오너', $userLang); ?></p>
+                                    <p class="text_dynamic"><?= $translations['txt_owner'] ?></p>
                                 </div>
                             </label>
                         </div>
@@ -1642,7 +1675,7 @@ $debug_t = 'hidden';
                                                                                                 } ?>>
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p">
-                                    <p class="text_dynamic"><?= translate('리더', $userLang); ?></p>
+                                    <p class="text_dynamic"><?= $translations['txt_leader'] ?></p>
                                 </div>
                             </label>
                         </div>
@@ -1655,7 +1688,7 @@ $debug_t = 'hidden';
                                                                                                 } ?>>
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p">
-                                    <p class="text_dynamic"><?= translate('그룹원', $userLang); ?></p>
+                                    <p class="text_dynamic"><?= $translations['txt_group_members'] ?></p>
                                 </div>
                             </label>
                         </div>
@@ -1666,19 +1699,35 @@ $debug_t = 'hidden';
                         <!-- F-17 일정 수정 수정시 생겨야하는 버튼 -->
                         <div class="row mx-0">
                             <div class="col-5 pl-0 pr-3">
-                                <button type="button" class="btn btn-secondary rounded  btn-lg btn-block" data-toggle="modal" data-target="#schedule_delete"><?= translate('일정 삭제하기', $userLang); ?></button>
+                                <button type="button" class="btn btn-secondary rounded  btn-lg btn-block" data-toggle="modal" data-target="#schedule_delete"><?= $translations['txt_delete_schedule'] ?></button>
                             </div>
                             <div class="col-7 px-0">
-                                <button type="submit" id="btn_submit" class="btn btn-primary rounded btn-lg btn-block"><?= translate('일정 수정하기', $userLang); ?></button>
+                                <button type="submit" id="btn_submit" class="btn btn-primary rounded btn-lg btn-block"><?= $translations['txt_edit_schedule'] ?></button>
                             </div>
                         </div>
                     <?php } else { ?>
-                        <button type="submit" id="btn_submit" class="btn rounded btn-primary btn-lg btn-block"><?= translate('입력했어요!', $userLang); ?></button>
+                        <button type="submit" id="btn_submit" class="btn rounded btn-primary btn-lg btn-block"><?= $translations['txt_enter'] ?></button>
                     <?php } ?>
                 </div>
                 <div id="layoutViewport"></div>
         </form>
         <script>
+            function adjustViewport() {
+                const layoutViewport = document.getElementById('layoutViewport');
+                const viewportHeight = window.innerHeight;
+                document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
+                layoutViewport.style.height = `${viewportHeight}px`;
+            }
+
+            // 초기 로드 시 실행
+            adjustViewport();
+
+            // 리사이즈 이벤트에 대해 실행
+            window.addEventListener('resize', adjustViewport);
+
+            // 모바일에서 스크롤 시 실행 (키보드가 나타나거나 사라질 때)
+            window.addEventListener('scroll', adjustViewport);
+
             $(document).ready(function() {
                 $(document).on("keyup", "input.txt-cnt", function() {
                     var cnt_id = $(this).data('length-id');
@@ -1793,7 +1842,7 @@ $debug_t = 'hidden';
                                              },
                                          },
                                      }); */
-                                    jalert_url("<?= translate('해당 일정이 수정되었습니다.', $userLang) ?>", './schedule');
+                                    jalert_url("<?= $translations['txt_schedule_edit_notification_alert'] ?>", './schedule');
                                 <?php } else { ?>
                                     /*  $.alert({
                                          title: '',
@@ -1810,7 +1859,7 @@ $debug_t = 'hidden';
                                              },
                                          },
                                      }); */
-                                    jalert_url("<?= translate('해당 일정이 등록되었습니다.', $userLang) ?>", './schedule');
+                                    jalert_url("<?= $translations['txt_new_schedule_notification_alert'] ?>", './schedule');
                                 <?php } ?>
                             } else {
                                 console.log(data);
@@ -1882,11 +1931,11 @@ $debug_t = 'hidden';
                                     },
                                 },
                             }); */
-                            jalert("<?= translate('종료시간은 시작 시간보다 나중이어야 합니다.', $userLang) ?>");
+                            jalert("<?= $translations['txt_end_time_later_than_start'] ?>");
                             return false;
                         }
                     } else {
-                        jalert("<?= translate('일정 시간을 입력바랍니다.', $userLang) ?>");
+                        jalert("<?= $translations['txt_enter_schedule_time'] ?>");
                         return false;
                     }
                     if (!slt_idx_t) {
@@ -1952,7 +2001,7 @@ $debug_t = 'hidden';
                                         },
                                     }); */
 
-                                    jalert_url("<?= translate('해당 일정이 수정되었습니다.', $userLang) ?>", './schedule');
+                                    jalert_url("<?= $translations['txt_schedule_edit_notification_alert'] ?>", './schedule');
                                 <?php } else { ?>
                                     /* $.alert({
                                         title: '',
@@ -1969,7 +2018,7 @@ $debug_t = 'hidden';
                                             },
                                         },
                                     }); */
-                                    jalert_url("<?= translate('해당 일정이 등록되었습니다.', $userLang) ?>", './schedule');
+                                    jalert_url("<?= $translations['txt_new_schedule_notification_alert'] ?>", './schedule');
                                 <?php } ?>
                             } else {
                                 console.log(data);
@@ -1997,13 +2046,13 @@ $debug_t = 'hidden';
                 },
                 messages: {
                     sst_title: {
-                        required: "<?= translate("일정 내용을 입력해주세요.", $userLang) ?>",
+                        required: "<?= $translations['txt_enter_schedule_content'] ?>",
                     },
                     sst_sdate: {
-                        required: "<?= translate("시작일을 입력해주세요.", $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                     sgdt_idx_t: {
-                        required: "<?= translate("멤버를 선택해주세요.", $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                     // slt_idx_t: {
                     //     required: "위치를 선택해주세요.",
@@ -2121,7 +2170,7 @@ $debug_t = 'hidden';
                 var inputElement = document.querySelector('input[data-target="#schedule_contact"]');
                 if (contactCount > 0) {
                     // 연락처 개수를 input 요소의 값으로 설정
-                    inputElement.value = contactCount + "<?= translate("개의 연락처", $userLang) ?>";
+                    inputElement.value = contactCount + "<?= $translations['txt_items'] ?>" + " " + "<?= $translations['txt_contact'] ?>";
                 }
             }
             // 연락처 개수를 확인하는 함수
@@ -2171,7 +2220,7 @@ $debug_t = 'hidden';
                             //         },
                             //     },
                             // });
-                            jalert_url("<?= translate('해당 일정이 삭제되었습니다.', $userLang) ?>", './schedule');
+                            jalert_url("<?= $translations['txt_schedule_delete_notification_alert'] ?>", './schedule');
                         }
                     },
                     error: function(err) {
@@ -2186,7 +2235,7 @@ $debug_t = 'hidden';
 <!-- 토스트 Toast -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i><?= translate('일정이 등록되었습니다.', $userLang); ?></p>
+        <p><i class="xi-check-circle mr-2"></i><?= $translations['txt_new_schedule_notification_alert'] ?></p>
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -2197,15 +2246,14 @@ $debug_t = 'hidden';
         <div class="modal-content">
             <div class="modal-body text-center pb-5">
                 <img src="./img/warring.png" width="72px" class="pt-3" alt="장소입력해주세요." />
-                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4"><?= translate('장소를 입력하지 않으면
-                    위치 기반 알림을 받지 못해요.', $userLang); ?>
+                <p class="fs_16 text_dynamic fw_700 line_h1_3 mt-4"><?= $translations['txt_no_location_no_notification'] ?>
                 </p>
-                <p class="fs_14 text_dynamic text_gray mt-3 line_h1_2 px-4"><?= translate('장소 입력없이 저장하시겠어요?', $userLang); ?></p>
+                <p class="fs_14 text_dynamic text_gray mt-3 line_h1_2 px-4"><?= $translations['txt_save_without_location'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="f_modal_schedule_location();"><?= translate('장소입력 하러가기', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" id="form_submit_btn" data-dismiss="modal" aria-label="Close"><?= translate('저장하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close" onclick="f_modal_schedule_location();"><?= $translations['txt_go_to_location_input'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" id="form_submit_btn" data-dismiss="modal" aria-label="Close"><?= $translations['txt_save'] ?></button>
                 </div>
             </div>
         </div>
@@ -2214,7 +2262,7 @@ $debug_t = 'hidden';
 
 <!-- F-4 일정 입력 > 시작종료  -->
 <div class="modal fade" id="schedule_date_time" tabindex="-1">
-    <div class="modal-dialog modal-default modal-default_y modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-dialog modal-default      modal-default_y modal-dialog-scrollable modal-dialog-centered">
         <form method="post" name="frm_schedule_date_time" id="frm_schedule_date_time">
             <div class="modal-content">
                 <div class="modal-header justify-content-end border-0 pt_20 pb_4">
@@ -2223,7 +2271,7 @@ $debug_t = 'hidden';
                 <div class="cld_head_wr">
                     <div class="add_cal_tit mb-3">
                         <div class="sel_month d-inline-flex" style="margin-left:2rem;">
-                            <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= translate('월 선택 아이콘', $userLang); ?>" style="width:1.6rem; ">
+                            <img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= $translations['txt_month_selection_icon'] ?>" style="width:1.6rem; ">
                             <b id="schedule-title" class="text-text fs_15"></b>
                         </div>
                         <div class="d-flex" style="margin-right:1rem;">
@@ -2274,7 +2322,7 @@ $debug_t = 'hidden';
                                                     act: 'event_source',
                                                 },
                                                 error: function() {
-                                                    console.log("<?= translate('잘못된 접근입니다.', $userLang) ?>");
+                                                    console.log("<?= $translations['txt_invalid_access'] ?>");
                                                 },
                                             }],
                                             eventAfterAllRender: function(view) {
@@ -2327,18 +2375,18 @@ $debug_t = 'hidden';
                     <div class="time_conent px-0">
                         <div class="ip_wr border-top pt_20">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class="text-body fw_800"><?= translate('시작일시', $userLang); ?></h5>
+                                <h5 class="text-body fw_800"><?= $translations['txt_start_date_time'] ?></h5>
                             </div>
                             <div class="form-row flex-nowrap align-items-center mb-3">
-                                <input type="text" readonly class="form-control form-control-sm" name="sst_sdate_d1" id="sst_sdate_d1" value="<?= $arr_sdate_t['date'] ?>" placeholder="<?= translate('시작일자를 선택해주세요.', $userLang); ?>" />
+                                <input type="text" readonly class="form-control form-control-sm" name="sst_sdate_d1" id="sst_sdate_d1" value="<?= $arr_sdate_t['date'] ?>" placeholder="<?= $translations['txt_select_start_date'] ?>" />
                                 <span class="mx-2"> </span>
                                 <select class="form-control custom-select form-control-sm" name="sst_sdate_d4" id="sst_sdate_d4">
                                     <option value="1" <?php if ($arr_sdate_t['ampm'] == '1') {
                                                             echo " selected";
-                                                        } ?>><?= translate('오전', $userLang); ?></option>
+                                                        } ?>><?= $translations['txt_am'] ?></option>
                                     <option value="2" <?php if ($arr_sdate_t['ampm'] == '2') {
                                                             echo " selected";
-                                                        } ?>><?= translate('오후', $userLang); ?></option>
+                                                        } ?>><?= $translations['txt_pm'] ?></option>
                                 </select>
                             </div>
                             <div class="form-row flex-nowrap align-items-center">
@@ -2377,18 +2425,18 @@ $debug_t = 'hidden';
                         </div>
                         <div class="ip_wr pt_20">
                             <div class="ip_tit d-flex align-items-center justify-content-between">
-                                <h5 class="text-body fw_800"><?= translate('종료일시', $userLang); ?></h5>
+                                <h5 class="text-body fw_800"><?= $translations['txt_end_date_time'] ?></h5>
                             </div>
                             <div class="form-row flex-nowrap align-items-center mb-3">
-                                <input type="text" readonly class="form-control form-control-sm" name="sst_edate_d1" id="sst_edate_d1" value="<?= $arr_edate_t['date'] ?>" placeholder="<?= translate('종료일자를 선택해주세요.', $userLang) ?> ?>" />
+                                <input type="text" readonly class="form-control form-control-sm" name="sst_edate_d1" id="sst_edate_d1" value="<?= $arr_edate_t['date'] ?>" placeholder="<?= $translations['txt_select_end_date'] ?>" />
                                 <span class="mx-2"> </span>
                                 <select class="form-control custom-select form-control-sm" name="sst_edate_d4" id="sst_edate_d4">
                                     <option value="1" <?php if ($arr_edate_t['ampm'] == '1') {
                                                             echo " selected";
-                                                        } ?>><?= translate('오전', $userLang); ?></option>
+                                                        } ?>><?= $translations['txt_am'] ?></option>
                                     <option value="2" <?php if ($arr_edate_t['ampm'] == '2') {
                                                             echo " selected";
-                                                        } ?>><?= translate('오후', $userLang); ?></option>
+                                                        } ?>><?= $translations['txt_pm'] ?></option>
                                 </select>
                             </div>
                             <div class="form-row flex-nowrap align-items-center">
@@ -2429,7 +2477,7 @@ $debug_t = 'hidden';
                     </div>
                 </div>
                 <div class="modal-footer px-0 py-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('시간 저장하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_save_time'] ?></button>
                 </div>
             </div>
         </form>
@@ -2455,7 +2503,7 @@ $debug_t = 'hidden';
                     var edate_time = Math.round(new Date(edate_t) / 1000);
 
                     if (sdate_time > edate_time) {
-                        jalert("<?= translate('시작일시가 종료일시보다 큽니다.', $userLang) ?>");
+                        jalert("<?= $translations['txt_end_time_later_than_start'] ?>");
                         return false;
                     }
 
@@ -2487,22 +2535,22 @@ $debug_t = 'hidden';
                 },
                 messages: {
                     sst_sdate_d1: {
-                        required: "<?= translate('시작일을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_select_start_date'] ?>",
                     },
                     sst_sdate_d2: {
-                        required: "<?= translate('시작시간을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                     sst_sdate_d3: {
-                        required: "<?= translate('시작분을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                     sst_edate_d1: {
-                        required: "<?= translate('종료일을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_select_end_date'] ?>",
                     },
                     sst_edate_d2: {
-                        required: "<?= translate('종료시간을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                     sst_edate_d3: {
-                        required: "<?= translate('종료분을 선택해주세요.', $userLang) ?>",
+                        required: "<?= $translations['txt_additional_info_required'] ?>",
                     },
                 },
                 errorPlacement: function(error, element) {
@@ -2522,8 +2570,8 @@ $debug_t = 'hidden';
         <div class="modal-content">
             <form method="post" name="frm_schedule_repeat" id="frm_schedule_repeat">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('반복', $userLang); ?></p>
-                    <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_repeat'] ?></p>
+                    <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png" alt="닫기"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
                     <?php
@@ -2537,17 +2585,17 @@ $debug_t = 'hidden';
                     ?>
                             <div class="<?= $line_class ?>">
                                 <?php if ($key == "3") { ?>
-                                    <div class="checks mb-4">
+                                    <div class="checks m-0">
                                         <label>
-                                            <input type="radio" class="repeat_r1 repeat_week_chk" name="repeat_r1" id="r1_<?= $key ?>" value="<?= $key ?>" onchange="f_repeat_sel(this.value);" />
+                                            <input type="radio" class="repeat_r1 repeat_week_chk" name="repeat_r1" id="r1_<?= $key ?>" value="<?= $key ?>" onchange="handleRepeatOptionChange(this.value);" />
                                             <span class="ic_box"><i class="xi-check-min"></i></span>
                                             <div class="chk_p">
-                                                <p class="text_dynamic" style="word-break: break-all;"><?= translate('1주 마다', $userLang); ?></p>
+                                                <p class="text_dynamic" style="word-break: break-all;"><?= $translations['txt_weekly'] ?></p>
                                             </div>
                                         </label>
                                     </div>
-                                    <div class="table_scroll scroll_bar_x week_wrappp">
-                                        <div class="week_btn btn-group btn-group-toggle d-flex aling-items-center justify-content-between week_checks_wrap" data-toggle="buttons">
+                                    <div class="table_scroll scroll_bar_x week_wrappp" id="week_checks_container" style="display: none;">
+                                        <div class="week_btn btn-group btn-group-toggle d-flex align-items-center justify-content-between week_checks_wrap" data-toggle="buttons">
                                             <?php
                                             if ($sst_repeat_json_t['r2']) {
                                                 $r2_ex = explode(',', $sst_repeat_json_t['r2']);
@@ -2564,10 +2612,10 @@ $debug_t = 'hidden';
                                                         }
                                                     }
                                             ?>
-                                                    <div class="checks week_checks flex-grow-1 mb-0">
-                                                        <label class="btn btn-outline-secondary p-3" for="r2_<?= $key ?>">
+                                                    <div class="checks week_checks mb-0" style="flex: 1 0 23%;">
+                                                        <label class="btn btn-outline-secondary p-3 w-100" for="r2_<?= $key ?>">
                                                             <input type="checkbox" class="repeat_r2" name="r2[]" id="r2_<?= $key ?>" value="<?= $key ?>" <?= $r2_chk ?> onchange="f_chk_week_repeat();" />
-                                                            <div class="w-100 chk_p week_check px-0">
+                                                            <div class="chk_p week_check px-0">
                                                                 <p class="fs_15 fw_600 text_dynamic text-center"><?= $val ?></p>
                                                             </div>
                                                         </label>
@@ -2581,7 +2629,9 @@ $debug_t = 'hidden';
                                 <?php } else { ?>
                                     <div class="checks m-0">
                                         <label>
-                                            <input type="radio" class="repeat_r1" name="repeat_r1" id="r1_<?= $key ?>" value="<?= $key ?>" onchange="f_repeat_sel(this.value);" />
+                                            <input type="radio" class="repeat_r1" name="repeat_r1" id="r1_<?= $key ?>" value="<?= $key ?>" <?php if ($key == '1') {
+                                                                                                                                                echo "checked";
+                                                                                                                                            } ?> onchange="handleRepeatOptionChange(this.value);" />
                                             <span class="ic_box"><i class="xi-check-min"></i></span>
                                             <div class="chk_p">
                                                 <p class="text_dynamic" style="word-break: break-all;"><?= $val ?></p>
@@ -2596,159 +2646,194 @@ $debug_t = 'hidden';
                     ?>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('반복 주기 선택완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_repeat_cycle_selected'] ?></button>
                 </div>
             </form>
-            <script>
-                $(document).ready(function() {
-                    <?php if ($sst_repeat_json_t['r1']) { ?>
-                        $('#r1_<?= $sst_repeat_json_t['r1'] ?>').prop("checked", true);
-                    <?php } ?>
-                });
-
-                function f_chk_week_repeat() {
-                    var q = 0;
-                    $(".repeat_r2").each(function() {
-                        if ($(this).prop("checked") == true) {
-                            q++;
-                        }
-                    });
-
-                    if (q > 0) {
-                        $('.repeat_week_chk').prop("checked", true);
-                    } else {
-                        $('.repeat_week_chk').prop("checked", false);
-                    }
-                }
-
-                function f_repeat_sel(v) {
-                    if (v != '3') {
-                        $(".repeat_r2").each(function() {
-                            $(this).prop("checked", false);
-                            $(this).parent().removeClass('active');
-                        });
-                    }
-                }
-
-                function f_switch_week(w) {
-                    switch (w) {
-                        case '1':
-                            return "<?= translate('월', $userLang) ?>";
-                            break;
-                        case '2':
-                            return "<?= translate('화', $userLang) ?>";
-                            break;
-                        case '3':
-                            return "<?= translate('수', $userLang) ?>";
-                            break;
-                        case '4':
-                            return "<?= translate('목', $userLang) ?>";
-                            break;
-                        case '5':
-                            return "<?= translate('금', $userLang) ?>";
-                            break;
-                        case '6':
-                            return "<?= translate('토', $userLang) ?>";
-                            break;
-                        case '7':
-                            return "<?= translate('일', $userLang) ?>";
-                            break;
-                        default:
-                            console.log('null');
-                    }
-                }
-
-                function f_switch_repeat(r) {
-                    switch (r) {
-                        case '1':
-                            return "<?= translate('반복 안 함', $userLang) ?>";
-                            break;
-                        case '2':
-                            return "<?= translate('매일', $userLang) ?>";
-                            break;
-                        case '3':
-                            return "<?= translate('1주마다', $userLang) ?>";
-                            break;
-                        case '4':
-                            return "<?= translate('매월', $userLang) ?>";
-                            break;
-                        case '5':
-                            return "<?= translate('매년', $userLang) ?>";
-                            break;
-                        default:
-                            console.log('null');
-                    }
-                }
-
-                $("#frm_schedule_repeat").validate({
-                    submitHandler: function() {
-                        var f = document.frm_schedule_repeat;
-
-                        var q = 0;
-                        $(".repeat_r1").each(function() {
-                            if ($(this).prop("checked") == true) {
-                                q++;
-                            }
-                        });
-
-                        if (q < 1) {
-                            jalert("<?= translate('반복 방식을 선택해주세요.', $userLang) ?>");
-                            return false;
-                        }
-
-                        var json_rtn_v = '';
-                        var json_rtn = '';
-                        if (f.repeat_r1.value == '3') {
-                            var w = 0;
-                            var week_t = '';
-                            var week_tv = '';
-                            $(".repeat_r2").each(function() {
-                                if ($(this).prop("checked") == true) {
-                                    w++;
-                                    week_t += $(this).val() + ','
-                                    week_tv += f_switch_week($(this).val()) + ','
-                                }
-                            });
-
-                            if (w < 1) {
-                                jalert("<?= translate('반복 요일을 선택해주세요.', $userLang) ?>");
-                                return false;
-                            }
-
-                            json_rtn = '{"r1":"' + f.repeat_r1.value + '","r2":"' + week_t + '"}';
-                            json_rtn_v = <?= translate('1주마다', $userLang) ?> + ' ' + week_tv;
-                        } else {
-                            json_rtn = '{"r1":"' + f.repeat_r1.value + '","r2":""}';
-                            json_rtn_v = f_switch_repeat(f.repeat_r1.value);
-                        }
-
-                        $('#sst_repeat_json').val(json_rtn);
-                        $('#sst_repeat_json_v').val(json_rtn_v);
-                        $('#schedule_repeat').modal('hide');
-
-                        return false;
-                    },
-                    rules: {
-                        repeat_r1: {
-                            required: true,
-                        },
-                    },
-                    messages: {
-                        repeat_r1: {
-                            required: "<?= translate('반복 방식을 선택해주세요.', $userLang) ?>",
-                        },
-                    },
-                    errorPlacement: function(error, element) {
-                        $(element)
-                            .closest("form")
-                            .find("span[for='" + element.attr("id") + "']")
-                            .append(error);
-                    },
-                });
-            </script>
         </div>
     </div>
 </div>
+<script>
+    $(document).ready(function() {
+        const button = document.querySelector('.b_botton');
+        let viewportHeight = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            if (window.innerHeight < viewportHeight) {
+                // 키보드가 올라왔을 때
+                button.style.position = 'absolute';
+                button.style.bottom = '0';
+            } else {
+                // 키보드가 내려갔을 때
+                button.style.position = 'fixed';
+                button.style.bottom = '0';
+            }
+            viewportHeight = window.innerHeight;
+        });
+        <?php if (isset($sst_repeat_json_t['r1'])) { ?>
+            $('#r1_<?= $sst_repeat_json_t['r1'] ?>').prop("checked", true);
+            if ('3' === '<?= $sst_repeat_json_t['r1'] ?>') {
+                <?php
+                if ($sst_repeat_json_t['r2']) {
+                    $r2_ex = explode(',', $sst_repeat_json_t['r2']);
+                    foreach ($r2_ex as $key2 => $val2) { ?>
+                        $('#r2_<?= $val2 ?>').prop("checked", true);
+                <?php
+                    }
+                }
+                ?>
+            }
+        <?php } ?>
+        handleRepeatOptionChange($('.repeat_r1:checked').val());
+    });
+
+    // 반복 옵션 체크박스 처리
+    $('.repeat_r1').change(function() {
+        if ($(this).is(':checked')) {
+            $('.repeat_r1').not(this).prop('checked', false);
+            handleRepeatOptionChange(this.value); // 선택된 값을 함수에 전달
+        }
+    });
+
+    // 요일 체크박스 처리
+    $('.repeat_r2').change(function() {
+        f_chk_week_repeat();
+    });
+
+    function f_chk_week_repeat() {
+        var q = 0;
+        $(".repeat_r2").each(function() {
+            if ($(this).prop("checked") == true) {
+                q++;
+            }
+        });
+
+        if (q > 0) {
+            $('#r1_3').prop("checked", true);
+            $('.repeat_r1').not('#r1_3').prop('checked', false);
+        } else {
+            $('#r1_3').prop("checked", false);
+            $('#r1_1').prop("checked", true); // Automatically select "Do not repeat"
+            $('#week_checks_container').hide(); // Hide weekday selection
+        }
+    }
+
+    // Weekly 옵션 변경에 따른 요일 선택 컨테이너 표시/숨김 처리
+    function handleRepeatOptionChange(value) {
+        if (value === '3') {
+            $('#week_checks_container').show();
+        } else {
+            // Weekly가 아닌 다른 옵션 선택 시 요일 체크박스 초기화 및 화면 업데이트
+            $(".repeat_r2").prop('checked', false); // 데이터 초기화
+            $(".week_checks_wrap .btn").removeClass('active'); // 버튼 UI 초기화
+            $('#week_checks_container').hide(); // 요일 선택 컨테이너 숨김
+        }
+    }
+
+    function f_switch_week(w) {
+        switch (w) {
+            case '1':
+                return "<?= $translations['txt_monday'] ?>";
+            case '2':
+                return "<?= $translations['txt_tuesday'] ?>";
+            case '3':
+                return "<?= $translations['txt_wednesday'] ?>";
+            case '4':
+                return "<?= $translations['txt_thursday'] ?>";
+            case '5':
+                return "<?= $translations['txt_friday'] ?>";
+            case '6':
+                return "<?= $translations['txt_saturday'] ?>";
+            case '7':
+                return "<?= $translations['txt_sunday'] ?>";
+            default:
+                console.log('null');
+        }
+    }
+
+    function f_switch_repeat(r) {
+        switch (r) {
+            case '1':
+                return "<?= $translations['txt_do_not_repeat'] ?>";
+            case '2':
+                return "<?= $translations['txt_every_day'] ?>";
+            case '3':
+                return "<?= $translations['txt_every_week'] ?>";
+            case '4':
+                return "<?= $translations['txt_every_month'] ?>";
+            case '5':
+                return "<?= $translations['txt_every_year'] ?>";
+            default:
+                console.log('null');
+        }
+    }
+
+    $("#frm_schedule_repeat").validate({
+        submitHandler: function() {
+            var f = document.frm_schedule_repeat;
+
+            var selectedOption = $('.repeat_r1:checked').val();
+
+            if (!selectedOption) {
+                jalert("<?= $translations['txt_select_repeat_option'] ?>"); // 새로운 번역 키 사용
+                return false;
+            }
+
+            var json_rtn_v = '';
+            var json_rtn = '';
+            if (selectedOption == '3') {
+                var week_t = '';
+                var week_tv = '';
+                $(".repeat_r2:checked").each(function() {
+                    week_t += $(this).val() + ',';
+                    week_tv += f_switch_week($(this).val()) + ',';
+                });
+
+                if (week_t === '') {
+                    jalert("<?= $translations['txt_additional_info_required'] ?>");
+                    return false;
+                }
+
+                json_rtn = '{"r1":"3","r2":"' + week_t.slice(0, -1) + '"}';
+                json_rtn_v = "<?= $translations['txt_every_week'] ?>" + ' ' + week_tv.slice(0, -1);
+            } else {
+                json_rtn = '{"r1":"' + selectedOption + '","r2":""}';
+                json_rtn_v = f_switch_repeat(selectedOption);
+            }
+
+            $('#sst_repeat_json').val(json_rtn);
+            $('#sst_repeat_json_v').val(json_rtn_v);
+            $('#schedule_repeat').modal('hide');
+
+            return false;
+        },
+        rules: {
+            repeat_r1: {
+                required: true,
+            },
+        },
+        messages: {
+            repeat_r1: {
+                required: "<?= $translations['txt_additional_info_required'] ?>",
+            },
+        },
+        errorPlacement: function(error, element) {
+            $(element)
+                .closest("form")
+                .find("span[for='" + element.attr("id") + "']")
+                .append(error);
+        },
+    });
+
+    // 모달 닫기 이벤트 핸들러 추가
+    $('#schedule_repeat').on('hidden.bs.modal', function() {
+        // Weekly 옵션이 선택되어 있지 않다면 요일 체크박스 숨김 및 해제
+        if (!$('#r1_3').is(':checked')) {
+            $('#week_checks_container').hide();
+            $(".repeat_r2").prop('checked', false);
+        }
+    });
+</script>
+
 
 <!-- F-4 일정 입력 > 알림 선택  -->
 <div class="modal fade" id="schedule_notice" tabindex="-1">
@@ -2756,7 +2841,7 @@ $debug_t = 'hidden';
         <div class="modal-content">
             <form method="post" name="frm_schedule_notice" id="frm_schedule_notice">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('알림', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_alarm'] ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">
@@ -2784,7 +2869,7 @@ $debug_t = 'hidden';
                     ?>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('알림 설정완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_notification_settings_saved'] ?></button>
                 </div>
             </form>
             <script>
@@ -2800,7 +2885,7 @@ $debug_t = 'hidden';
                         });
 
                         if (q < 1) {
-                            jalert("<?= translate("알림 방식을 선택해주세요.", $userLang) ?>");
+                            jalert("<?= $translations['txt_additional_info_required'] ?>");
                             return false;
                         }
 
@@ -2817,7 +2902,7 @@ $debug_t = 'hidden';
                     },
                     messages: {
                         sst_alram_r1: {
-                            required: "<?= translate("알림 방식을 선택해주세요.", $userLang) ?>",
+                            required: "<?= $translations['txt_additional_info_required'] ?>",
                         },
                     },
                     errorPlacement: function(error, element) {
@@ -2839,26 +2924,26 @@ $debug_t = 'hidden';
         <div class="modal-content">
             <form method="post" name="frm_schedule_location" id="frm_schedule_location">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('장소입력', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_enter_location_button'] ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y pt-0" style="max-height: calc(100vh - 200px); overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                     <div class="text-center py-5 border-top">
                         <div class="mx-auto"><img src="<?= CDN_HTTP ?>/img/icon_location.png" style="max-width:4.9rem;"></div>
                         <!-- <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_schedule_map();">지도에서 선택할래요<i class="xi-angle-right-min ml_19"></i></button> -->
-                        <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_map_search();"><?= translate('주소로 검색할래요', $userLang); ?><i class="xi-angle-right-min ml_19"></i></button>
+                        <button type="button" class="btn btn-secondary btn-sm fc_primary pl_14 pr_11 mt_12 mx-auto" onclick="f_modal_map_search();"><?= $translations['txt_search_by_address'] ?><i class="xi-angle-right-min ml_19"></i></button>
 
                     </div>
                     <div class="bargray_fluid mx_n20"></div>
 
                     <div class="location_mark my_20">
-                        <p class="tit_h3 fs_15 mb-4"><?= translate('내 장소', $userLang); ?></p>
+                        <p class="tit_h3 fs_15 mb-4"><?= $translations['txt_my_locations'] ?></p>
                         <ul id="location_like_list_box">
                         </ul>
                     </div>
                     <!-- 위치알림 -->
                     <div>
-                        <p class="tit_h3 fs_15 mb-4"><?= translate('위치알림', $userLang); ?></p>
+                        <p class="tit_h3 fs_15 mb-4"><?= $translations['txt_location_notification'] ?></p>
                         <div class="mt-4">
                             <div class="row bg_gray mx-0 arm_set_box">
                                 <div class="col checks mb-0 pl-0 px-sm-0 d-flex align-items-center">
@@ -2866,7 +2951,7 @@ $debug_t = 'hidden';
                                         <input type="checkbox" id="sst_location_alarm_t_1" value="1" <? if (!$row_sst['sst_location_alarm']) echo 'checked'; ?>>
                                         <span class="ic_box"><i class="xi-check-min"></i></span>
                                         <div class="chk_p flex-shrink-0">
-                                            <p class="text_dynamic text_gray"><?= translate('진입알림', $userLang); ?></p>
+                                            <p class="text_dynamic text_gray"><?= $translations['txt_entry_notification'] ?></p>
                                         </div>
                                     </label>
                                     <!-- 이하 생략 -->
@@ -2876,7 +2961,7 @@ $debug_t = 'hidden';
                                         <input type="checkbox" id="sst_location_alarm_t_2" value="2" <? if (!$row_sst['sst_location_alarm']) echo 'checked'; ?>>
                                         <span class="ic_box"><i class="xi-check-min"></i></span>
                                         <div class="chk_p flex-shrink-0">
-                                            <p class="text_dynamic text_gray"><?= translate('이탈알림', $userLang); ?></p>
+                                            <p class="text_dynamic text_gray"><?= $translations['txt_exit_notification'] ?></p>
                                         </div>
                                     </label>
                                     <!-- 이하 생략 -->
@@ -2889,7 +2974,7 @@ $debug_t = 'hidden';
                                             <input type="checkbox" id="sst_location_alarm_t_3" value="3">
                                             <span class="ic_box"><i class="xi-check-min"></i></span>
                                             <div class="chk_p">
-                                                <p class="text_dynamic text_gray"><?= translate('위치알림 안함', $userLang); ?></p>
+                                                <p class="text_dynamic text_gray"><?= $translations['txt_no_location_notification'] ?></p>
                                             </div>
                                         </label>
                                     </div>
@@ -2899,7 +2984,7 @@ $debug_t = 'hidden';
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('장소 입력하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary                   mx-0 my-0"><?= $translations['txt_enter_location'] ?></button>
                 </div>
             </form>
             <script>
@@ -2994,7 +3079,7 @@ $debug_t = 'hidden';
                             }
                         });
                         if (q < 1) {
-                            jalert("<?= translate('장소를 선택해주세요.', $userLang) ?>");
+                            jalert("<?= $translations['txt_select_a_location'] ?>");
                             return false;
                         }
 
@@ -3023,7 +3108,7 @@ $debug_t = 'hidden';
                     },
                     messages: {
                         sgdt_idx_r1: {
-                            required: "<?= translate('멤버를 선택해주세요.', $userLang) ?>",
+                            required: "<?= $translations['txt_additional_info_required'] ?>",
                         },
                     },
                     errorPlacement: function(error, element) {
@@ -3043,34 +3128,34 @@ $debug_t = 'hidden';
         <div class="modal-content">
             <form method="post" name="frm_schedule_contact" id="frm_schedule_contact">
                 <div class="modal-header pb-0">
-                    <p class="tit_h2 line_h1_3 fs_20 fw_700 text_dynamic"><?= translate('일정과 연관된', $userLang); ?>
-                        <?= translate('연락처를 입력해주세요.', $userLang); ?>
+                    <p class="tit_h2 line_h1_3 fs_20 fw_700 text_dynamic"><?= $translations['txt_schedule_related'] ?>
+                        <?= $translations['txt_enter_contact_info'] ?>
                     </p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y pt-0">
                     <div class="ip_wr d-none">
                         <div class="ip_tit d-flex align-items-center justify-content-between">
-                            <h5><?= translate('카테고리', $userLang); ?></h5>
+                            <h5><?= $translations['txt_category'] ?></h5>
                         </div>
-                        <input type="text" class="form-control" name="sct_category" id="sct_category" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= translate('카테고리 입력', $userLang); ?>">
+                        <input type="text" class="form-control" name="sct_category" id="sct_category" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= $translations['txt_category'] ?>">
                     </div>
                     <div class="ip_wr mt_25">
                         <div class="ip_tit">
-                            <h5 class=""><?= translate('연락처 이름', $userLang); ?></h5>
+                            <h5 class=""><?= $translations['txt_contact_name'] ?></h5>
                         </div>
-                        <input type="text" class="form-control" name="sct_title" id="sct_title" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= translate('홍길동', $userLang); ?>">
+                        <input type="text" class="form-control" name="sct_title" id="sct_title" maxlength="40" oninput="maxLengthCheck(this)" placeholder="<?= $translations['txt_name_example'] ?>">
                     </div>
                     <div class="ip_wr mt_25">
                         <div class="ip_tit">
-                            <h5 class=""><?= translate('연락처', $userLang); ?></h5>
+                            <h5 class=""><?= $translations['txt_contact'] ?></h5>
                         </div>
                         <!-- <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="40" oninput="maxLengthCheck(this)" placeholder="010-1234-1234"> -->
-                        <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="13" placeholder="<?= translate('010-1234-1234', $userLang); ?>" oninput="formatPhoneNumber(this)">
+                        <input type="text" class="form-control" name="sct_hp" id="sct_hp" maxlength="13" placeholder="<?= $translations['txt_phone_number_example_2'] ?>" oninput="formatPhoneNumber(this)">
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('연락처 저장하기', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_save_contact'] ?></button>
                 </div>
             </form>
             <script>
@@ -3164,13 +3249,13 @@ $debug_t = 'hidden';
                     },
                     messages: {
                         sct_category: {
-                            required: "<?= translate('카테고리를 입력해주세요.', $userLang) ?>",
+                            required: "<?= $translations['txt_additional_info_required'] ?>",
                         },
                         sct_title: {
-                            required: "<?= translate('연락처 이름을 입력해주세요.', $userLang) ?>",
+                            required: "<?= $translations['txt_additional_info_required'] ?>",
                         },
                         sct_hp: {
-                            required: "<?= translate('연락처를 입력해주세요.', $userLang) ?>",
+                            required: "<?= $translations['txt_additional_info_required'] ?>",
                         },
                     },
                     errorPlacement: function(error, element) {
@@ -3190,12 +3275,12 @@ $debug_t = 'hidden';
         <!-- opt_bottom_wrap 이거 넣으면 바텀시트 / modal-dialog-scrollable 필요시-->
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= translate('일정을 삭제하시겠어요?', $userLang); ?></p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= $translations['txt_delete_schedule_question'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?= translate('삭제하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?= $translations['txt_delete'] ?></button>
                 </div>
             </div>
         </div>
@@ -3206,31 +3291,31 @@ $debug_t = 'hidden';
     <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <p class="modal-title line1_text fs_20 fw_700"><?= translate('연락처 수정', $userLang); ?></p>
+                <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_edit_contact'] ?></p>
                 <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
             </div>
             <div class="modal-body scroll_bar_y border-top">
                 <form class="">
                     <div class="ip_wr mb-4">
                         <div class="ip_tit d-flex justify-content-between">
-                            <h5 class=""><?= translate('카테고리', $userLang); ?></h5>
-                            <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
+                            <h5 class=""><?= $translations['txt_category'] ?></h5>
+                            <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= $translations['txt_delete'] ?></u></button>
                         </div>
-                        <input type="text" class="form-control" placeholder="<?= translate('카테고리 입력', $userLang); ?>" value="기사아저씨">
+                        <input type="text" class="form-control" placeholder="<?= $translations['txt_category'] ?>" value="기사아저씨">
                     </div>
                     <div class="bargray_fluid mx_n20"></div>
 
                     <div class="py_20 border-bottom contact_item">
                         <div class="ip_wr">
                             <div class="ip_tit d-flex justify-content-between">
-                                <h5 class=""><?= translate('이름', $userLang); ?></h5>
-                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
+                                <h5 class=""><?= $translations['txt_name_example'] ?></h5>
+                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= $translations['txt_delete'] ?></u></button>
                             </div>
                             <input type="text" class="form-control" placeholder="홍길동" value="홍길동">
                         </div>
                         <div class="ip_wr mt_25">
                             <div class="ip_tit">
-                                <h5 class=""><?= translate('연락처', $userLang); ?></h5>
+                                <h5 class=""><?= $translations['txt_contact'] ?></h5>
                             </div>
                             <input type="text" class="form-control" placeholder="010-1234-1234" value="010-1234-1234">
                         </div>
@@ -3239,14 +3324,14 @@ $debug_t = 'hidden';
                     <div class="py_20 border-bottom contact_item">
                         <div class="ip_wr">
                             <div class="ip_tit d-flex justify-content-between">
-                                <h5 class=""><?= translate('이름', $userLang); ?></h5>
-                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= translate('삭제하기', $userLang); ?></u></button>
+                                <h5 class=""><?= $translations['txt_name_example'] ?></h5>
+                                <button type="button" class="btn btn-link btn-sm fc_gray_500 h-auto p-0 fs_12"><u><?= $translations['txt_delete'] ?></u></button>
                             </div>
                             <input type="text" class="form-control" placeholder="홍길동" value="">
                         </div>
                         <div class="ip_wr mt_25">
                             <div class="ip_tit">
-                                <h5 class=""><?= translate('연락처', $userLang); ?></h5>
+                                <h5 class=""><?= $translations['txt_contact'] ?></h5>
                             </div>
                             <input type="text" class="form-control" placeholder="010-1234-1234" value="">
                         </div>
@@ -3258,17 +3343,92 @@ $debug_t = 'hidden';
             </div>
             <div class="modal-footer border-0 p-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= translate('연락처 추가하기', $userLang); ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0"><?= translate('연락처 수정하기', $userLang); ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_add_new_contact'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0"><?= $translations['txt_edit_contact'] ?></button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <style>
+    .b_botton {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 100% !important;
+        /* 전체 너비를 사용하거나, 원하는 최대 너비를 지정할 수 있습니다 */
+        max-width: 600px !important;
+        /* 예시로 최대 너비를 600px로 지정했습니다. 필요에 따라 조정하세요 */
+        background-color: #fff;
+        padding: 10px !important;
+        z-index: 1000 !important;
+        box-sizing: border-box;
+        transition: bottom 0.3s;
+        height: calc(var(--vh, 1vh) * 10) !important;
+        /* 부드러운 전환 효과를 위해 추가 */
+        /* padding이 width에 포함되도록 설정 */
+    }
+
+    .b_botton button {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+
+    #layoutViewport {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+    }
+
     .pin_cont {
         position: absolute;
         top: 2rem;
+    }
+
+    .week_checks_wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        /* 요일 버튼 사이 간격 */
+    }
+
+    .week_checks {
+        flex: 1 0 25%;
+        /* 요일 버튼 너비 비율 (필요에 따라 조정) */
+    }
+
+    .week_checks .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Weekly 옵션 아래 간격 조정 */
+    #r1_3+.week_checks_wrap {
+        margin-top: 10px;
+    }
+
+    #week_checks_container {
+        margin-top: 16px;
+        padding-top: 16px;
+        /* border-top: 1px solid #e0e0e0; */
+    }
+
+    .week_btn {
+        gap: 8px;
+    }
+
+    .week_checks label {
+        width: 100%;
+        height: 100%;
+    }
+
+    .week_check p {
+        margin: 0;
     }
 </style>
 <div class="modal fade" id="schedule_map" tabindex="-1">
@@ -3276,7 +3436,7 @@ $debug_t = 'hidden';
         <div class="modal-content" id="schedule_map_content">
             <form method="post" name="frm_schedule_map" id="frm_schedule_map">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('위치 선택', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_select_location'] ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y p-0">
@@ -3287,18 +3447,18 @@ $debug_t = 'hidden';
                                 <ul>
                                     <li class="d-none">
                                         <div class="address_btn" onclick="f_modal_map_search();">
-                                            <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span> <?= translate('지번, 도로명, 건물명으로 검색', $userLang); ?></p>
+                                            <p class=" fc_gray_700"><span class="pr-3"><img src="./img/ico_search.png" width="14px" alt="검색" /></span> <?= $translations['txt_search_by_address_details'] ?></p>
                                         </div>
                                     </li>
                                     <li class="d-flex">
                                         <div class="name flex-fill">
                                             <div class="d-flex align-items-center justify-content-between">
-                                                <span class="fs_12 fw_600 text-primary"><?= translate('선택한 위치', $userLang); ?></span>
+                                                <span class="fs_12 fw_600 text-primary"><?= $translations['txt_selected_location'] ?></span>
                                                 <!-- <a class="fc_gray_900 fs_12 fw_500" href="javascript:f_modal_map_search();">주소검색하기 <i class="xi-angle-right-min"></i></a> -->
                                             </div>
                                             <!-- 위치 선택전후는 폰트컬러 두께만 바껴요! -->
                                             <!-- 위치를 선책전 입니다. -->
-                                            <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add"><?= translate('위치를 선택해주세요', $userLang); ?></div>
+                                            <div class="fs_14 fw_600 fc_gray_600 text_dynamic mt-2 line_h1_3" id="location_add"><?= $translations['txt_select_a_location'] ?></div>
                                             <!-- 위치를 선책후 입니다. -->
                                             <!-- <div class="fs_14 fw_700 text-text text_dynamic mt-2 line_h1_3">서울 영등포구 여의대로56</div> -->
                                         </div>
@@ -3310,7 +3470,7 @@ $debug_t = 'hidden';
 
                 </div>
                 <div class="modal-footer border-0 p-0">
-                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= translate('위치 선택완료', $userLang); ?></button>
+                    <button type="submit" class="btn btn-md btn-block btn-primary mx-0 my-0"><?= $translations['txt_location_confirmed'] ?></button>
                 </div>
             </form>
         </div>
@@ -3325,11 +3485,11 @@ $debug_t = 'hidden';
             title: '',
             type: "blue",
             typeAnimated: true,
-            content: "<?= translate('즐겨찾는 위치를 삭제하시겠습니까?', $userLang) ?>",
+            content: "<?= $translations['txt_delete_favorite_location'] ?>",
             buttons: {
                 confirm: {
                     btnClass: "btn-default btn-lg btn-block",
-                    text: "확인",
+                    text: "<?= $translations['txt_confirm'] ?>", // 확인
                     action: function() {
                         var form_data = new FormData();
                         form_data.append("act", "map_location_like_delete");
@@ -3364,7 +3524,7 @@ $debug_t = 'hidden';
 
     function f_location_like() {
         if ($('#slt_title').val() == '') {
-            jalert("<?= translate('별칭을 입력바랍니다.', $userLang) ?>");
+            jalert("<?= $translations['txt_enter_alias'] ?>");
             return false;
         }
 
@@ -3372,11 +3532,11 @@ $debug_t = 'hidden';
             title: '',
             type: "blue",
             typeAnimated: true,
-            content: "<?= translate('위치를 등록하시겠습니까?', $userLang) ?>",
+            content: "<?= $translations['txt_register_location'] ?>",
             buttons: {
                 confirm: {
                     btnClass: "btn-default btn-lg btn-block",
-                    text: "확인",
+                    text: "<?= $translations['txt_confirm'] ?>", // 확인
                     action: function() {
                         var form_data = new FormData();
                         form_data.append("act", "map_location_input");
@@ -3397,7 +3557,7 @@ $debug_t = 'hidden';
                             timeout: 5000,
                             success: function(data) {
                                 if (data) {
-                                    jalert("<?= translate('등록되었습니다.', $userLang) ?>");
+                                    jalert("<?= $translations['txt_registered'] ?>");
                                     $('#btn_location_like').addClass('on');
                                     $('#slt_title').attr('readonly', true);
                                     $('#slt_idx').val(data);
@@ -3609,7 +3769,7 @@ $debug_t = 'hidden';
             var f = document.frm_schedule_map;
 
             if ($('#sst_location_add').val() == '') {
-                jalert("<?= translate('위치를 선택해주세요.', $userLang) ?>");
+                jalert("<?= $translations['txt_select_a_location'] ?>");
                 return false;
             }
 
@@ -3626,7 +3786,7 @@ $debug_t = 'hidden';
         },
         messages: {
             sst_location_add: {
-                required: "<?= translate('위치를 선택해주세요.', $userLang) ?>",
+                required: "<?= $translations['txt_select_a_location'] ?>",
             },
         },
         errorPlacement: function(error, element) {
@@ -3647,7 +3807,7 @@ $debug_t = 'hidden';
             $('#mapSearchFrame').attr('src', scheduleSearchURL);
         }, 100);
     }
-    // 모달을 닫는 함수
+    // 모   달을 닫는 함수
     function closelocationSearchModal() {
         $('#map_search').modal('hide');
     }
@@ -3685,7 +3845,7 @@ $debug_t = 'hidden';
         <div class="modal-content" id="map_search_content">
             <form method="post" name="frm_map_search" id="frm_map_search">
                 <div class="modal-header">
-                    <p class="modal-title line1_text fs_20 fw_700"><?= translate('주소 검색', $userLang); ?></p>
+                    <p class="modal-title line1_text fs_20 fw_700"><?= $translations['txt_address_search'] ?></p>
                     <div><button type="button" class="close" data-dismiss="modal" aria-label="Close"><img src="<?= CDN_HTTP ?>/img/modal_close.png"></button></div>
                 </div>
                 <div class="modal-body scroll_bar_y">

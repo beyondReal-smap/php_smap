@@ -1,8 +1,9 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
 $h_menu = '';
 $$location_page = '1';
-$_SUB_HEAD_TITLE = "위치 선택";
+$_SUB_HEAD_TITLE = $translations['txt_address_search'];
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 ?>
 
@@ -16,10 +17,10 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <div class="py_20 px_16">
                 <div class="ip_wr ip_valid pt-2">
                     <div class="ip_tit">
-                        <h5 class=""><?= translate('주소검색', $userLang); ?></h5>
+                        <h5 class=""><?=$translations['txt_address_search'] ?></h5>
                     </div>
                     <div class="loc_search_wrap">
-                        <input type="search" class="form-control search_location" placeholder="<?= translate('주소를 검색해주세요.', $userLang); ?>" id="search_location" name="search_location">
+                        <input type="search" class="form-control search_location" placeholder="<?=$translations['txt_search_by_address_details_placeholder'] ?>" id="search_location" name="search_location">
                         <button type="button" class="btn w-auto h-auto p-2 loc_search_btn"><i class="xi-search fs_24"></i></button>
                     </div>
                     <!-- <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
@@ -32,13 +33,13 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <!-- 검색 전 -->
             <div>
                 <ul class="search_results">
-                    <p class="fw_700 pt-4"><?= translate('검색Tip', $userLang); ?></p>
-                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('도로명', $userLang); ?> + <span class="fw_600"><?= translate('건물번호', $userLang); ?></span></p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:송파대로 570)', $userLang); ?></p>
-                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('동/읍/면/리', $userLang); ?><span class="fw_600"><?= translate('+ 번지', $userLang); ?></span></p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:신천동 7-30)', $userLang); ?></p>
-                    <p class="position-relative slash1 pl-3 mt-3"><?= translate('건물명, 아파트명', $userLang); ?></p>
-                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?= translate('(예:반포자이아파트)', $userLang); ?></p>
+                    <p class="fw_700 pt-4"><?=$translations['txt_search_tip'] ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?=$translations['txt_road_name'] ?> + <span class="fw_600"><?=$translations['txt_building_number'] ?></span></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?=$translations['txt_example_road_name'] ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?=$translations['txt_dong'] ?><span class="fw_600"><?=$translations['txt_address_number'] ?></span></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?=$translations['txt_example_address'] ?></p>
+                    <p class="position-relative slash1 pl-3 mt-3"><?=$translations['txt_building_name'] ?></p>
+                    <p class="position-relative slash6 pl-3 fs_13 text_light_gray mt-2"><?=$translations['txt_example_building_name'] ?></p>
                 </ul>
             </div>
         </div>
@@ -73,18 +74,18 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                                 var html = '<li class="d-flex align-items-center justify-content-between border-bottom py-4">';
                                 html += '<p class="fs_16 fw_600 text_dynamic line_h1_2 mr-3">' + place.place_name;
                                 html += '<br><span class="fs_14 fw_500 text_gray text_dynamic line_h1_2 mr-3">' + place.road_address_name + '</span></p>';
-                                html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.road_address_name + '\',\'' + place.y + '\',\'' + place.x + '\',\'' + place.place_name + '\')">선택</button>';
+                                html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.road_address_name + '\',\'' + place.y + '\',\'' + place.x + '\',\'' + place.place_name + '\')"><?=$translations['txt_select_plan'] ?></button>';
                                 html += '</li>';
                                 $('.search_results').append(html);
                             });
                         } else {
                             // 검색 결과가 없을 경우
-                            $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
+                            $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4"><?=$translations['txt_no_addr_data_available'] ?></p></div>');
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('API 요청 실패:', status, error);
-                        $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4">검색하신 주소를 찾을 수 없습니다.</p></div>');
+                        $('.search_results').html('<div class="pt_60 text-center"><img src="./img/warring.png" width="82px" alt="자료없음"><p class="mt_20 fc_gray_500 text-center line_h1_4"><?=$translations['txt_no_addr_data_available'] ?></p></div>');
                     }
                 });
             <?php } else {
@@ -104,7 +105,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                             var html = '<li class="d-flex align-items-center justify-content-between border-bottom py-4">';
                             html += '<p class="fs_16 fw_600 text_dynamic line_h1_2 mr-3">' + place.name;
                             html += '<br><span class="fs_14 fw_500 text_gray text_dynamic line_h1_2 mr-3">' + place.formatted_address + '</span></p>';
-                            html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.formatted_address + '\',\'' + place.geometry.location.lat() + '\',\'' + place.geometry.location.lng() + '\',\'' + place.name + '\')">선택</button>';
+                            html += '<button type="button" class="btn btn-outline-secondary schloc_ch_btn border rounded-sm text_gray" onclick="f_location_select(\'' + place.formatted_address + '\',\'' + place.geometry.location.lat() + '\',\'' + place.geometry.location.lng() + '\',\'' + place.name + '\')"><?=$translations['txt_select_plan'] ?></button>';
                             html += '</li>';
                             $('.search_results').append(html);
                         });

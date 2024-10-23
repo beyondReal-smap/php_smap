@@ -5,12 +5,22 @@ $h_menu = '7';
 $h_func = "back_confirm()";
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
+$_SESSION['mt_pass'] = $_GET['mt_pass'];
+// 파라미터 저장
+$mt_pass = isset($_SESSION['mt_pass']) ? $_SESSION['mt_pass'] : '';
+$mt_gender = isset($_SESSION['mt_gender']) ? $_SESSION['mt_gender'] : '';
+$pick_year = isset($_SESSION['pick_year']) ? $_SESSION['pick_year'] : '';
+$pick_month = isset($_SESSION['pick_month']) ? $_SESSION['pick_month'] : '';
+$pick_day = isset($_SESSION['pick_day']) ? $_SESSION['pick_day'] : '';
+$mt_name = isset($_SESSION['mt_name']) ? $_SESSION['mt_name'] : '';
+$mt_email = isset($_SESSION['mt_email']) ? $_SESSION['mt_email'] : '';
+
 if ($_SESSION['_mt_idx'] == '') {
     gotourl('./logout');
 }
 ?>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script type="text/javascript" src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<!-- <script src="https://polyfill.io/v3/polyfill.min.js"></script> -->
 <style>
     .btn_active {
         color: #fff !important;
@@ -100,7 +110,7 @@ if ($_SESSION['_mt_idx'] == '') {
 
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">회원 정보를 입력해 주세요</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= $translations['txt_enter_member_info'] ?></p>
         <form method="post" name="frm_form" id="frm_form" action="./join_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="join_add_info" />
@@ -111,16 +121,16 @@ if ($_SESSION['_mt_idx'] == '') {
             <div class="mt-5">
                 <div class="ip_wr mt_25" id="mt_name_text">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
-                        <h5 class="">이름</h5>
+                        <h5 class=""><?= $translations['txt_name'] ?></h5>
                         <p class="text_num fs_12 fc_gray_600">(<span id="mt_name_cnt">0</span>/30)</p>
                     </div>
-                    <input type="text" class="form-control txt-cnt" name="mt_name" id="mt_name" maxlength="30" data-length-id="mt_name_cnt" placeholder="이름을 입력해주세요">
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 아이디를 다시 확인해주세요</div>
+                    <input type="text" class="form-control txt-cnt" name="mt_name" id="mt_name" maxlength="30" data-length-id="mt_name_cnt" placeholder="<?= $translations['txt_enter_name'] ?>" value="<?= isset($_POST['mt_name']) ? $_POST['mt_name'] : (isset($mt_name) ? $mt_name : '') ?>">
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_check_id'] ?></div>
                 </div>
                 <div class="ip_wr mt_25" id="mt_birth_text">
                     <div class="ip_tit">
-                        <h5 class="">생년월일</h5>
+                        <h5 class=""><?= $translations['txt_birth_date'] ?></h5>
                     </div>
                     <div class="spin_wrap" id="cal_time_box">
                         <div class="spin_result">
@@ -131,24 +141,31 @@ if ($_SESSION['_mt_idx'] == '') {
                                 <div class="vizor"></div>
                                 <div class="swiper-container select_years">
                                     <div class="swiper-wrapper" id="resultyearList">
+                                        <div class="swiper-slide" data-yy="<?= $pick_year ?>"><?= $pick_year ?></div>
                                     </div>
-                                    <div class=""></div>
                                 </div>
                                 <div class="swiper-container select_months">
                                     <div class="swiper-wrapper" id="resultmonthList">
+                                        <div class="swiper-slide" data-mm="<?= $pick_month ?>"><?= $pick_month ?></div>
                                     </div>
-                                    <div class=""></div>
                                 </div>
                                 <div class="swiper-container select_days">
                                     <div class="swiper-wrapper" id="resultdayList">
+                                        <div class="swiper-slide" data-dd="<?= $pick_day ?>"><?= $pick_day ?></div>
                                     </div>
-                                    <div class=""></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <script>
                         $(document).ready(function() {
+                            // 엔터 키 입력 시 폼 제출 방지
+                            $('#mt_name').on('keydown', function(event) {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault(); // 기본 동작 방지
+                                }
+                            });
+
                             btn_class_active();
                             f_open_time();
                         });
@@ -269,9 +286,11 @@ if ($_SESSION['_mt_idx'] == '') {
                                 var today = new Date();
                                 var currentYear = today.getFullYear();
 
-                                var syear = 1990;
-                                var smonth = 1;
-                                var sday = 1;
+                                var syear = <?= $pick_year ? $pick_year : 1990; ?>;
+                                var smonth = <?= $pick_month ? $pick_month : 1; ?>;
+                                var sday = <?= $pick_day ? $pick_day : 1; ?>;
+
+                                console.log(syear, smonth, sday);
 
                                 syears.on("init", function() {
                                     var syears_initialSlide;
@@ -362,29 +381,29 @@ if ($_SESSION['_mt_idx'] == '') {
                             $('#pick_day').val(dd_date);
                         }
                     </script>
-                    <div class=" form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 아이디를 다시 확인해주세요</div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_check_id'] ?></div>
                 </div>
                 <div class="ip_wr mt_25" id="mt_gender_text">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
-                        <h5>성별</h5>
+                        <h5><?= $translations['txt_gender'] ?></h5>
                     </div>
                     <div class="checks_wr row pt-3">
                         <div class="checks col-6 mr-0">
                             <label>
-                                <input type="radio" name="mt_gender" id="mt_gender" value="1">
+                                <input type="radio" name="mt_gender" id="mt_gender" value="1" <?= $mt_gender && $mt_gender == '1' ? 'checked' : '' ?>>
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p ">
-                                    <p class="text_dynamic fs_16">남자</p>
+                                    <p class="text_dynamic fs_16"><?= $translations['txt_male'] ?></p>
                                 </div>
                             </label>
                         </div>
                         <div class="checks col-6 mr-0">
                             <label>
-                                <input type="radio" name="mt_gender" id="mt_gender" value="2">
+                                <input type="radio" name="mt_gender" id="mt_gender2" value="2" <?= $mt_gender && $mt_gender == '2' ? 'checked' : '' ?>>
                                 <span class="ic_box"><i class="xi-check-min"></i></span>
                                 <div class="chk_p ">
-                                    <p class="text_dynamic fs_16">여자</p>
+                                    <p class="text_dynamic fs_16"><?= $translations['txt_female'] ?></p>
                                 </div>
                             </label>
                         </div>
@@ -392,8 +411,8 @@ if ($_SESSION['_mt_idx'] == '') {
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?= translate('입력했어요!', $userLang) ?></button>
-                <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='join_agree.php'">입력했어요!</button> -->
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="validateAndSubmit(event)"><?= $translations['txt_input_complete'] ?></button>
+                </button>
             </div>
         </form>
     </div>
@@ -403,12 +422,12 @@ if ($_SESSION['_mt_idx'] == '') {
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">잠깐! 회원가입을 마치지 않고 가시려고요?</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_leave_signup_confirm'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="location.replace('./join_psd?phoneNumber=<?= $_GET['phoneNumber'] ?>&mtEmail=<?= $_GET['mtEmail'] ?>&mt_idx=<?= $_SESSION['_mt_idx'] ?>')">네</button>
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close">아니요</button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="$.ajax({url: './join_update', type: 'POST', data: {act: 'join_delete'}, success: function() {location.replace('./join_entry?phoneNumber=<?= $_GET['phoneNumber'] ?>&mt_email=<?= $_GET['mt_email'] ?>&mt_idx=<?= $_SESSION['_mt_idx'] ?>&mt_gender=<?= $mt_gender ?>&pick_year=<?= $pick_year ?>&pick_month=<?= $pick_month ?>&pick_day=<?= $pick_day ?>&mt_name=<?= $mt_name ?>');}})"><?= $translations['txt_yes'] ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
                 </div>
             </div>
         </div>
@@ -422,81 +441,78 @@ if ($_SESSION['_mt_idx'] == '') {
         });
     });
 
-    $("#frm_form").validate({
-        submitHandler: function() {
-            var genderRadios = document.getElementsByName('mt_gender');
-            var genderChecked = false;
-
-            for (var i = 0; i < genderRadios.length; i++) {
-                if (genderRadios[i].checked) {
-                    genderChecked = true;
-                    break;
-                }
-            }
-            if (!genderChecked) {
-                jalert("성별을 선택해주세요.");
-                return false;
-            }
-
-            // 생년월일 유효성 검사
-            var year = parseInt($('#pick_year').val());
-            var month = parseInt($('#pick_month').val());
-            var day = parseInt($('#pick_day').val());
-
-            if (!validateDate(year, month, day)) {
-                jalert("올바른 생년월일을 입력해주세요.");
-                return false;
-            }
-
-            // $('#splinner_modal').modal('toggle');
-
-            return true;
-
-        },
-        rules: {
-            mt_name: {
-                required: true,
-            },
-            mt_gender: {
-                required: true,
-            },
-        },
-        messages: {
-            mt_name: {
-                required: "이름을 입력해주세요.",
-            },
-            mt_gender: {
-                required: "성별을 입력해주세요.",
-            },
-        },
-        errorPlacement: function(error, element) {
-            $(element)
-                .closest("form")
-                .find("span[for='" + element.attr("id") + "']")
-                .append(error);
-        },
-    });
 
     function validateDate(year, month, day) {
-        // 입력된 날짜를 기반으로 Date 객체 생성
         var date = new Date(year, month - 1, day);
-
-        if (
-            date.getFullYear() == year &&
-            date.getMonth() == month - 1 &&
-            date.getDate() == day
-        ) {
-            return true; // 유효한 날짜
-        } else {
-            return false; // 유효하지 않은 날짜
-        }
+        return date.getFullYear() == year && date.getMonth() == month - 1 && date.getDate() == day;
     }
 
     function back_confirm() {
-
-        // 중복된 이메일이 존재하는 경우 모달 표시
         $('#back_confirm').modal('show');
     }
+
+    function validateAndSubmit(event) {
+        event.preventDefault(); // 폼 기본 제출 동작 방지
+
+        var mt_gender = $('input[name=mt_gender]:checked').val();
+        var mt_name = $('#mt_name').val();
+        var year = parseInt($('#pick_year').val());
+        var month = parseInt($('#pick_month').val());
+        var day = parseInt($('#pick_day').val());
+
+        if (!validateDate(year, month, day)) {
+            jalert("<?= $translations['txt_enter_valid_birth_date'] ?>");
+            saveFormState();
+            return false;
+        }
+
+        if (!mt_name || !mt_gender) {
+            jalert(!mt_name ? "<?= $translations['txt_enter_name'] ?>" : "<?= $translations['txt_enter_gender'] ?>");
+            saveFormState();
+            return false;
+        }
+        // AJAX 호출을 통해 데이터 전송
+        $.ajax({
+            url: './join_update.php',
+            type: 'POST',
+            data: {
+                act: 'join_add_info',
+                mt_gender: mt_gender,
+                pick_year: year,
+                pick_month: month,
+                pick_day: day,
+                mt_name: mt_name
+            },
+            success: function(response) {
+                // 성공 시 join_agree.php로 이동
+                window.location.href = './join_agree.php';
+            },
+            error: function(xhr, status, error) {
+                // 오류 처리
+                jalert("오류가 발생했습니다. 다시 시도해 주세요.");
+            }
+        });
+    }
+
+    function saveFormState() {
+        localStorage.setItem('mt_name', $('#mt_name').val());
+        localStorage.setItem('mt_gender', $('input[name=mt_gender]:checked').val());
+        localStorage.setItem('pick_year', $('#pick_year').val());
+        localStorage.setItem('pick_month', $('#pick_month').val());
+        localStorage.setItem('pick_day', $('#pick_day').val());
+    }
+
+    $(document).ready(function() {
+        // 페이지 로드 시 저장된 상태 복원
+        $('#mt_name').val(localStorage.getItem('mt_name') || '');
+        $('input[name=mt_gender][value="' + (localStorage.getItem('mt_gender') || '') + '"]').prop('checked', true);
+        $('#pick_year').val(localStorage.getItem('pick_year') || '');
+        $('#pick_month').val(localStorage.getItem('pick_month') || '');
+        $('#pick_day').val(localStorage.getItem('pick_day') || '');
+
+        // 상태 복원 후 localStorage 클리어
+        localStorage.clear();
+    });
 </script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";

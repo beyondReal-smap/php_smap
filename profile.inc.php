@@ -17,12 +17,12 @@
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body pt_40 pb_27 px-3">
-                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">카메라 또는 앨범을 선택해주세요.</p>
+                    <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_select_camera_or_album'] ?></p>
                 </div>
                 <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                     <div class="d-flex align-items-center w-100 mx-0 my-0">
-                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="open_camera('<?= $_SESSION['_mt_idx'] ?>')">카메라</button>
-                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="openAlbum('<?= $_SESSION['_mt_idx'] ?>');">앨범</button>
+                        <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="open_camera('<?= $_SESSION['_mt_idx'] ?>')"><?= $translations['txt_camera'] ?></button>
+                        <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" onclick="openAlbum('<?= $_SESSION['_mt_idx'] ?>');"><?= $translations['txt_album'] ?></button>
                     </div>
                 </div>
             </div>

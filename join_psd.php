@@ -10,6 +10,16 @@ if ($_GET['mt_idx']) {
     $DB->where('mt_idx', $_GET['mt_idx']);
     $DB->delete('member_t');
 }
+
+$_SESSION['mt_email'] = $_GET['mt_email'];
+// 세션에서 mt_pass 값 가져오기
+$mt_pass = isset($_SESSION['mt_pass']) ? $_SESSION['mt_pass'] : '';
+$mt_gender = isset($_SESSION['mt_gender']) ? $_SESSION['mt_gender'] : '';
+$pick_year = isset($_SESSION['pick_year']) ? $_SESSION['pick_year'] : '';
+$pick_month = isset($_SESSION['pick_month']) ? $_SESSION['pick_month'] : '';
+$pick_day = isset($_SESSION['pick_day']) ? $_SESSION['pick_day'] : '';
+$mt_name = isset($_SESSION['mt_name']) ? $_SESSION['mt_name'] : '';
+$mt_email = isset($_SESSION['mt_email']) ? $_SESSION['mt_email'] : '';
 ?>
 <style>
     .ip_password {
@@ -51,48 +61,46 @@ if ($_GET['mt_idx']) {
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 text_dynamic">SMAP에서 사용하실 나만의
-            비밀번호를 설정해 주세요.
+        <p class="tit_h1 wh_pre line_h1_3 text_dynamic"><?= $translations['txt_set_password'] ?>
         </p>
         <form action="">
             <input type="hidden" name="HTTP_REFERER" id="HTTP_REFERER" value="<?= $_SERVER["HTTP_REFERER"] ?>">
             <input type="hidden" name="mt_hp" id="mt_hp" value="<?= $_GET['phoneNumber'] ?>">
-            <input type="hidden" name="mt_email" id="mt_email" value="<?= $_GET['mtEmail'] ?>">
+            <input type="hidden" name="mt_email" id="mt_email" value="<?= $_GET['mt_email'] ?>">
             <input type="hidden" name="mt_token_id" id="mt_token_id" value="<?= $_SESSION['_mt_token_id'] ?>">
             <div class="mt-5">
                 <div class="ip_wr" id="mt_pass_text">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= $translations['txt_password'] ?></h5>
                     </div>
                     <div class="ip_password">
-                        <input type="password" class="form-control" placeholder="비밀번호를 입력해주세요." id="mt_pass" name="mt_pass" maxlength="20">
+                        <input type="password" class="form-control" placeholder="<?= $translations['txt_enter_password'] ?>" id="mt_pass" name="mt_pass" maxlength="20" value="<?= $mt_pass ?>">
                         <div class="btn btn_password_eye" id="password_show"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic">비밀번호는 최소 9글자 이상 공백 없이
-                        문자, 숫자, 특수문자 조합입니다.</div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 비밀번호가 규칙에 맞습니다. 계속 진행해주세요.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 입력하신 비밀번호가 서로 일치하지 않아요. 다시입력해주세요.</div>
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> 비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다. 다시 설정해주세요.</div>
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic"><?= $translations['txt_password_rule'] ?></div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_valid'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_password_mismatch'] ?></div>
+                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_password_invalid'] ?></div>
                 </div>
                 <div class="ip_wr mt_25" id="mt_pass_confirm_text">
                     <div class="ip_tit">
-                        <h5>비밀번호 확인</h5>
+                        <h5><?= $translations['txt_confirm_password'] ?></h5>
                     </div>
 
                     <div class="ip_password">
-                        <input type="password" class="form-control" placeholder="비밀번호를 한번 더 입력해주세요." id="mt_pass_confirm" name="mt_pass_confirm" maxlength="20">
+                        <input type="password" class="form-control" placeholder="<?= $translations['txt_reenter_password_placeholder'] ?>" id="mt_pass_confirm" name="mt_pass_confirm" maxlength="20" value="<?= $mt_pass ?>">
                         <div class="btn btn_password_eye" id="password_show2"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none2"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 입력하신 비밀번호가 서로 일치하지 않아요. 다시입력해주세요.</div>
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> 비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다. 다시 설정해주세요.</div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_password_mismatch'] ?></div>
+                    <!-- <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_password_invalid'] ?></div> -->
                 </div>
             </div>
             <div class="b_botton">
-                <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='join_add.php'"><?= translate('입력했어요!', $userLang) ?></button> -->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="password_chk" onclick="check_pwd()"><?= translate('입력했어요!', $userLang) ?></button>
+                <!-- <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='join_add.php'"><?= $translations['txt_input_complete'] ?></button> -->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="password_chk" onclick="check_pwd()"><?= $translations['txt_input_complete'] ?></button>
             </div>
             <div id="layoutViewport"></div>
         </form>
@@ -103,12 +111,12 @@ if ($_GET['mt_idx']) {
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center">잠깐! 회원가입을 마치지 않고 가시려고요?</p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= $translations['txt_leave_confirmation'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="location.replace('./join_email?phoneNumber=<?= $_GET['phoneNumber'] ?>&mtEmail=<?= $_GET['mtEmail'] ?>')">네</button>
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close">아니요</button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="$.ajax({url: './join_update', type: 'POST', data: {act: 'join_delete'}, success: function() {location.replace('./join_entry?phoneNumber=<?= $_GET['phoneNumber'] ?>&mt_email=<?= $_GET['mt_email'] ?>');}})"><?= $translations['txt_yes'] ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
                 </div>
             </div>
         </div>
@@ -152,16 +160,17 @@ if ($_GET['mt_idx']) {
             if (mt_pass === confirmPassword) {
                 $("#mt_pass_confirm_text").addClass("ip_valid");
                 $("#mt_pass_confirm_text").removeClass("ip_invalid");
-                $("#mt_pass_confirm_text").removeClass("ip_invalid2");
-            } else {
-                $("#mt_pass_confirm_text").addClass("ip_invalid");
-                $("#mt_pass_confirm_text").removeClass("ip_valid");
-                $("#mt_pass_confirm_text").removeClass("ip_invalid2");
-            }
+                // $("#mt_pass_confirm_text").removeClass("ip_invalid2");
+            } 
+            // else {
+            //     $("#mt_pass_confirm_text").addClass("ip_invalid2");
+            //     $("#mt_pass_confirm_text").removeClass("ip_valid");
+            //     $("#mt_pass_confirm_text").removeClass("ip_invalid");
+            // }
         } else {
-            $("#mt_pass_confirm_text").addClass("ip_invalid2");
+            $("#mt_pass_confirm_text").addClass("ip_invalid");
             $("#mt_pass_confirm_text").removeClass("ip_valid");
-            $("#mt_pass_confirm_text").removeClass("ip_invalid");
+            // $("#mt_pass_confirm_text").removeClass("ip_invalid2");
         }
 
     });
@@ -224,7 +233,6 @@ if ($_GET['mt_idx']) {
             $("#mt_pass_text").removeClass("ip_invalid2");
             $("#mt_pass_confirm_text").removeClass("ip_invalid");
 
-
             const passwordBtn = document.getElementById('password_chk');
             passwordBtn.disabled = true;
 
@@ -249,17 +257,26 @@ if ($_GET['mt_idx']) {
                         var message = {
                             "type": "memberLogin",
                         };
-                        if (isAndroid()) {
-                            window.smapAndroid.memberLogin();
-                        } else if (isiOS()) {
-                            window.webkit.messageHandlers.smapIos.postMessage(message);
-                        };
+                        try {
+                            if (isAndroid()) {
+                                window.smapAndroid.memberLogin();
+                            } else if (isiOS()) {
+                                window.webkit.messageHandlers.smapIos.postMessage(message);
+                            }
+                        } catch (error) {
+                            console.error("Error during memberLogin:", error);
+                        }
                         // $('#splinner_modal').modal('hide');
                         passwordBtn.disabled = false;
-                        location.replace('./join_add?phoneNumber=' + mt_hp + '&mtEmail=' + mt_email)
+                        console.log('mt_email : ' + mt_email + ' mt_hp : ' + mt_hp + ' mt_pass : ' + mt_pass + ' mt_gender : ' + '<?= $mt_gender ?>' + ' pick_year : ' + '<?= $pick_year ?>' + ' pick_month : ' + '<?= $pick_month ?>' + ' pick_day : ' + '<?= $pick_day ?>' + ' mt_name :' + '<?= $mt_name ?>');
+                        location.replace('./join_add?phoneNumber=' + mt_hp + '&mt_email=' + mt_email + '&mt_pass=' + $("#mt_pass_confirm_text").val() + '&mt_gender=' + '<?= $mt_gender ?>' + '&pick_year=' + '<?= $pick_year ?>' + '&pick_month=' + '<?= $pick_month ?>' + '&pick_day=' + '<?= $pick_day ?>' + '&mt_name=' + '<?= $mt_name ?>')
                     } else if (d.result == '_already') {
                         // $('#splinner_modal').modal('hide');
-                        jalert_url('이미 존재하는 휴대폰번호 입니다. 처음부터 다시 시도해주세요.', './join_entry');
+                        if ("<?= $userLang ?>" == "ko") {
+                            jalert_url("<?= $translations['txt_existing_phone_number'] ?>", './join_entry');
+                        } else {
+                            jalert_url("<?= $translations['txt_existing_email'] ?>", './join_entry');
+                        }
                         passwordBtn.disabled = false;
                     } else {
                         console.log("error:" + d);

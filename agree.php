@@ -3,7 +3,8 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '6';
 $h_url = './setting';
-$_SUB_HEAD_TITLE = translate("약관 및 동의 관리", $userLang); // "약관 및 동의 관리" 번역
+
+$_SUB_HEAD_TITLE = $translations['txt_terms_and_conditions'];
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 ?>
 <script>
@@ -33,11 +34,18 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
         <div class="px_16">
             <div class="border rounded-lg py_16 bg-white mb-3">
                 <?php
-                $st_info = get_setup_t_info();
-                foreach ($arr_mt_agree as $key => $val) {
+                // $st_info = get_setup_t_info();
+                // $arr_mt_agree 배열 대신 번역 키를 직접 사용
+                $agreementLinks = [
+                    'txt_terms_of_service',
+                    'txt_privacy_policy',
+                    'txt_location_based_service_terms'
+                ];
+
+                foreach ($agreementLinks as $key) {
                 ?>
-                    <a onclick="openurl('<?= $st_info['st_agree' . $key] ?>')" target="_blank" class="d-flex align-items-center justify-content-between px_16 py_16">
-                        <p class="fs_16 fw_600"><?= translate($val, $userLang); ?></p> <!-- $val 번역 -->
+                    <a onclick="openurl('<?= $translations[$key . '_url'] ?>')" target="_blank" class="d-flex align-items-center justify-content-between px_16 py_16">
+                        <p class="fs_16 fw_600"><?=$translations[$key] ?></p>
                         <i class="xi-angle-right-thin text_light_gray fs_16"></i>
                     </a>
                 <?php

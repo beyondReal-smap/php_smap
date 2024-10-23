@@ -7,13 +7,13 @@ $_SUB_HEAD_TITLE = "FAQ";
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.', './logout');
+        alert($translations['txt_login_another_device'], './logout');
     }
 }
 ?>

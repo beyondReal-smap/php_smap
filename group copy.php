@@ -6,7 +6,7 @@ $_SUB_HEAD_TITLE = "그룹";
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 
 if($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 }
 
 //오너인 그룹수

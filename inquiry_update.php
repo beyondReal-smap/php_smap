@@ -48,9 +48,9 @@ if ($_POST['act'] == "list") {
         <div class="card-header border-0" id="heading_box<?=$row['qt_idx']?>">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="">
-                    <p class="fs_13 fw_500 <?=$qt_status_cls?>"><?= translate($arr_qt_status[$row['qt_status']], $userLang); ?></p> <!-- $arr_qt_status[$row['qt_status']] 번역 -->
-                    <p class="fs_15 fw_700 text_dynamic mt_08 line2_text line_h1_3"><?=$row['qt_qtitle']?></p>
-                    <p class="text_light_gray fs_13 fw_300 mt_08"><?=DateType($row['qt_qdate'], 6)?></p>
+                    <p class="fs_13 fw_500 <?=$qt_status_cls?>"><?= $arr_qt_status[$row['qt_status']] ?></p>
+                    <p class="fs_15 fw_700 text_dynamic mt_08 line2_text line_h1_3"><?= $row['qt_qtitle'] ?></p>
+                    <p class="text_light_gray fs_13 fw_300 mt_08"><?= DateType($row['qt_qdate'], 6) ?></p>
                 </div>
                 <button type="button" class="btn btn-link position-relative aco_btn"></button>
             </div>
@@ -60,24 +60,24 @@ if ($_POST['act'] == "list") {
             <div class="card-body">
                 <div class="bg_f9f9f9 rounded_06 p-4">
                     <div class="border-bottom pb-3 mb-3">
-                        <p class="fs_15 fw_600 text_dynamic text_gray line_h1_5"><?= translate("문의내용", $userLang); ?></p> <!-- "문의내용" 번역 -->
+                        <p class="fs_15 fw_600 text_dynamic text_gray line_h1_5"><?= $translations['txt_inquiry_content']; ?></p>
                         <p class="fs_15 fw_300 text_dynamic text_gray line_h1_5 mt-3"><?=nl2br($row['qt_qcontent'])?></p>
                     </div>
                     <?php
                         if($row['qt_status']=='1') {
                     ?>
                     <div>
-                        <p class="text-primary fw_600 fs_14 fw_300"><?= translate("답변", $userLang); ?></p> <!-- "답변" 번역 -->
+                        <p class="text-primary fw_600 fs_14 fw_300"><?= $translations['txt_answer']; ?></p>
                         <div class="text-center py-4">
-                            <img src="<?=CDN_HTTP?>/img/warring.png" width="62px" alt="<?= translate("자료없음", $userLang); ?>"> <!-- "자료없음" 번역 -->
-                            <p class="fs_15 fw_300 text_dynamic text_gray line_h1_5 mt-3"><?= translate("답변을 기다리고 있습니다.", $userLang); ?></p> <!-- "답변을 기다리고 있습니다." 번역 -->
+                            <img src="<?=CDN_HTTP?>/img/warring.png" width="62px" alt="<?= $translations['txt_no_data']; ?>">
+                            <p class="fs_15 fw_300 text_dynamic text_gray line_h1_5 mt-3"><?= $translations['txt_waiting_for_answer']; ?></p>
                         </div>
                     </div>
                     <?php
                         } else {
                     ?>
                     <div>
-                        <p class="text-primary fw_600 fs_14 fw_300"><?= translate("답변", $userLang); ?></p> <!-- "답변" 번역 -->
+                        <p class="text-primary fw_600 fs_14 fw_300"><?= $translations['txt_answer']; ?></p>
                         <p class="fs_15 fw_300 text_dynamic text_gray line_h1_5 mt-3"><?=nl2br($row['qt_acontent'])?></p>
                         <p class="text_light_gray fs_13 fw_300 mt_08"><?=DateType($row['qt_adate'], 6)?></p>
                     </div>
@@ -93,7 +93,7 @@ if ($_POST['act'] == "list") {
         }
     } else {
         ?>
-    <p class="text-center mt-3 mb-3"><b><?= translate('자료가 없습니다.', $userLang); ?></b></p> <!-- "자료가 없습니다." 번역 -->
+    <p class="text-center mt-3 mb-3"><b><?= $translations['txt_no_data']; ?></b></p>
     <?php
     }
     ?>
@@ -104,7 +104,7 @@ if ($_POST['act'] == "list") {
     }
 } else if ($_POST['act'] == "input") {
     if(empty($_POST['qt_qtitle']) || empty($_POST['qt_qcontent'])) {
-        p_alert(translate("잘못된 접근입니다.", $userLang), 'back'); // "잘못된 접근입니다." 번역
+        p_alert($translations['txt_invalid_access'], 'back');
         exit;
     }
 
@@ -121,7 +121,7 @@ if ($_POST['act'] == "list") {
 
     $_last_idx = $DB->insert('qna_t', $arr_query);
 
-    p_alert(translate("등록되었습니다.", $userLang), "./inquiry"); // "등록되었습니다." 번역
+    p_alert($translations['txt_registered'], "./inquiry");
 }
 
 include $_SERVER['DOCUMENT_ROOT']."/tail.inc.php";

@@ -2,47 +2,62 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '2';
-$_SUB_HEAD_TITLE = translate("추천인입력", $userLang); // "추천인입력" 번역
+
+$_SUB_HEAD_TITLE = $translations['txt_referrer_input']; 
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
+
 if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', ''); // "로그인이 필요합니다." 번역
+    alert($translations['txt_login_required'], './login', ''); 
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout'); // "다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다." 번역
+        alert($translations['txt_login_attempt_other_device'], './logout'); 
     }
+}
+if ($userLang == 'ko') {
+    $inputType = 'tel';
+    $placeholder = $translations['txt_enter_referral_code'];
+    $inputName = 'mt_hp';
+    $inputId = 'mt_hp';
+    $maxLength = '13';
+    $onInput = 'restrictInput(this);formatPhoneNumber(this);';
+} else {
+    $inputType = 'email';
+    $placeholder = $translations['txt_enter_referral_code'];
+    $inputName = 'mt_email';
+    $inputId = 'mt_email';
+    $maxLength = '';
+    $onInput = ''; 
 }
 ?>
 
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 text_dynamic"><?= translate("함께할수록 좋아요.", $userLang); ?>
-        <?= translate("추천인 전화번호를 입력하면", $userLang); ?>
-        <?= translate("나와 추천인 모두 1개월 무료", $userLang); ?></p> 
-        <!-- "함께할수록 좋아요.\n추천인 전화번호를 입력하면\n나와 추천인 모두 1개월 무료" 번역 (줄바꿈 유지) -->
-        <p class="fs_12 fc_gray_600 mt-3 line_h1_2"><?= translate('가입하신 모든 분들께 한 번의 특별한 혜택을 드려요!', $userLang); ?></p> 
-        <!-- "가입하신 모든 분들께 한 번의 특별한 혜택을 드려요!" 번역 -->
+        <p class="tit_h1 wh_pre line_h1_3 text_dynamic" style="line-height: 0.7;"><?=$translations['txt_better_together'] ?><br>
+        <?=$translations['txt_enter_referrer_phone'] ?><br>
+        <?=$translations['txt_1_month_free_both'] ?></p> 
+        <p class="fs_12 fc_gray_600 mt-3 line_h1_2"><?=$translations['txt_special_benefit'] ?></p>
         <form action="">
             <input type="hidden" name="act" id="act" value="recommend_input" />
             <input type="hidden" name="mt_idx" id="mt_idx" value="<?=$_SESSION['_mt_idx']?>" />
             <div class="mt-5">
                 <div class="ip_wr mt_hp_msg" id="mt_hp_text">
                     <div class="ip_tit">
-                        <h5 class=""><?= translate('추천인 코드', $userLang); ?></h5> <!-- "추천인 코드" 번역 -->
+                        <h5 class=""><?=$translations['txt_referral_code'] ?></h5> 
                     </div>
-                    <input type="tel" class="form-control" placeholder="<?= translate('추천인코드를 입력해주세요.', $userLang); ?>" id="mt_hp" name="mt_hp" maxlength="13" oninput="restrictInput(this);formatPhoneNumber(this);" >
-                    <!-- "추천인코드를 입력해주세요." 번역 -->
-                    <p class="fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic"><?= translate('추천인 코드는 추천한 분의', $userLang) ?><span class="text-text fw_700"><?= translate('전화번호', $userLang) ?></span><?= translate('를 입력하시면 됩니다.', $userLang); ?></p>
-                    <!-- "추천인 코드는 추천한 분의 <span class="text-text fw_700">전화번호</span>를 입력하시면 됩니다." 번역 -->
-                    <!-- <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div> -->
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate('전화번호 형식에 맞게 입력해주세요.', $userLang); ?></div> 
-                    <!-- "전화번호 형식에 맞게 입력해주세요." 번역 -->
+                    <input type="<?=$inputType?>" class="form-control" placeholder="<?=$placeholder?>" id="<?=$inputId?>" name="<?=$inputName?>" maxlength="<?=$maxLength?>" oninput="<?=$onInput?>">
+                    <?=$translations['txt_referral_code_explanation'] ?>
+                    <?php if ($userLang == 'ko') { ?>
+                        <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?=$translations['txt_correct_phone_format'] ?></div>
+                    <?php } else { ?>
+                        <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?=$translations['txt_correct_mail_format'] ?></div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block"  onclick="check_recommend()"><?= translate('입력했어요!', $userLang) ?></button> <!-- "입력했어요!" 번역 -->
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block"  onclick="check_recommend()"><?=$translations['txt_enter'] ?></button>
             </div>
         </form>
     </div>
@@ -76,37 +91,50 @@ if ($_SESSION['_mt_idx'] == '') {
         // 중복된 하이픈 제거
         element.value = element.value.replace(/-{2,}/g, '-');
     }
+    
     function check_recommend() {
         // 비밀번호 입력값 가져오기
         let mt_idx = $("#mt_idx").val();
-        let mt_hp = $("#mt_hp").val();
+        let mt_input = $("#<?=$inputId?>").val();
 
-        if (mt_hp.length < 13) {
-            $(".mt_hp_msg").addClass("ip_invalid");
-            $(".mt_hp_msg").removeClass("ip_valid");
-            $("#mt_hp").focus();
-            return false;
+        if ('<?= $userLang ?>' == 'ko') {
+            if (mt_input.length < 13) {
+                $(".mt_hp_msg").addClass("ip_invalid");
+                $(".mt_hp_msg").removeClass("ip_valid");
+                $("#<?=$inputId?>").focus();
+                return false;
+            } else {
+                $(".mt_hp_msg").addClass("ip_valid");
+                $(".mt_hp_msg").removeClass("ip_invalid");
+            }
         } else {
-            $(".mt_hp_msg").addClass("ip_valid");
-            $(".mt_hp_msg").removeClass("ip_invalid");
+            if (validateEmail(mt_input)) {
+                $(".mt_hp_msg").addClass("ip_invalid");
+                $(".mt_hp_msg").removeClass("ip_valid");
+                $("#<?=$inputId?>").focus();
+                return false;
+            } else {
+                $(".mt_hp_msg").addClass("ip_valid");
+            }
         }
+        
         $.ajax({
             url: "./recommend_update",
             type: "POST",
             data: {
                 act: "recommend_input",
                 mt_idx: mt_idx,
-                mt_hp: mt_hp,
+                <?=$inputName?>: mt_input,
             },
             dataType: "json",
             success: function(d, s) {
                 console.log(d);
                 if (d.result == "ok") {
-                    jalert_url('<?= translate('추천인 입력이 완료되었습니다.', $userLang); ?>','./setting'); // "추천인 입력이 완료되었습니다." 번역
+                    jalert_url('<?=$translations['txt_referrer_entry_done'] ?>','./setting');
                 } else if (d.result == "use") {
-                    jalert('<?= translate('이미 추천인입력을 사용하였습니다.', $userLang); ?>'); // "이미 추천인입력을 사용하였습니다." 번역
+                    jalert('<?=$translations['txt_referrer_input_used'] ?>');
                 } else if (d.result == "none") {
-                    jalert('<?= translate('해당되는 추천인을 찾을 수 없습니다.', $userLang); ?>'); // "해당되는 추천인을 찾을 수 없습니다." 번역
+                    jalert('<?=$translations['txt_referrer_not_found'] ?>'); 
                 }
             },
             error: function(d) {
@@ -118,4 +146,14 @@ if ($_SESSION['_mt_idx'] == '') {
     $("#mt_hp").filter(".lower").on("keyup", function() {
         $(this).val($(this).val().toLowerCase());
     });
+    
+    function validateEmail(input) {
+        // 이메일 형식 검증
+        var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (emailPattern.test(input.value)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 </script>

@@ -14,8 +14,14 @@ define("WEATHER_URL3", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMid
 define("WEATHER_URL4", "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst");      //중기전망조회 
 define("WEATHER_URL5", "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst");      //초단기실황조회
 define("WEATHER_URL6", "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst");      //단기예보조회
-define("SERVICE_KEY", "S26r1Nboahpi0EPnPCY5FKXnMeUSSXm9QRO1WSKvQewZ/HpvdiOvn+NIGw+SacenccO4ElydjH7tcBLnCUQygw=="); // 발급받은 API-KEY (일반 인증키(Decoding))
-// define("SERVICE_KEY", "eu848OhHKYBTXESTOJk2Zvd2dkcvSgkW/5/w4bN3Doo/FKEjD/zuQLsjVFk4Uwn9KbIUYdvNcbXR1MB9IFHy6w=="); // 발급받은 API-KEY (일반 인증키(Decoding))
+// define("SERVICE_KEY", "S26r1Nboahpi0EPnPCY5FKXnMeUSSXm9QRO1WSKvQewZ/HpvdiOvn+NIGw+SacenccO4ElydjH7tcBLnCUQygw=="); // 발급받은 API-KEY (일반 인증키(Decoding))
+define("SERVICE_KEY", "eu848OhHKYBTXESTOJk2Zvd2dkcvSgkW/5/w4bN3Doo/FKEjD/zuQLsjVFk4Uwn9KbIUYdvNcbXR1MB9IFHy6w=="); // 발급받은 API-KEY (일반 인증키(Decoding))
+
+// OpenWeatherMap API 키 (본인의 API 키로 변경)
+define("OPENWEATHERMAP_API_KEY", "8c90a084ccacf6542289b4d4ee1149a6");
+$userLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+// $userLang = 'en';
+$translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
 
 class weatherClass
 {
@@ -37,28 +43,36 @@ class weatherClass
 
     public function requestForecast($lat, $lon, $time = 0, $type, $reg_id)
     {
+        global $userLang, $translations; // $translations 배열 추가
         $time = $time == 0 ? time() : $time;
 
-        if($type == 2 || $type == 3) {
-            list($baseDate, $baseTime) = $this->getBaseDateTimeForecast2($time);
-        } elseif($type == 4) {
-            list($baseDate, $baseTime) = $this->getBaseDateTimeForecast3($time);
-        } elseif($type == 5) {
-            list($baseDate, $baseTime) = $this->getBaseDateTimeForecast4($time);
-        } elseif($type == 6) {     //오늘 최고기온
-            list($baseDate, $baseTime) = array(date("Ymd", $time), "0200");
-        } elseif($type == 7) {     //오늘 최저기온(임의로 새벽 6시 기온 가져오기)
-            list($baseDate, $baseTime) = array(date("Ymd", $time), "0600");
+        if($userLang == 'ko'){
+            if($type == 2 || $type == 3) {
+                list($baseDate, $baseTime) = $this->getBaseDateTimeForecast2($time);
+            } elseif($type == 4) {
+                list($baseDate, $baseTime) = $this->getBaseDateTimeForecast3($time);
+            } elseif($type == 5) {
+                list($baseDate, $baseTime) = $this->getBaseDateTimeForecast4($time);
+            } elseif($type == 6) {     //오늘 최고기온
+                list($baseDate, $baseTime) = array(date("Ymd", $time), "0200");
+            } elseif($type == 7) {     //오늘 최저기온(임의로 새벽 6시 기온 가져오기)
+                list($baseDate, $baseTime) = array(date("Ymd", $time), "0600");
+            } else {
+                list($baseDate, $baseTime) = $this->getBaseDateTimeForecast4($time);
+            }
+            list($nx, $ny) = $this->getXY($lat, $lon);
+
+            $request = $this->buildRequest($baseDate, $baseTime, $nx, $ny, $type, $reg_id);
+
+            $response = $this->getResponseForecast($request, $type);
+            
+            return json_decode($response, true);
         } else {
-            list($baseDate, $baseTime) = $this->getBaseDateTimeForecast4($time);
+            // OpenWeatherMap API를 사용하는 경우
+            $url = "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=".OPENWEATHERMAP_API_KEY."&units=metric&lang=$userLang";
+            $response = file_get_contents($url);
+            return json_decode($response, true);
         }
-        list($nx, $ny) = $this->getXY($lat, $lon);
-
-        $request = $this->buildRequest($baseDate, $baseTime, $nx, $ny, $type, $reg_id);
-
-        $response = $this->getResponseForecast($request, $type);
-
-        return json_decode($response, true);
     }
 
     /**
@@ -121,115 +135,166 @@ class weatherClass
 
     public function parseWeather($response, ...$categorys)
     {
+        global $userLang, $translations; // $translations 배열 추가
         $data = array();
         $currentDate = date("Ymd");
         $currentTime = date("H00");
 
-        error_log("Parsing weather data - Current Date: $currentDate, Current Time: $currentTime");
+        // error_log("Parsing weather data - Current Date: $currentDate, Current Time: $currentTime");
 
-        try {
-            if (isset($response) && isset($response['response']['body']['items']['item'])) {
-                $list = $response['response']['body']['items']['item'];
-                error_log("Response has items: " . count($list));
+        if ($userLang == 'ko'){
+            try {
+                if (isset($response) && isset($response['response']['body']['items']['item'])) {
+                    $list = $response['response']['body']['items']['item'];
+                    // error_log("Response has items: " . count($list));
 
-                if (isset($list) && count($list) > 0) {
-                    foreach ($list as $row) {
-                        foreach ($categorys as $category) {
-                            if ($category == $row['category']) {
-                                error_log("Processing category: $category");
+                    if (isset($list) && count($list) > 0) {
+                        foreach ($list as $row) {
+                            foreach ($categorys as $category) {
+                                if ($category == $row['category']) {
+                                    // error_log("Processing category: $category");
 
-                                $data['date'] = $row['baseDate'];
-                                $date = date_create_from_format('Ymd', $row['baseDate']);
-                                $data['ts'] = $date->getTimestamp();
+                                    $data['date'] = $row['baseDate'];
+                                    $date = date_create_from_format('Ymd', $row['baseDate']);
+                                    $data['ts'] = $date->getTimestamp();
 
-                                list($data['lat'], $data['lon']) = $this->getLatLng($row['nx'], $row['ny']);
-                                error_log("Latitude: " . $data['lat'] . ", Longitude: " . $data['lon']);
+                                    list($data['lat'], $data['lon']) = $this->getLatLng($row['nx'], $row['ny']);
+                                    // error_log("Latitude: " . $data['lat'] . ", Longitude: " . $data['lon']);
 
-                                switch ($category) {
-                                    case "POP": // 강수확률 %
-                                        if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
+                                    switch ($category) {
+                                        case "POP": // 강수확률 %
+                                            if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
+                                                $data[$category] = $row['fcstValue'] . "%";
+                                            }
+                                            break;
+                                        case "REH": // 습도 %
                                             $data[$category] = $row['fcstValue'] . "%";
-                                        }
-                                        break;
-                                    case "REH": // 습도 %
-                                        $data[$category] = $row['fcstValue'] . "%";
-                                        break;
-                                    case "SKY": // 하늘상태
-                                        if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
-                                            // $data[$category] = $this->getSKYCode($row['fcstValue']);
-                                            $data[$category] = $row['fcstValue'];
-                                            error_log("SKY - fcstDate: {$row['fcstDate']}, fcstTime: {$row['fcstTime']}, fcstValue: {$row['fcstValue']}");
-                                        }
-                                        break;
-                                    case "PTY": // 강수형태
-                                        if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
-                                            // $data[$category] = $this->getPTYCode($row['fcstValue']);
-                                            $data[$category] = $row['fcstValue'];
-                                            error_log("PTY - fcstDate: {$row['fcstDate']}, fcstTime: {$row['fcstTime']}, fcstValue: {$row['fcstValue']}");
-                                        }
-                                        break;
-                                    case "T3H": // 3시간 기온
-                                        $data[$category] = $row['fcstValue'] . "℃";
-                                        break;
-                                    case "TMX": // 낮 최고기온
-                                        if ($currentDate == $row['fcstDate']) {
+                                            break;
+                                        case "SKY": // 하늘상태
+                                            if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
+                                                // $data[$category] = $this->getSKYCode($row['fcstValue']);
+                                                $data[$category] = $row['fcstValue'];
+                                                // error_log("SKY - fcstDate: {$row['fcstDate']}, fcstTime: {$row['fcstTime']}, fcstValue: {$row['fcstValue']}");
+                                            }
+                                            break;
+                                        case "PTY": // 강수형태
+                                            if ($currentDate == $row['fcstDate'] && $currentTime == $row['fcstTime']) {
+                                                // $data[$category] = $this->getPTYCode($row['fcstValue']);
+                                                $data[$category] = $row['fcstValue'];
+                                                // error_log("PTY - fcstDate: {$row['fcstDate']}, fcstTime: {$row['fcstTime']}, fcstValue: {$row['fcstValue']}");
+                                            }
+                                            break;
+                                        case "T3H": // 3시간 기온
                                             $data[$category] = $row['fcstValue'] . "℃";
-                                        }
-                                        break;
-                                    case "UUU": // 풍속(동서성분) m/s
-                                        $data[$category] = $row['fcstValue'] . "m/s";
-                                        break;
-                                    case "VEC": // 풍향
-                                        $data[$category] = $this->getWindDirection($row['fcstValue']);
-                                        break;
-                                    case "VVV": // 풍속(남북성분) m/s
-                                        $data[$category] = $row['fcstValue'] . "m/s";
-                                        break;
-                                    case "WSD": // 풍속
-                                        $data[$category] = $this->getWindSpeed($row['fcstValue']);
-                                        break;
-                                    case "TMN": // 아침 최저기온
-                                        if ($currentDate == $row['fcstDate']) {
+                                            break;
+                                        case "TMX": // 낮 최고기온
+                                            if ($currentDate == $row['fcstDate']) {
+                                                $data[$category] = $row['fcstValue'] . "℃";
+                                            }
+                                            break;
+                                        case "UUU": // 풍속(동서성분) m/s
+                                            $data[$category] = $row['fcstValue'] . "m/s";
+                                            break;
+                                        case "VEC": // 풍향
+                                            $data[$category] = $this->getWindDirection($row['fcstValue']);
+                                            break;
+                                        case "VVV": // 풍속(남북성분) m/s
+                                            $data[$category] = $row['fcstValue'] . "m/s";
+                                            break;
+                                        case "WSD": // 풍속
+                                            $data[$category] = $this->getWindSpeed($row['fcstValue']);
+                                            break;
+                                        case "TMN": // 아침 최저기온
+                                            if ($currentDate == $row['fcstDate']) {
+                                                $data[$category] = $row['fcstValue'] . "℃";
+                                            }
+                                            break;
+                                        case "R06": // 6시간 강수량
+                                            $data[$category] = $row['fcstValue'] . "mm";
+                                            break;
+                                        case "S06": // 6시간 적설량
+                                            $data[$category] = $row['fcstValue'] . "cm";
+                                            break;
+                                        case "T1H": // 1시간 기온
                                             $data[$category] = $row['fcstValue'] . "℃";
-                                        }
-                                        break;
-                                    case "R06": // 6시간 강수량
-                                        $data[$category] = $row['fcstValue'] . "mm";
-                                        break;
-                                    case "S06": // 6시간 적설량
-                                        $data[$category] = $row['fcstValue'] . "cm";
-                                        break;
-                                    case "T1H": // 1시간 기온
-                                        $data[$category] = $row['fcstValue'] . "℃";
-                                        break;
-                                    case "RN1": // 1시간 강수량
-                                        $data[$category] = $row['fcstValue'] . "mm";
-                                        break;
-                                    case "WAV": // 파고 M
-                                        $data[$category] = $row['fcstValue'] . "M";
-                                        break;
-                                    case "LGT": // 낙뇌
-                                        $data[$category] = $this->getLGTCode($row['fcstValue']);
-                                        break;
+                                            break;
+                                        case "RN1": // 1시간 강수량
+                                            $data[$category] = $row['fcstValue'] . "mm";
+                                            break;
+                                        case "WAV": // 파고 M
+                                            $data[$category] = $row['fcstValue'] . "M";
+                                            break;
+                                        case "LGT": // 낙뇌
+                                            $data[$category] = $this->getLGTCode($row['fcstValue']);
+                                            break;
+                                    }
+
+                                    // error_log("Category: $category, Value: " . $data[$category]);
+
+                                    break;
                                 }
-
-                                error_log("Category: $category, Value: " . $data[$category]);
-
-                                break;
                             }
                         }
                     }
                 }
+            } catch (Exception $e) {
+                error_log("Exception occurred: " . $e->getMessage());
             }
-        } catch (Exception $e) {
-            error_log("Exception occurred: " . $e->getMessage());
+        } else {
+            // OpenWeatherMap API 응답을 data.go.kr 형식으로 변환
+            if (isset($response['main'])) {
+                $data['TMN'] = number_format($response['main']['temp_min'], 1) . "℃";
+                $data['TMX'] = number_format($response['main']['temp_max'], 1) . "℃";
+                $data['POP'] = number_format($response['main']['humidity'], 1) . "%";
+            }
+            if (isset($response['weather'][0]['id'])) {
+                $data['SKY'] = $this->convertOpenWeatherMapToSKY($response['weather'][0]['id']);
+                $data['PTY'] = $this->convertOpenWeatherMapToPTY($response['weather'][0]['id']);
+            }
         }
 
-        error_log("Parsed data: " . json_encode($data));
+        // error_log("Parsed data: " . json_encode($data));
 
         return $data;
     }
 
+    // OpenWeatherMap 날씨 코드를 data.go.kr SKY 코드로 변환
+    private function convertOpenWeatherMapToSKY($owm_id)
+    {
+        // OpenWeatherMap 날씨 코드 참조: https://openweathermap.org/weather-conditions
+        if ($owm_id == 800) {
+            return '1'; // 맑음
+        } elseif ($owm_id >= 801 && $owm_id <= 804) {
+            return '3'; // 구름 많음
+        } elseif ($owm_id >= 200 && $owm_id <= 781) {
+            return '4'; // 흐림
+        } else {
+            return '-'; 
+        }
+    }
+
+    // OpenWeatherMap 날씨 코드를 data.go.kr PTY 코드로 변환
+    private function convertOpenWeatherMapToPTY($owm_id)
+    {
+        // OpenWeatherMap 날씨 코드 참조: https://openweathermap.org/weather-conditions
+        if ($owm_id >= 502 && $owm_id <= 511) {
+            return '1'; // 비
+        } elseif ($owm_id >= 611 && $owm_id <= 613) {
+            return '2'; // 진눈깨비
+        } elseif ($owm_id >= 611 && $owm_id <= 613) {
+            return '3'; // 눈
+        } elseif ($owm_id >= 520 && $owm_id <= 531) {
+            return '4'; // 소나기
+        } elseif ($owm_id >= 611 && $owm_id <= 613) {
+            return '5'; // 빗방울
+        } elseif ($owm_id >= 500 && $owm_id <= 501) {
+            return '6'; // 빗방울/눈날림
+        } elseif ($owm_id >= 615 && $owm_id <= 616) {
+            return '7'; // 눈날림
+        } else {
+            return '0'; // 없음
+        }
+    }
 
     public function buildUrlQuery($params)
     {
@@ -458,22 +523,23 @@ class weatherClass
      **/
     public function getRainString($v)
     {
+        global $translations;
         if($v < 0.1) {
-            return "&nbsp;";
+            return " ";
         } elseif($v >= 0.1 && $v < 1.0) {
-            return "1mm미만";
+            return $translations['txt_weather_rain_snow'] ; // "1mm미만"
         } elseif($v >= 1.0 && $v < 5.0) {
-            return "1~4mm";
+            return "1~4mm"; // 추후 번역 필요
         } elseif($v >= 5.0 && $v < 10.0) {
-            return "5~9mm";
+            return "5~9mm"; // 추후 번역 필요
         } elseif($v >= 10.0 && $v < 20.0) {
-            return "10~19mm";
+            return "10~19mm"; // 추후 번역 필요
         } elseif($v >= 20.0 && $v < 40.0) {
-            return "20~39mm";
+            return "20~39mm"; // 추후 번역 필요
         } elseif($v >= 40.0 && $v < 70.0) {
-            return "40~69mm";
+            return "40~69mm"; // 추후 번역 필요
         } else {
-            return "70mm이상";
+            return $translations['txt_weather_thunderstorms']; // "70mm이상"
         }
     }
 
@@ -482,6 +548,7 @@ class weatherClass
      **/
     public function getPTYCode($code = 0)
     {
+        global $translations;
         $result = "";
 
         switch($code) {
@@ -489,25 +556,25 @@ class weatherClass
                 $result = "-";
                 break;
             case "1":
-                $result = "비";
+                $result = $translations['txt_weather_rainy']; // "비";
                 break;
             case "2":
-                $result = "진눈개비";
+                $result = $translations['txt_weather_rain_snow']; // "진눈개비";
                 break;
             case "3":
-                $result = "눈";
+                $result = $translations['txt_weather_snowy']; // "눈";
                 break;
             case "4":
-                $result = "소나기";
+                $result = $translations['txt_weather_rainy']; // "소나기";
                 break;
             case "5":
-                $result = "빗방울";
+                $result = $translations['txt_weather_rainy']; // "빗방울";
                 break;
             case "6":
-                $result = "빗방울/눈날림";
+                $result = $translations['txt_weather_rain_snow']; // "빗방울/눈날림";
                 break;
             case "7":
-                $result = "눈날림";
+                $result = $translations['txt_weather_snowy']; // "눈날림";
                 break;
             default:
                 $result = "-";
@@ -525,17 +592,18 @@ class weatherClass
      **/
     public function getSKYCode($code)
     {
+        global $translations;
         $result = "";
 
         switch($code) {
             case "1":
-                $result = "맑음";
+                $result = $translations['txt_weather_clear']; // "맑음";
                 break;
             case "3":
-                $result = "구름많음";
+                $result = $translations['txt_weather_partly_cloudy']; // "구름많음";
                 break;
             case "4":
-                $result = "흐림";
+                $result = $translations['txt_weather_cloudy']; // "흐림";
                 break;
             default:
                 $result = "-";
@@ -549,12 +617,13 @@ class weatherClass
 
     public function getSkyStatus($v)
     {
+        global $translations;
         if($v >= 0 && $v < 6) {
-            return "맑음";
+            return $translations['txt_weather_clear']; // "맑음";
         } elseif($v < 9) {
-            return "구름많음";
+            return $translations['txt_weather_partly_cloudy']; // "구름많음";
         } elseif($v < 11) {
-            return "흐림";
+            return $translations['txt_weather_cloudy']; // "흐림";
         } else {
             return "";
         }
@@ -562,9 +631,10 @@ class weatherClass
 
     public function getLGTCode($code)
     {
+        global $translations;
         switch($code) {
             case "0":
-                return "없음";
+                return $translations['txt_no']; // "없음";
             case "1":
                 return "낮음";
             case "2":
@@ -598,7 +668,6 @@ class weatherClass
      **/
     public function getWindDirection($v)
     {
-
         $seq = ceil(($v + 22.5 * 0.5) / 22.5);
 
         $windDirection = array("N", "NNE", "NE", "ENE",
@@ -684,7 +753,7 @@ class weatherClass
         $olon = $map['olon'] * DEGRAD;
         $olat = $map['olat'] * DEGRAD;
 
-        $sn = tan(PI * 0.25 + $slat2 * 0.5) / tan(PI * 0.25 + $slat1 * 0.5);
+        $sn = tan(PI *        0.25 + $slat2 * 0.5) / tan(PI * 0.25 + $slat1 * 0.5);
         $sn = log(cos($slat1) / cos($slat2)) / log($sn);
         $sf = tan(PI * 0.25 + $slat1 * 0.5);
         $sf = pow($sf, $sn) * cos($slat1) / $sn;

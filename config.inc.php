@@ -1,13 +1,76 @@
 <?php
 
-define("APP_AUTHOR", "SMAP - 자녀 일정·위치 확인");
-//상단타이틀, URL 설정
-define("APP_TITLE", 'SMAP - 자녀 일정·위치 확인');
+// 사용자의 브라우저 언어 설정 가져오기
+$user_language = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+// 브라우저 언어 설정에 따라 언어 설정
+switch ($user_language) {
+    case 'ko':
+        // 한국어 설정
+        define("APP_AUTHOR", "SMAP - 자녀 일정·위치 확인");
+        define("APP_TITLE", 'SMAP - 자녀 일정·위치 확인');
+        define("DESCRIPTION", '자녀 위치 확인부터 일정 공유까지, 모든 것을 한 곳에서.');
+        break;
+    case 'en':
+        // 영어 설정
+        define("APP_AUTHOR", "SMAP - Child Schedule and Location Tracking");
+        define("APP_TITLE", 'SMAP - Child Schedule and Location Tracking');
+        define("DESCRIPTION", 'From child location tracking to schedule sharing, everything in one place.');
+        break;
+    case 'ja':
+        // 일본어 설정
+        define("APP_AUTHOR", "SMAP - 子供のスケジュール・位置確認");
+        define("APP_TITLE", 'SMAP - 子供のスケジュール・位置確認');
+        define("DESCRIPTION", '子供の位置確認からスケジュール共有まで、すべてを一か所で。');
+        break;
+    case 'id':
+        // 인도네시아어 설정
+        define("APP_AUTHOR", "SMAP - Jadwal dan Pelacakan Lokasi Anak");
+        define("APP_TITLE", 'SMAP - Jadwal dan Pelacakan Lokasi Anak');
+        define("DESCRIPTION", 'Dari pelacakan lokasi anak hingga berbagi jadwal, semuanya dalam satu tempat.');
+        break;
+    case 'ms':
+        // 말레이시아어 설정
+        define("APP_AUTHOR", "SMAP - Jadual dan Penjejakan Lokasi Anak");
+        define("APP_TITLE", 'SMAP - Jadual dan Penjejakan Lokasi Anak');
+        define("DESCRIPTION", 'Dari penjejakan lokasi anak hingga perkongsian jadual, semuanya dalam satu tempat.');
+        break;
+    case 'vi':
+        // 베트남어 설정
+        define("APP_AUTHOR", "SMAP - Lịch trình và Theo dõi Vị trí Trẻ em");
+        define("APP_TITLE", 'SMAP - Lịch trình và Theo dõi Vị trí Trẻ em');
+        define("DESCRIPTION", 'Từ theo dõi vị trí trẻ em đến chia sẻ lịch trình, tất cả trong một nơi.');
+        break;
+    case 'th':
+        // 태국어 설정
+        define("APP_AUTHOR", "SMAP - ตารางเวลาและการติดตามตำแหน่งของเด็ก");
+        define("APP_TITLE", 'SMAP - ตารางเวลาและการติดตามตำแหน่งของเด็ก');
+        define("DESCRIPTION", 'จากการติดตามตำแหน่งของเด็กไปจนถึงการแชร์ตารางเวลา ทุกอย่างอยู่ในที่เดียว');
+        break;
+    case 'es':
+        // 스페인어 설정
+        define("APP_AUTHOR", "SMAP - Horario y Seguimiento de Ubicación Infantil");
+        define("APP_TITLE", 'SMAP - Horario y Seguimiento de Ubicación Infantil');
+        define("DESCRIPTION", 'Desde el seguimiento de la ubicación del niño hasta compartir horarios, todo en un solo lugar.');
+        break;
+    case 'hi':
+        // 힌디어 설정
+        define("APP_AUTHOR", "SMAP - बच्चों का कार्यक्रम और स्थान ट्रैकिंग");
+        define("APP_TITLE", 'SMAP - बच्चों का कार्यक्रम और स्थान ट्रैकिंग');
+        define("DESCRIPTION", 'बच्चों के स्थान की ट्रैकिंग से लेकर कार्यक्रम साझा करने तक, सब कुछ एक ही जगह पर।');
+        break;
+    default:
+        // 기본 영어 설정
+        define("APP_AUTHOR", "SMAP - Child Schedule and Location Tracking");
+        define("APP_TITLE", 'SMAP - Child Schedule and Location Tracking');
+        define("DESCRIPTION", 'From child location tracking to schedule sharing, everything in one place.');
+        break;
+}
+
+// 공통 설정
 define("APP_DOMAIN", 'https://app2.smap.site');
 define("CDN_HTTP", 'https://app2.smap.site');
 define("DESIGN_HTTP", 'https://app2.smap.site/design');
 define("KEYWORDS", '');
-define("DESCRIPTION", '자녀 위치 확인부터 일정 공유까지, 모든 것을 한 곳에서.');
 define("ADMIN_NAME", 'SMAP');
 
 define("OG_IMAGE", CDN_HTTP.'/img/og-image.png');
@@ -34,6 +97,9 @@ define("KAKAO_JS_SHARE_IMG", CDN_HTTP . '/img/kakao_link_img.png');
 define("ALIGO_USER_ID", 'smap2023');
 define("ALIGO_KEY", '6uvw7alcd1v1u6dx5thv31lzic8mxfrt');
 define("ALIGO_SENDER", '070-8065-2207');
+
+define("NCP_ACCESS_KEY", "ncp_iam_BPAMKR5amCXCgRSDodA7");
+define("NCP_SECRET_KEY", "ncp_iam_BPKMKR3E8B8h1J0FhAafnW8Cw83IKvDohl");
 
 define("FMAIL", 'admin@smap.site');
 define("FNAME", 'SMAP');

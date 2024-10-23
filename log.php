@@ -2,18 +2,19 @@
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '5';
 $h_menu = '5';
-$_SUB_HEAD_TITLE = translate("로그", $userLang); // "로그" 번역
+
+$_SUB_HEAD_TITLE = $translations['txt_log']; 
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
 if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        // alert('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', './logout');
+        // alert($translations['txt_login_attempt_other_device'], './logout');
     }
 }
 
@@ -160,14 +161,6 @@ $expt_cnt = $row['cnt'];
         }
     }
 
-    /* 새로운 스피너 스타일을 추가 */
-    /* .mt-2.mb-3.px_16 {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100px;
-        /* 필요한 높이로 조정 */
-    }
 
     .mt-2.mb-3.px_16 .dots-spinner {
         display: flex;
@@ -194,7 +187,14 @@ $expt_cnt = $row['cnt'];
     */
 </style>
 <div id="loading">
-    <div class="loading-spinner"></div>
+    <!-- 로딩 화면 추가 -->
+    <div id="map-loading" style="display: none;">
+        <div class="dots-spinner">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
 </div>
 <div class="container sub_pg log_wrap px-0">
     <!-- 달력 -->
@@ -215,7 +215,7 @@ $expt_cnt = $row['cnt'];
             <div class="add_cal_tit">
                 <button type="button" class="btn h-auto swiper-button-prev"><i class="xi-angle-left-min"></i></button>
                 <div class="sel_month d-inline-flex flex-grow-1 text-centerf">
-                    <a href="javascript:;" onclick="f_calendar_log_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= translate("월 선택 아이콘", $userLang) ?>" style="width:1.6rem; "></a>
+                    <a href="javascript:;" onclick="f_calendar_log_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?=$translations['txt_month_selection_icon'] ?>" style="width:1.6rem; "></a>
                     <p class="fs_15 fw_600" id="calendar_date_title"><?= $calendar_date_title ?></p>
                 </div>
                 <button type="button" class="btn h-auto swiper-button-next"><i class="xi-angle-right-min"></i></button>
@@ -225,14 +225,6 @@ $expt_cnt = $row['cnt'];
     </section>
     <!-- 지도 -->
     <section class="log_map_wrap" id="map">
-        <!-- 로딩 화면 추가 -->
-        <div id="map-loading" style="display: none;">
-            <div class="dots-spinner">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-        </div>
     </section>
     <!-- 로그 -->
     <?
@@ -259,15 +251,15 @@ $expt_cnt = $row['cnt'];
     ?>
         <section class="opt_bottom" style="transform: translateY(<?= $translateY ?>%);">
             <div class="top_bar_wrap text-center pt_08">
-                <img src="./img/top_bar.png" class="top_bar" width="34px" alt="탑바" />
-                <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="탑업" />
+                <img src="./img/top_bar.png" class="top_bar" width="34px" alt="<?=$translations['txt_top_bar'] ?>" />
+                <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="<?=$translations['txt_top_up'] ?>" />
             </div>
             <div>
                 <!-- 위치조정슬라이더 자리 -->
                 <div class="px_16 mb-3">
                     <div class="border bg-white rounded-lg px_16 py_12">
                         <div class="loc_rog_adj">
-                            <p class="fs_16 fw_600"><?= translate('이동경로 따라가기', $userLang); ?></p>
+                            <p class="fs_16 fw_600"><?=$translations['txt_follow_route'] ?></p>
                             <div class="pt-4">
                                 <input type="range" class="custom-range" id="timeSlider" min='1' max='1' value='1'>
                             </div>
@@ -287,15 +279,15 @@ $expt_cnt = $row['cnt'];
             <? } else { ?>
                 <section class="opt_bottom" style="transform: translateY(<?= $translateY ?>%);">
                     <div class="top_bar_wrap text-center pt_08">
-                        <img src="./img/top_bar.png" class="top_bar" width="34px" alt="탑바" />
-                        <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="탑업" />
+                        <img src="./img/top_bar.png" class="top_bar" width="34px" alt="<?=$translations['txt_top_bar'] ?>" />
+                        <img src="./img/btn_tl_arrow.png" class="top_down mx-auto" width="12px" alt="<?=$translations['txt_top_up'] ?>" />
                     </div>
                     <div>
                         <!-- 위치조정슬라이더 자리 -->
                         <div class="px_16 mb-3">
                             <div class="border bg-white rounded-lg px_16 py_16">
                                 <div class="loc_rog_adj pb-4">
-                                    <p class="fs_16 fw_600"><?= translate('이동경로 따라가기', $userLang); ?></p>
+                                    <p class="fs_16 fw_600"><?=$translations['txt_follow_route'] ?></p>
                                     <div class="pt-4">
                                         <input type="range" class="custom-range" id="timeSlider" min='1' max='1' value='1'>
                                     </div>
@@ -318,7 +310,7 @@ $expt_cnt = $row['cnt'];
 <!-- 토스트 Toast 토스트 넣어두었습니다. 필요하시면 사용하심됩니다.! 사용할 버튼에 id="ToastBtn" 넣으면 사용가능! -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i><?= translate('위치가 등록되었습니다.', $userLang); ?></p>
+        <p><i class="xi-check-circle mr-2"></i><?=$translations['txt_location_notif'] ?></p>
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -327,17 +319,15 @@ $expt_cnt = $row['cnt'];
     <div class="floating_wrap on">
         <div class="flt_inner">
             <div class="flt_head">
-                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?= translate('그룹만들기', $userLang); ?></span></p>
+                <p class="line_h1_2"><span class="text_dynamic flt_badge"><?=$translations['txt_create_group'] ?></span></p>
             </div>
             <div class="flt_body pb-5 pt-3">
-                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?= translate('아직 그룹을 만들지 않으셨네요.', $userLang); ?></p>
-                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?= translate('그룹원의 이동경로를
-                    로그 메뉴에서 확인할 수 있습니다.
-                    그룹을 만들고 이 기능을 사용해 볼까요?', $userLang); ?>
+                <p class="text_dynamic line_h1_3 fs_17 fw_700"><?=$translations['txt_create_group_first_question'] ?></p>
+                <p class="text_dynamic line_h1_3 text_gray fs_14 mt-2 fw_500"><?=$translations['txt_follow_route_check_location'] ?>
                 </p>
             </div>
             <div class="flt_footer">
-                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'">다음</button>
+                <button type="button" class="btn btn-md btn-block btn-primary mx-0 my-0" onclick="location.href='./group_create'"><?=$translations['txt_next'] ?></button>
             </div>
         </div>
     </div>
@@ -438,9 +428,10 @@ $expt_cnt = $row['cnt'];
     const loadingElement = document.getElementById('map-loading');
     // optBottom 이벤트 리스너 저장
     let optBottomTouchStartListener, optBottomTouchMoveListener, optBottomMouseDownListener, optBottomMouseMoveListener, optBottomMouseUpListener;
+    let previousTransformY = optBottom.style.transform; 
 </script>
 <?php
-if ($userLang === 'ko') {
+if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     // 네이버 지도 스크립트
 ?>
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>"></script>
@@ -1189,7 +1180,18 @@ if ($userLang === 'ko') {
                         const locationLat = parseFloat(markerData['locationmarkerLat_' + i]);
                         const locationLng = parseFloat(markerData['locationmarkerLong_' + i]);
                         const locationTitle = markerData['locationmarkerTitle_' + i];
+                        // console.log('locationLat: ' + locationLat + ', locationLng: ' + locationLng + ', locationTitle: ' + locationTitle);
+                        createLocationMarker(locationTitle, locationLat, locationLng);
+                    }
+                }
 
+                // 프로필 마커
+                addGoogleProfileMarker(markerData.my_lat, markerData.mt_long, markerData.my_profile);
+            } catch (error) {
+                console.error("Error in initGoogleMap:", error);
+            }
+        }
+        function createLocationMarker(locationTitle, locationLat, locationLng){
                         // 랜덤 색상 생성
                         const randomColor = generateRandomColor();
 
@@ -1265,14 +1267,6 @@ if ($userLang === 'ko') {
                         });
 
                         markers.push(locationMarker);
-                    }
-                }
-
-                // 프로필 마커
-                addGoogleProfileMarker(markerData.my_lat, markerData.mt_long, markerData.my_profile);
-            } catch (error) {
-                console.error("Error in initGoogleMap:", error);
-            }
         }
 
         function addGoogleProfileMarker(lat, lng, imageUrl) {
@@ -1298,7 +1292,7 @@ if ($userLang === 'ko') {
                 img.src = imageUrl;
                 img.alt = '이미지';
                 img.onerror = function() {
-                    this.src = 'https://app.smap.site/img/no_image.png';
+                    this.src = 'https://app2.smap.site/img/no_image.png';
                 };
                 rectSquareDiv.appendChild(img);
 
@@ -1433,7 +1427,7 @@ if ($userLang === 'ko') {
                 img.src = imageUrl;
                 img.alt = '이미지';
                 img.onerror = function() {
-                    this.src = 'https://app.smap.site/img/no_image.png';
+                    this.src = 'https://app2.smap.site/img/no_image.png';
                 };
                 rectSquareDiv.appendChild(img);
 
@@ -1470,6 +1464,7 @@ if ($userLang === 'ko') {
 ?>
 <script>
     $(document).ready(function() {
+        showMapLoading();
         // 함수 호출
         createGroupMember(<?= $sgdt_row['sgdt_idx'] ?>);
         f_calendar_log_init('today'); // 달력 스케줄
@@ -1490,12 +1485,10 @@ if ($userLang === 'ko') {
     });
 
     async function initializeMapAndMarkers(data, sgdt_idx) {
-        if ('ko' === '<?= $userLang ?>') {
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             await initNaverMap(data, sgdt_idx);
-        } else if ('ko' !== '<?= $userLang ?>') {
-            await initGoogleMap(data, sgdt_idx);
         } else {
-            throw new Error('지도 API를 초기화할 수 없습니다.');
+            await initGoogleMap(data, sgdt_idx);
         }
     }
 
@@ -1505,38 +1498,45 @@ if ($userLang === 'ko') {
         if (cachedData) {
             // 캐싱된 데이터가 있으면 사용
             let response = JSON.parse(cachedData);
-            if (response.result === 'success') {
-                renderMemberList(response.data);
-                return; // 함수 종료
+            if (response.result === 'Y') {
+                renderMemberList(response);
+                return response; // 함수 종료
             }
         }
-        var form_data = new FormData();
-        form_data.append("act", "group_member_list");
-        form_data.append("group_sgdt_idx", sgdt_idx);
+       
+        return new Promise((resolve, reject) => {
+            var form_data = new FormData();
+            form_data.append("act", "member_schedule_list");
+            form_data.append("sgdt_idx", sgdt_idx);
+            form_data.append("event_start_date", '<?= $s_date ?>');
+            form_data.append("mt_lang", '<?= $userLang ?>');
 
-        $.ajax({
-            url: "./location_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 10000,
-            dataType: 'json',
-            success: function(response) {
-                if (response.result === 'success') {
-                    // sessionStorage에 데이터 저장
-                    sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
-                    renderMemberList(response.data);
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function(err) {
-                console.log(err);
-            },
+            $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 5000,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.result === 'Y') {
+                        sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
+                        renderMemberList(data);
+                        resolve(data);
+                    } else {
+                        console.log("No loadMemberSchedule data available");
+                        resolve(null);
+                    }
+                },
+                error: function(err) {
+                    console.error('AJAX request failed: ', err);
+                    reject(err);
+                },
+            });
         });
     }
 
@@ -1546,8 +1546,8 @@ if ($userLang === 'ko') {
 
         // 전체 HTML 구조 생성
         const html = `
-        <div class="border bg-white rounded-lg px_16 py_16">
-            <p class="fs_16 fw_600 mb-3">${'<?= translate('그룹원', $userLang) ?>'}</p>
+        <div       class="border bg-white rounded-lg px_16 py_16">
+            <p class="fs_16 fw_600 mb-3"><?=$translations['txt_group_members'] ?></p>
             <div id="group_member_list_box">
                 <div class="mem_wrap mem_swiper">
                     <div class="swiper-wrapper d-flex">
@@ -1571,36 +1571,43 @@ if ($userLang === 'ko') {
         let html = '';
 
         // 본인 정보 추가
-        html += `
-        <div class="swiper-slide checks mem_box">
-            <label>
-                <input type="radio" name="rd2" checked onclick="f_profile_click(${data.my_info.mt_idx}, ${data.my_info.sgdt_idx});">
-                <div class="prd_img mx-auto">
-                    <div class="rect_square rounded_14">
-                        <img src="${data.my_info.profile_image}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
-                    </div>
-                </div>
-                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.my_info.nickname}</p>
-            </label>
-        </div>
-    `;
-
-        // 그룹 멤버 정보 추가
-        data.group_members.forEach(member => {
+        if (data.members && data.members[data.sgdt_idx]) {
             html += `
             <div class="swiper-slide checks mem_box">
                 <label>
-                    <input type="radio" name="rd2" onclick="f_profile_click(${member.mt_idx}, ${member.sgdt_idx});">
-                    <div class="prd_img mx-auto"> 
+                    <input type="radio" name="rd2" checked onclick="f_profile_click(${data.members[data.sgdt_idx].member_info.mt_idx}, ${data.members[data.sgdt_idx].member_info.sgdt_idx});">
+                    <div class="prd_img mx-auto">
                         <div class="rect_square rounded_14">
-                            <img src="${member.profile_image}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                            <img src="${data.members[data.sgdt_idx].member_info.my_profile}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
                         </div>
                     </div>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.nickname}</p>
+                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.members[data.sgdt_idx].member_info.mt_nickname}</p>
                 </label>
             </div>
         `;
-        });
+        }
+
+        // 그룹 멤버 정보 추가
+        if (data.members && typeof data.members === 'object') {
+            Object.keys(data.members).forEach(key => {
+                const member = data.members[key];
+                if (key !== data.sgdt_idx.toString()) {
+                    html += `
+                <div class="swiper-slide checks mem_box">
+                    <label>
+                        <input type="radio" name="rd2" onclick="f_profile_click(${member.member_info.mt_idx}, ${member.member_info.sgdt_idx});">
+                        <div class="prd_img mx-auto"> 
+                            <div class="rect_square rounded_14">
+                                <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                            </div>
+                        </div>
+                        <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.member_info.mt_nickname}</p>
+                    </label>
+                </div>
+            `;
+                }
+            });
+        }
 
         // 그룹원추가 버튼 추가
         html += `
@@ -1608,9 +1615,8 @@ if ($userLang === 'ko') {
             <button class="btn mem_add">
                 <i class="xi-plus-min fs_20"></i>
             </button>
-            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 text_dynamic" style="word-break: break-all; line-height:0.7;">
-                ${'<?= translate(' 그룹원 ', $userLang) ?>'}<br>
-                ${'<?= translate(' 추가 ', $userLang) ?>'}
+            <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
+                <?= $translations['txt_add_member'] ?>
             </p>
         </div>
     `;
@@ -1668,19 +1674,7 @@ if ($userLang === 'ko') {
         //     dot.style.backgroundColor = randomColor;
         // });
 
-        if (optBottom) {
-            var transformY = optBottom.style.transform;
-            if (transformY == 'translateY(0px)') {
-                // 화면 중앙에서 180px 위로 이동
-                // loadingElement.style.top = 'calc(50% - 180px)';
-                loadingElement.style.transform = 'translate(0, -35%)';
-            } else {
-                loadingElement.style.transform = 'translate(0, -10%)';
-            }
-
-            loadingElement.style.display = 'flex'; // 로딩바 표시
-            // document.querySelector('.mt-2.mb-3.px_16').style.display = 'flex'; // .mt-2.mb-3.px_16 스피너 표시
-        }
+        loadingElement.style.display = 'flex'; // 로딩바 표시
         // optBottom 이벤트 비활성화
         optBottom.ontouchstart = null;
         optBottom.ontouchmove = null;
@@ -1691,8 +1685,9 @@ if ($userLang === 'ko') {
 
     // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        document.getElementById("map-loading").style.display = 'none';
-        // document.querySelector('.mt-2.mb-3.px_16').style.display = 'none'; // .mt-2.mb-3.px_16 스피너 숨기기
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
 
         // optBottom 이벤트 활성화
         optBottom.ontouchstart = optBottomTouchStartListener;
@@ -1782,21 +1777,21 @@ if ($userLang === 'ko') {
             showMapLoading();
 
             // sessionStorage 키 생성 (날짜 포함)
-            let cacheKey = 'memberLineData_' + $('#sgdt_idx').val() + '_' + currentSelectedDate;
-            let cachedData = sessionStorage.getItem(cacheKey);
+            // let cacheKey = 'memberLineData_' + $('#sgdt_idx').val() + '_' + currentSelectedDate;
+            // let cachedData = sessionStorage.getItem(cacheKey);
 
-            if (cachedData) {
-                // 캐싱된 데이터가 있으면 사용
-                let response = JSON.parse(cachedData);
-                if (response) {
-                    initializeMapAndMarkers(response, $('#sgdt_idx').val());
-                    highlightSelectedDate();
-                    updateTimeSlider(response.log_count);
-                    resolve(response);
-                    hideMapLoading();
-                    return; // 함수 종료
-                }
-            }
+            // if (cachedData) {
+            //     // 캐싱된 데이터가 있으면 사용
+            //     let response = JSON.parse(cachedData);
+            //     if (response) {
+            //         initializeMapAndMarkers(response, $('#sgdt_idx').val());
+            //         highlightSelectedDate();
+            //         updateTimeSlider(response.log_count);
+            //         resolve(response);
+            //         hideMapLoading();
+            //         return; // 함수 종료
+            //     }
+            // }
 
             let form_data = new FormData();
             form_data.append("act", "get_line");
@@ -1819,7 +1814,7 @@ if ($userLang === 'ko') {
                 success: function(data) {
                     if (data) {
                         // sessionStorage에 데이터 저장 (날짜 포함 키 사용)
-                        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                        // sessionStorage.setItem(cacheKey, JSON.stringify(data));
                         // 데이터 처리를 비동기적으로 수행
                         initializeMapAndMarkers(data, $('#sgdt_idx').val());
                         highlightSelectedDate();
@@ -1832,7 +1827,7 @@ if ($userLang === 'ko') {
                 },
                 error: function(err) {
                     console.log(err);
-                    jalert('타임아웃');
+                    jalert('<?=$translations['txt_no_data'] ?>');
                     reject(err);
                 },
                 complete: function() {
@@ -1944,7 +1939,7 @@ if ($userLang === 'ko') {
 
                             const newP = document.createElement('p');
                             newP.className = 'fs_16 fw_600 mt-2';
-                            newP.textContent = "<?= translate('위치기록 요약', $userLang) ?>";
+                            newP.textContent = "<?=$translations['txt_log_summary'] ?>";
 
                             newUl = document.createElement('ul');
                             newUl.className = 'loc_rog_ul d-flex align-item-center justify-content-between py-4';
@@ -1958,16 +1953,19 @@ if ($userLang === 'ko') {
                         // newUl 내용 업데이트
                         newUl.innerHTML = `
                             <li class="text-center border-right flex-fill loc_rog_ul_l12">
-                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동거리', $userLang) ?></p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_distance_km'] ?></p>
+                                <hr class="my-2">
                                 <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.distance}</p>
                             </li>
                             <li class="text-center border-right flex-fill loc_rog_ul_l13">
-                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('이동시간', $userLang) ?></p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_travel_time'] ?></p>
+                                <hr class="my-2">
                                 <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.duration}</p>
                             </li>
                             <li class="text-center flex-fill loc_rog_ul_l14">
-                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic"><?= translate('걸음수', $userLang) ?></p>
-                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.steps.toLocaleString()} <?= translate(' 걸음', $userLang) ?></p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_steps'] ?></p>
+                                <hr class="my-2">
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.steps.toLocaleString()} <?=$translations['txt_steps_short'] ?></p>
                             </li>
                         `;
                         // 위치슬라이더 그리기
@@ -2208,49 +2206,70 @@ if ($userLang === 'ko') {
         } else {
             console.error("요소를 찾을 수 없습니다.");
         }
+        optBottomTouchStartListener = optBottom.ontouchstart;
+        optBottomTouchMoveListener = optBottom.ontouchmove;
+        optBottomMouseDownListener = optBottom.onmousedown;
+        optBottomMouseMoveListener = document.onmousemove;
+        optBottomMouseUpListener = document.onmouseup;
     });
+    // 실시간 마커 이동
+    function marker_reload(sgdt_idx) {
+        let form_data = new FormData();
+        form_data.append("act", "marker_reload");
+        form_data.append("sgdt_idx", sgdt_idx);
+        $.ajax({
+            url: "./location_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 5000,
+            dataType: 'json',
+            success: function(data) {
+                if (data) {
+                    let my_profile = data.my_profile;
+                    let st_lat = data.my_lat;
+                    let st_lng = data.mt_long;
 
-    async function map_panto(lat, lng) {
-        if (optBottom) {
-            const transformY = optBottom.style.transform;
-            if (transformY === 'translateY(0px)') {
-                if (typeof naver !== 'undefined' && map instanceof naver.maps.Map) {
-                    map.setCenter(new naver.maps.LatLng(lat, lng));
-                    map.panBy(new naver.maps.Point(0, 180));
-                } else if (typeof google !== 'undefined' && map instanceof google.maps.Map) {
-                    // 애니메이션 없이 중심 변경
-                    map.setOptions({
-                        animation: null
-                    }); // 애니메이션 비활성화
-                    map.setCenter({
-                        lat: parseFloat(lat),
-                        lng: parseFloat(lng)
-                    });
+                    initNaverMap(my_profile, st_lat, st_lng, data);
+                } else {
+                    console.log(err);
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            },
+        });
+    }
 
-                    // translateY(0px)일 때 한 번만 panBy 실행
-                    if (isPannedDown) {
-                        google.maps.event.addListenerOnce(map, 'idle', function() {
-                            map.panBy(0, 180);
-                            isPannedDown = true; // panBy 실행 여부 업데이트
-                        });
-                    }
-                }
-            } else if (isPannedDown) {
-                // translateY(0px)에서 다른 값으로 변경되었을 때 원래대로 복귀
-                if (typeof google !== 'undefined' && map instanceof google.maps.Map && originalCenter) {
-                    map.setOptions({
-                        animation: null
-                    }); // 애니메이션 비활성화
-                    map.setCenter(originalCenter);
-                    isPannedDown = false;
-                    originalCenter = null;
-                }
-            }
+    function isAndroidDevice() {
+        if (/Android/i.test(navigator.userAgent) && typeof window.smapAndroid !== 'undefined') {
+            console.log('<?=$translations['txt_android'] ?>');
+        }
+        return /Android/i.test(navigator.userAgent) && typeof window.smapAndroid !== 'undefined';
+    }
+
+    function isiOSDevice() {
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.smapIos) {
+            console.log('<?=$translations['txt_ios'] ?>');
+        }
+        return /iPhone|iPad|iPod/i.test(navigator.userAgent) && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.smapIos;
+    }
+
+    function map_panto(lat, lng) {
+        currentLat = lat;
+        currentLng = lng;
+        if (previousTransformY === 'translateY(0px)') {
+            panMapDown();
+        } else if (isPannedDown) {
+            panMapUp();
         }
     }
 
     // MutationObserver 설정
-    let previousTransformY = optBottom.style.transform; // 이전 transformY 값 저장
     let isPanning = false; // 패닝 중인지 확인하는 플래그
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
@@ -2268,9 +2287,9 @@ if ($userLang === 'ko') {
     function panMapDown() {
         isPanning = true;
         originalCenter = map.getCenter();
-        let newLat = 'ko' === '<?= $userLang ?>' ? (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 : (currentLat || originalCenter.lat()) - (300 / 111000) * 1.5;
-        let newCenter = 'ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
-        if ('ko' === '<?= $userLang ?>') {
+        let newLat = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 : (currentLat || originalCenter.lat()) - (300 / 111000) * 1.5;
+        let newCenter = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             map.panTo(newCenter, {
                 duration: 700,
                 easing: 'easeOutCubic',
@@ -2292,8 +2311,8 @@ if ($userLang === 'ko') {
     function panMapUp() {
         if (isPannedDown) {
             isPanning = true;
-            let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
-            if ('ko' === '<?= $userLang ?>') {
+            let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
+            if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
                 map.panTo(targetLatLng, {
                     duration: 700,
                     easing: 'easeOutCubic',

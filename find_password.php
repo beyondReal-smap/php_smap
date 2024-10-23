@@ -7,29 +7,29 @@ include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 ?>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">비밀번호 찾기</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= $translations['txt_forgot_password'] ?></p>
         <form action="">
             <div class="mt-5">
                 <div class="ip_wr">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= $translations['txt_password'] ?></h5>
                     </div>
-                    <input type="password" class="form-control" placeholder="비밀번호를 입력해주세요.">
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2">비밀번호는 최소 9글자 이상 공백 없이 문자, 숫자 조합입니다.</div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 비밀번호를 다시 확인해주세요</div>
+                    <input type="password" class="form-control" placeholder="<?= $translations['txt_enter_password'] ?>">
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2"><?= $translations['txt_password_requirements'] ?></div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_check_password'] ?></div>
                 </div>
                 <div class="ip_wr mt_25 ip_invalid">
                     <div class="ip_tit">
-                        <h5>비밀번호 확인</h5>
+                        <h5><?= $translations['txt_password'] ?> <?= $translations['txt_confirm'] ?></h5>
                     </div>
-                    <input type="password" class="form-control" placeholder="비밀번호를 한번 더 입력해주세요.">
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 비밀번호를 다시 확인해주세요</div>
+                    <input type="password" class="form-control" placeholder="<?= $translations['txt_enter_password_again'] ?>">
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_check_password'] ?></div>
                 </div>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='form_add_info'"><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " onclick="location.href='form_add_info'"><?= $translations['txt_input_complete'] ?></button>
             </div>
         </form>
     </div>

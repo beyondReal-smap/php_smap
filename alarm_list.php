@@ -1,19 +1,20 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
+
 $b_menu = '5';
 $h_menu = '5';
-$_SUB_HEAD_TITLE = translate("로그", $userLang);
+$_SUB_HEAD_TITLE = $translations['txt_log']; // 번역 배열 사용
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
-if ($_SESSION['_mt_idx'] == '') {
-    alert(translate('로그인이 필요합니다.', $userLang), './login', '');
+if (empty($_SESSION['_mt_idx'])) {
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert(translate('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', $userLang), './logout');
+        alert($translations['txt_login_attempt_other_device'], './logout');
     }
 }
 
@@ -32,7 +33,7 @@ $DB->update('push_log_t', $arr_query);
 <div class="container sub_pg">
     <div class="">
         <div class="text-right mt-3 mb-4">
-            <button type="button" class="btn h_fit_im fs_13 fc_gray_600 px-0" data-toggle="modal" data-target="#arm_delete_modal"><i class="xi-trash-o mr_04"></i><?= translate('전체삭제', $userLang) ?></button>
+            <button type="button" class="btn h_fit_im fs_13 fc_gray_600 px-0" data-toggle="modal" data-target="#arm_delete_modal"><i class="xi-trash-o mr_04"></i><?=$translations['txt_delete_all']?></button> 
         </div>
         <?php
         unset($list);
@@ -47,7 +48,7 @@ $DB->update('push_log_t', $arr_query);
             foreach ($list as $row) {
                 $plt_sdate_t = substr($row['plt_sdate'], 0, 10);
                 if ($plt_sdate_t == date('Y-m-d')) {
-                    $tt = ' <span class="text-primary ml-2">' . translate('오늘 알림', $userLang) . '</span>';
+                    $tt = ' <span class="text-primary ml-2">' . $translations['txt_todays_notification'] . '</span>'; 
                 } else {
                     $tt = '';
                 }
@@ -117,12 +118,12 @@ $DB->update('push_log_t', $arr_query);
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?= translate('전체 삭제하시겠습니까?', $userLang) ?></p>
+                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center"><?=$translations['txt_delete_all_confirm']?></p> 
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="f_del_alarm();"><?= translate('네', $userLang) ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?= translate('아니요', $userLang) ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" onclick="f_del_alarm();"><?=$translations['txt_yes']?></button> 
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close"><?=$translations['txt_no']?></button> 
                 </div>
             </div>
         </div>
@@ -132,7 +133,7 @@ $DB->update('push_log_t', $arr_query);
 <!-- 토스트 Toast 토스트 넣어두었습니다. 필요하시면 사용하심됩니다.! 사용할 버튼에 id="ToastBtn" 넣으면 사용가능! -->
 <div id="Toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
     <div class="toast-body">
-        <p><i class="xi-check-circle mr-2"></i><?= translate('삭제되었습니다.', $userLang) ?></p> <!-- 성공메시지 -->
+        <p><i class="xi-check-circle mr-2"></i><?=$translations['txt_deleted']?></p> <!-- 성공메시지 -->
         <!-- <p><i class="xi-error mr-2"></i>에러메시지</p> -->
     </div>
 </div>
@@ -160,11 +161,11 @@ $DB->update('push_log_t', $arr_query);
                         title: '',
                         type: "blue",
                         typeAnimated: true,
-                        content: '<?= translate('삭제되었습니다.', $userLang) ?>',
+                        content: '<?=$translations['txt_deleted']?>', 
                         buttons: {
                             confirm: {
                                 btnClass: "btn-default btn-lg btn-block",
-                                text: "<?= translate('확인', $userLang) ?>",
+                                text: '<?=$translations['txt_confirm']?>', 
                                 action: function() {
                                     location.hash = "";
                                     location.reload();

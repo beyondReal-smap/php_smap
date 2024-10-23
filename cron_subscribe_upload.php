@@ -1,5 +1,5 @@
 <?php
-$_SERVER['DOCUMENT_ROOT'] = "/data/wwwroot/app.smap.site";
+$_SERVER['DOCUMENT_ROOT'] = "/data/wwwroot/app2.smap.site";
 $cron_chk=true;
 include $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
@@ -127,16 +127,19 @@ if ($mem_list) {
                     );
                     $DB->insert('order_log_t', $arr_query);
 
+                    // 지역별 가격 정보 가져오기
+                    $priceInfo = getPriceByRegion();
+
                     if ($verificationResult['basePlanId'] == 'smap-sub-year') {
-                        $ot_title = '구독결제(연간)';
-                        $sprice = '58800';
-                        $bprice = '16800';
-                        $price = '42000';
+                        $ot_title = $translations['txt_yearly_subscription'];
+                        $sprice = $priceInfo['monthly'] * 12;
+                        $bprice = $priceInfo['monthly'] * 12 - $priceInfo['yearly'];
+                        $price = $priceInfo['yearly'];
                     } else {
-                        $ot_title = '구독결제(월간)';
-                        $sprice = '4900';
+                        $ot_title = $translations['txt_monthly_subscription'];
+                        $sprice = $priceInfo['monthly'];
                         $bprice = '0';
-                        $price = '4900';
+                        $price = $priceInfo['monthly'];
                     }
 
                     // 플랜 일자 업데이트

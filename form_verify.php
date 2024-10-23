@@ -5,62 +5,86 @@ $_GET['hd_num'] = '2';
 $h_menu = '2';
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
-if (!$_GET['phoneNumber']) {
-    p_alert(translate('잘못된 접근입니다.', $userLang), './'); // "잘못된 접근입니다." 번역
+if (!isset($_GET['phoneNumber']) && !isset($_GET['email'])) {
+    p_alert($translations['txt_invalid_access'], './');
 }
-$phoneNumber = $_GET['phoneNumber'];
+
+$phoneNumber = $_GET['phoneNumber'] ?? '';
+$email = $_GET['email'] ?? '';
 ?>
-?>
+
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3"><?= translate("입력하신 휴대폰번호로
-            인증번호를 보냈어요.", $userLang) ?></p> <!-- "입력하신 휴대폰번호로 인증번호를 보냈어요." 번역 -->
+        <p class="tit_h1 wh_pre line_h1_3">
+            <?php if ($userLang == 'ko'): ?>
+                <?= $translations['txt_verification_code_sent_phone'] ?>
+            <?php else: ?>
+                <?= $translations['txt_verification_code_sent_email'] ?>
+            <?php endif; ?>
+        </p>
         <form action="">
             <input type="hidden" name="rtn_url" id="rtn_url" value="<?= $_GET['rtn_url'] ?>" />
             <input type="hidden" name="app_token" id="app_token" value="<?= $_SESSION['_mt_app_token'] ?>" />
-            <input type="hidden" name="mt_hp_chk" id="mt_hp_chk" value="0">
-            <input type="hidden" name="mt_num_chk" id="mt_num_chk" value="0">
+            <?php if ($userLang == 'ko'): ?>
+                <input type="hidden" name="mt_hp_chk" id="mt_hp_chk" value="0">
+                <input type="hidden" name="mt_num_chk" id="mt_num_chk" value="0">
+            <?php endif; ?>
             <div class="mt-5">
-                <div class="ip_wr mt_hp_chk_msg">
-                    <div class="ip_tit">
-                        <h5><?= translate("인증번호", $userLang) ?></h5> <!-- "인증번호" 번역 -->
-                    </div>
-                    <div class="form-row mt_06">
-                        <div class="col-12">
-                            <input type="text" class="form-control input_time_input" placeholder="<?= translate("6자리 숫자", $userLang) ?>" name="mt_num" id="mt_num" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, ' $1');" maxlength="6"> <!-- "6자리 숫자" 번역 -->
-                            <span class="fc_red fs_15 fw_300 bg_gray_100 input_time" id="cert_timer"></span>
+                <?php if ($userLang == 'ko'): ?>
+                    <div class="ip_wr mt_hp_chk_msg">
+                        <div class="ip_tit">
+                            <h5><?= $translations['txt_verification_code'] ?></h5> 
                         </div>
+                        <div class="form-row mt_06">
+                            <div class="col-12">
+                                <input type="text" class="form-control input_time_input" placeholder="<?= $translations['txt_6_digit_number'] ?>" name="mt_num" id="mt_num" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, ' $1');" maxlength="6">
+                                <span class="fc_red fs_15 fw_300 bg_gray_100 input_time" id="cert_timer"></span>
+                            </div>
+                        </div>
+                        <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_confirmed'] ?></div>
+                        <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_verification_code_mismatch'] ?></div> 
+                        <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_verification_time_expired'] ?></div>
                     </div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate("확인되었습니다.", $userLang) ?></div> <!-- "확인되었습니다." 번역 -->
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate("인증번호가 일치하지 않습니다.", $userLang) ?></div> <!-- "인증번호가 일치하지 않습니다." 번역 -->
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= translate("인증시간이 만료되었습니다.", $userLang) ?></div> <!-- "인증시간이 만료되었습니다." 번역 -->
-                </div>
-                <div class="ip_wr mt-5 mt_hp_msg">
-                    <div class="ip_tit">
-                        <h5 class=""><?= translate("입력하신 휴대전화번호로 인증번호가 발송됩니다.", $userLang) ?></h5> <!-- "입력하신 휴대전화번호로 인증번호가 발송됩니다." 번역 -->
+                    <div class="ip_wr mt-5 mt_hp_msg">
+                        <div class="ip_tit">
+                            <h5 class=""><?= $translations['txt_verification_code_sent_to_phone'] ?></h5>
+                        </div>
+                        <input type="tel" class="form-control" placeholder="<?= $translations['txt_phone_placeholder'] ?>" id="mt_hp" name="mt_hp" value="<?= $phoneNumber ?>" readonly>
+                        <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_confirmed'] ?></div> 
+                        <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_check_id_again'] ?></div> 
+                        <button type="button" class="btn fs_12 fc_primary rounded-pill bg_secondary text-center px_12 py_07 text_dynamic w_fit h_fit_im d-flex align-items-center mt-3" onclick="resendVerificationCode()"><?= $translations['txt_didnt_receive_code'] ?> <i class="xi-arrow-right ml-2"></i></button>
                     </div>
-                    <input type="tel" class="form-control" placeholder="010-0000-0000" id="mt_hp" name="mt_hp" value="<?= $_GET['phoneNumber'] ?>" readonly>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= translate("확인되었습니다.", $userLang) ?></div> <!-- "확인되었습니다." 번역 -->
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= translate("아이디를 다시 확인해주세요", $userLang) ?></div> <!-- "아이디를 다시 확인해주세요" 번역 -->
-                    <button type="button" class="btn fs_12 fc_primary rounded-pill bg_secondary text-center px_12 py_07 text_dynamic w_fit h_fit_im d-flex align-items-center mt-3"><?= translate("인증번호가 안와요!", $userLang) ?> <i class="xi-arrow-right ml-2"></i></button> <!-- "인증번호가 안와요!" 번역 -->
-                </div>
+                <?php else: ?>
+                    <div class="ip_wr mt_email_msg">
+                        <div class="ip_tit">
+                            <h5 class=""><?= $translations['txt_check_email_click_link'] ?></h5>
+                        </div>
+                        <input type="email" class="form-control" placeholder="example@domain.com" id="mt_email" name="mt_email" value="<?= $email ?>" readonly>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="b_botton">
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');"><?= translate('입력했어요!', $userLang) ?></button> <!-- "입력했어요!" 번역 -->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= translate("휴대폰 인증을 완료했어요!", $userLang) ?></button> <!-- "휴대폰 인증을 완료했어요!" 번역 -->
+                <?php if ($userLang == 'ko'): ?>
+                    <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block " id="auth_check_button" onclick="check_hp('auth');"><?= $translations['txt_input_complete'] ?></button>
+                    <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block d-none" id="next_button" onclick="next_page()"><?= $translations['txt_phone_verification_complete'] ?></button> 
+                <?php else: ?>
+                    <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="window.location.replace('<?= $_GET['rtn_url'] ?>')"><?= $translations['txt_confirm'] ?></button>
+                <?php endif; ?>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    <? if ($_SESSION['_number_chk'] == 0) { ?>
-    check_hp('send', 'find');
-    <?}?>
-    //문자인증번호
+    <?php if ($userLang == 'ko' && $_SESSION['_number_chk'] == 0): ?>
+        check_hp('send', 'find');
+    <?php endif; ?>
+
+    // 문자인증번호
     var timer;
     var isRunning = false;
-    //휴대폰 인증
+
+    // 휴대폰 인증
     function check_hp(type, state) {
         var mt_hp = $("#mt_hp").val();
         if (mt_hp.length < 10) {
@@ -72,7 +96,8 @@ $phoneNumber = $_GET['phoneNumber'];
             $(".mt_hp_msg").addClass("ip_valid");
             $(".mt_hp_msg").removeClass("ip_invalid");
         }
-        //발송
+
+        // 발송
         if (type == "send") {
             $.ajax({
                 url: "./join_update.php",
@@ -101,6 +126,7 @@ $phoneNumber = $_GET['phoneNumber'];
                         $("#mt_hp_chk").val("1");
                         $("#mt_num_chk").val("0");
                         $("#cert_timer").css("display", "");
+                        jalert("<?= $translations['txt_verification_code_sent'] ?>");
                     } else {
                         clearInterval(timer);
                         $("#cert_timer").css("display", "none");
@@ -114,7 +140,8 @@ $phoneNumber = $_GET['phoneNumber'];
                 },
             });
         }
-        //인증
+
+        // 인증
         if (type == "auth") {
             var mt_num = $("#mt_num").val();
             if (mt_num.length < 6) {
@@ -158,7 +185,7 @@ $phoneNumber = $_GET['phoneNumber'];
                         $("#next_button").removeClass("d-none");
 
                         // 바로이동
-                        window.location.replace('./change_psd?phoneNumber=' + mt_hp);
+                        // window.location.replace('./change_psd?phoneNumber=' + mt_hp);
                     } else {
                         $(".mt_hp_chk_msg").addClass("ip_invalid");
                         $(".mt_hp_chk_msg").removeClass("ip_invalid2");
@@ -168,6 +195,10 @@ $phoneNumber = $_GET['phoneNumber'];
                 },
             });
         }
+    }
+
+    function resendVerificationCode() {
+        check_hp('send', 'find');
     }
 
     function startTimer(count, display) {
@@ -204,4 +235,9 @@ $phoneNumber = $_GET['phoneNumber'];
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
+
+// 추출된 한국어 문자열을 '한글' => '영어' 형식으로 출력
+echo "<pre>";
+print_r($translations);
+echo "</pre>";
 ?>

@@ -2,38 +2,37 @@
 
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $h_menu = '2';
-$_SUB_HEAD_TITLE = "초대코드입력";
+$_SUB_HEAD_TITLE = $translations['txt_enter_invitation_code'];
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 if ($_SESSION['_mt_idx'] == '') {
-    alert('로그인이 필요합니다.', './login', '');
+    alert($translations['txt_login_required'], './login', '');
 } else {
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert('다른기기에서 로그인 시도 하였습니다. 다시 로그인 부탁드립니다.', './logout');
+        alert($translations['txt_login_attempt_other_device'], './logout');
     }
 }
 ?>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3 text_dynamic">초대한 친구와 함께 해볼까요?</p>
-        <p class="fs_12 fc_gray_600 mt-3 text_dynamic line_h1_2">초대메세지로 이동하여 링크를 누르면,
-            초대코드가 자동으로 입력되요
+        <p class="tit_h1 wh_pre line_h1_3 text_dynamic"><?=$translations['txt_create_group_with_friends_invite']?></p>
+        <p class="fs_12 fc_gray_600 mt-3 text_dynamic line_h1_2"><?=$translations['txt_invitation_link_info']?>
         </p>
         <form action="" class="">
             <input type="hidden" id="mt_idx" name="mt_idx" value="<?= $_SESSION['_mt_idx'] ?>">
             <div class="mt-5">
                 <div class="ip_wr">
                     <div class="ip_tit">
-                        <h5 class="">초대코드</h5>
+                        <h5 class=""><?=$translations['txt_invitation_code']?></h5>
                     </div>
-                    <input type="text" class="form-control" placeholder="초대코드를 입력해주세요." id="sit_code" name="sit_code" maxlength="20" value="<?=$_GET['sit_code']?>">
+                    <input type="text" class="form-control" placeholder="<?=$translations['txt_enter_invitation_code']?>" id="sit_code" name="sit_code" maxlength="20" value="<?=$_GET['sit_code']?>">
                 </div>
             </div>
             <div class="b_botton">
                 <!-- 이메일 중복일 경우 data-toggle="modal" data-target="#dpl_email" 버튼태기에 넣어주세요 -->
-                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="group_invite_chk()"><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="group_invite_chk()"><?= $translations['txt_input_complete'] ?></button>
             </div>
         </form>
     </div>
@@ -51,7 +50,7 @@ if ($_SESSION['_mt_idx'] == '') {
         var mt_idx = $('#mt_idx').val();
 
         if (sit_code == '') {
-            jalert('초대코드를 입력해주세요');
+            jalert($translations['txt_enter_invitation_code']);
             return false;
         }
 
@@ -75,16 +74,16 @@ if ($_SESSION['_mt_idx'] == '') {
                 if (data == 'Y') {
                     document.location.href = './group';
                 } else if (data == 'D') {
-                    jalert('해당되는 그룹정보가 없습니다.');
+                    jalert('<?=$translations['txt_group_details_not_found']?>');
                     return false;
                 } else if (data == 'N') {
-                    jalert('이미 사용된 초대코드입니다.');
+                    jalert('<?=$translations['txt_invitation_code_already_used']?>');
                     return false;
                 } else if (data == 'J') {
-                    jalert('이미 다른 그룹에 속해있습니다.');
+                    jalert('<?=$translations['txt_already_in_group']?>');
                     return false;
                 } else if (data == 'C') {
-                    jalert('해당 그룹 인원이 다 찼습니다.');
+                    jalert('<?=$translations['txt_group_full']?>');
                     return false;
                 }
             },

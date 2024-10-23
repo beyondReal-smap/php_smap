@@ -5,7 +5,7 @@ $_GET['hd_num'] = '2';
 $h_menu = '2';
 include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 if (!$_GET['phoneNumber']) {
-    p_alert('잘못된 접근입니다.', './');
+    p_alert($translations['txt_invalid_access'], './');
 }
 ?>
 
@@ -50,7 +50,7 @@ if (!$_GET['phoneNumber']) {
 </style>
 <div class="container sub_pg">
     <div class="mt-4">
-        <p class="tit_h1 wh_pre line_h1_3">변경하실 비밀번호를 입력해주세요.</p>
+        <p class="tit_h1 wh_pre line_h1_3"><?= $translations['txt_enter_new_password'] ?></p>
         <form method="post" name="frm_form" id="frm_form" action="./join_update" target="hidden_ifrm" enctype="multipart/form-data">
             <input type="hidden" name="firstname" id="firstname" value="" />
             <input type="hidden" name="act" id="act" value="change_password" />
@@ -58,35 +58,34 @@ if (!$_GET['phoneNumber']) {
             <div class="mt-5">
                 <div class="ip_wr" id="mt_pass_text">
                     <div class="ip_tit">
-                        <h5>비밀번호</h5>
+                        <h5><?= $translations['txt_password'] ?></h5>
                     </div>
                     <div class="ip_password">
-                        <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="비밀번호를 입력해주세요." onkeyup="f_isValid()">
+                        <input type="password" name="mt_pass" id="mt_pass" class="form-control" maxlength="20" placeholder="<?= $translations['txt_enter_password'] ?>" onkeyup="f_isValid()">
                         <div class="btn btn_password_eye" id="password_show"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic">비밀번호는 최소 9글자 이상 공백 없이
-                        문자, 숫자, 특수문자 조합입니다.</div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 비밀번호가 규칙에 맞습니다. 계속 진행해주세요.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 입력하신 비밀번호가 서로 일치하지 않아요. 다시입력해주세요.</div>
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> 비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다. 다시 설정해주세요.</div>
+                    <div class="form_arm_text fs_12 fc_gray_600 mt-3 px-4 line_h1_2 text_dynamic"><?= $translations['txt_password_requirements'] ?></div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_valid'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_password_mismatch'] ?></div>
+                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_password_invalid'] ?></div>
                 </div>
                 <div class="ip_wr mt_25" id="mt_pass_confirm_text">
                     <div class="ip_tit">
-                        <h5>비밀번호 확인</h5>
+                        <h5><?= $translations['txt_confirm_password'] ?></h5>
                     </div>
                     <div class="ip_password">
-                        <input type="password" name="mt_pass_confirm" id="mt_pass_confirm" class="form-control" maxlength="20" placeholder="비밀번호를 한번 더 입력해주세요." onkeyup="f_isValid()">
+                        <input type="password" name="mt_pass_confirm" id="mt_pass_confirm" class="form-control" maxlength="20" placeholder="<?= $translations['txt_reenter_password'] ?>" onkeyup="f_isValid()">
                         <div class="btn btn_password_eye" id="password_show2"><img src="./img/ico_psd_off.png" alt="" style="max-width: 100%;"></div>
                         <div class="btn btn_password_eye d-none" id="password_none2"><img src="./img/ico_psd_on.png" alt="" style="max-width: 100%;"></div>
                     </div>
-                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> 확인되었습니다.</div>
-                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> 입력하신 비밀번호가 서로 일치하지 않아요. 다시입력해주세요.</div>
-                    <div class="form-text ip_invalid2"><i class="xi-error-o"></i> 비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다. 다시 설정해주세요.</div>
+                    <div class="form-text ip_valid"><i class="xi-check-circle-o"></i> <?= $translations['txt_password_confirmed'] ?></div>
+                    <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_password_mismatch'] ?></div>
+                    <!-- <div class="form-text ip_invalid2"><i class="xi-error-o"></i> <?= $translations['txt_password_invalid'] ?></div> -->
                 </div>
             </div>
             <div class="b_botton">
-                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " disabled><?= translate('입력했어요!', $userLang) ?></button>
+                <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block " disabled><?= $translations['txt_input_complete'] ?></button>
             </div>
         </form>
     </div>
