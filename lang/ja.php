@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'ログインを記憶する', // 자동 로그인 설정하기
+    'txt_group_delete' => 'グループ削除', // 그룹 삭제
+    'txt_group_edit' => 'グループ編集',
     'txt_select_camera_or_album' => 'カメラまたはアルバムを選択してください。', // 카메라 또는 앨범을 선택해 주세요.
     'txt_camera' => 'カメラ', // 카메라
     'txt_album' => 'アルバム', // 앨범
@@ -774,7 +777,7 @@ return [
     'txt_delete_all_confirm' => 'すべての通知を削除しますか？', // 전체 알림을 삭제하시겠어요?
     'txt_follow_route_check_location' => 'グループメンバーはログメニューで<br>自分の移動経路を確認できます。<br>グループを作成してこの機能を試してみてください！',
     // 그룹원들은 로그 메뉴에서 자신의 이동 경로를 확인할 수 있습니다. 그룹을 생성하고 이 기능을 사용해 보세요!
-    'txt_welcome' => 'ようこそ!', // 환영합니다!<br>로그인하고<br>SMAP의 모든 기능을 사용해 보세요.
+    'txt_welcome' => 'ようこそ!', // 환영합니다!<br>로그인하고<br>SMAPのモ든 기능を使用해 보세요.
     'txt_login' => 'ログイン', // 로그인
     'txt_complete_member_selection' => 'メンバー選択完了', // 멤버 선택완료
     'txt_enter_schedule_together' => 'スケジュールも一緒に入力しますか？', // 일정도 같이 입룍할래요!
@@ -804,5 +807,10 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => '繰り返しスケジュールです。削除方法を選択してください。',
+    'txt_delete_this_schedule_only' => 'このスケジュールのみ削除',
+    'txt_delete_all_repeat_schedules' => 'このスケジュールと今後の繰り返しスケジュールをすべて削除',
+    'txt_all_schedules_deleted_notification_alert' => '選択したスケジュールと今後の繰り返しスケジュールがすべて削除されました。',
+    'txt_previous_schedules_kept' => '※ 過去の繰り返しスケジュールは維持されます。',
 ];
 ?>

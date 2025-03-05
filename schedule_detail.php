@@ -3,12 +3,53 @@ include $_SERVER['DOCUMENT_ROOT']."/lib.inc.php";
 $b_menu = '';
 $h_menu = '2';
 $_SUB_HEAD_TITLE = "일정 입력";
+
+// URL에서 선택된 날짜 가져오기 (GET 파라미터 우선)
+$selected_date = '';
+if (isset($_GET['sdate']) && !empty($_GET['sdate'])) {
+    $selected_date = $_GET['sdate'];
+} else {
+    // URL에 날짜가 없는 경우에만 현재 날짜 사용
+    $selected_date = date('Y-m-d');
+}
+
+$selected_time = date('H:i');
+$date_obj = new DateTime($selected_date . ' ' . $selected_time);
+
+// 디버깅용 로그
+error_log("Schedule Detail - Received Date: " . $_GET['sdate']);
+error_log("Schedule Detail - Selected Date: " . $selected_date);
+
 include $_SERVER['DOCUMENT_ROOT']."/head.inc.php";
 
 if($_SESSION['_mt_idx'] == '') {
     alert('로그인이 필요합니다.', './login', '');
 }
+
+// 한글 요일 변환
+function getKoreanDayOfWeek($date) {
+    $dayOfWeek = date('w', strtotime($date));
+    $days = array('일', '월', '화', '수', '목', '금', '토');
+    return $days[$dayOfWeek];
+}
+
+$formatted_date = $date_obj->format('n월 j일') . ' (' . getKoreanDayOfWeek($selected_date) . ') ' . $selected_time;
+
+// 날짜 데이터를 JavaScript 변수로 전달
 ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 선택된 날짜를 JavaScript 변수로 저장
+    const selectedDate = '<?php echo $selected_date; ?>';
+    console.log("Selected Date in Detail:", selectedDate); // 디버깅용
+    
+    // 페이지 로드 시 날짜 필드에 선택된 날짜 설정
+    const dateInput = document.querySelector('input[data-target="#schedule_date_time"]');
+    if (dateInput) {
+        dateInput.value = '<?php echo $formatted_date; ?>';
+    }
+});
+</script>
 <div class="container sub_pg">
     <div class="mt_22">
         <form action="">
@@ -35,8 +76,11 @@ if($_SESSION['_mt_idx'] == '') {
                             <h5>시작</h5>
                         </div>
                         <div class="col">
-                            <input type="readolny" class="form-none cursor_pointer" placeholder="0000/00/00 00:00" value="9월 1일 (금) 12:00" data-toggle="modal" data-target="#schedule_date_time">
-                            <!-- value 안에 데이터 넣어 주세요 -->
+                            <input type="readolny" class="form-none cursor_pointer" 
+                                   placeholder="0000/00/00 00:00" 
+                                   value="<?php echo $formatted_date; ?>" 
+                                   data-toggle="modal" 
+                                   data-target="#schedule_date_time">
                         </div>
                     </div>
                 </div>

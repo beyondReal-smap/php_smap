@@ -71,11 +71,19 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     <div class="form-text ip_invalid"><i class="xi-error-o"></i> <?= $translations['txt_password_mismatch'] ?></div>
                 </div>
             </div>
-            <div class="mt-5">
+            <div class="mt-4">
                 <button type="submit" class="btn w-100 rounded btn-primary btn-lg btn-block"><?= $translations['txt_login'] ?></button>
+                <div class="d-flex flex-column mt-3">
+                    <div class="form-check text-end pe-4">
+                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                        <label class="form-check-label text_gray fs_14" for="remember_me" style="margin-left: 1rem"><?= $translations['txt_remember_me'] ?></label>
+                    </div>
+                    <div class="mt-5 text-center">
+                        <button type="button" class="btn fs_14 text_gray" onclick="javascript:location.href='./join_entry'"><?= $translations['txt_no_membership'] ?></button>
+                        <button type="button" class="btn fs_14 text_gray mt-0" onclick="find_password()"><?= $translations['txt_forgot_password'] ?></button>
+                    </div>
+                </div>
             </div>
-            <button type="button" class="btn fs_14 text_gray" onclick="javascript:location.href='./join_entry'"><?= $translations['txt_no_membership'] ?></button>
-            <button type="button" class="btn fs_14 text_gray" onclick="find_password()"><?= $translations['txt_forgot_password'] ?></button>
         </form>
         <script>
             //휴대전화번호 입력 확인
@@ -155,7 +163,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                             success: function(d, s) {
                                 console.log(d);
                                 if (d.result == "login") {
-                                    // 네이버웍스 api를 활용해서 비밀번호 재설정 메일을 보내야한다.
+                                    // 네이버웍스 api 활용해서 비밀번호 재설정 메일을 보내야한다.
                                     $.ajax({
                                         url: "./send_email.php",
                                         type: "POST",
@@ -165,7 +173,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                                         dataType: "json",
                                         success: function(response) {
                                             if (response == 201) {
-                                                jalert('<?= $translations['txt_email_sent_success'] ?>'); // 인증 이메일이 성공적으로 발송되었어요! 받은 편지함을 확인해 주세요.
+                                                jalert('<?= $translations['txt_email_sent_success'] ?>'); // 증 이메일이 성공적으로 발송되었어요! 받은 편지함을 확인해 주세요.
                                             } else {
                                                 jalert('<?= $translations['txt_email_sent_failure'] ?>'); // 이메일 발송에 문제가 발생했어요. 다시 시도해 주세요!
                                             }
@@ -208,7 +216,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 }
 
                 function restrictInput(element) {
-                    // 숫자와 하이픈만 허용
+                    // 숫자와 하이픈 만 허용
                     element.value = element.value.replace(/[^0-9-]/g, '');
                     // 중복된 하이픈 제거
                     element.value = element.value.replace(/-{2,}/g, '-');

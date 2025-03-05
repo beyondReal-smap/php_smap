@@ -75,6 +75,18 @@ $DB->where('sgdt_exit', 'N');
 $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
 $expt_cnt = $row['cnt'];
 
+// PHP 변수를 JSON으로 인코딩하여 JavaScript로 전달
+$translations_json = json_encode($translations);
+
+// PHP 부분 상단에 arr_grant 배열 정의 추가
+$arr_grant = array(
+    '1' => $translations['txt_owner'],
+    '2' => $translations['txt_leader'],
+    '3' => $translations['txt_member']
+);
+
+// translations_json과 함께 arr_grant도 JavaScript로 전달
+$arr_grant_json = json_encode($arr_grant);
 ?>
 <style>
     /* 로딩 화면 스타일 */
@@ -113,7 +125,6 @@ $expt_cnt = $row['cnt'];
     }
 
     @keyframes dot-bounce {
-
         0%,
         100% {
             transform: scale(1);
@@ -123,30 +134,146 @@ $expt_cnt = $row['cnt'];
             transform: scale(1.5);
         }
     }
+
+    .grp_tit {
+        background-color: rgba(0, 70, 254, 0.05) !important;
+    }
+
+    /* 달력 스타일 */
+    .sch_cld_wrap {
+        padding: 0.5rem 0 0 0;
+        transition: height 0.3s ease;
+    }
+
+    .sch_wrap {
+        padding-top: 0.5rem !important; /* 상단 패딩 줄임 */
+    }
+
+    .fs_12.fw_700.text-primary.mb-3.pt_20 {
+        padding-top: 16rem !important; /* pt_20을 0.5rem으로 줄임 */
+    }
+
+    .cld_head_wr {
+        padding: 0 1rem;
+    }
+
+    .cld_body {
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .down_wrap {
+        padding: 0.2rem 0 1rem 0 !important;
+    }
+
+    .down_wrap img {
+        width: 12px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .add_cal_tit {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem; /* 간격을 줄이기 위해 마진을 줄임 */
+    }
+
+    .add_cal_tit .btn {
+        padding: 0;
+    }
+
+    .add_cal_tit .sel_month {
+        justify-content: center;
+    }
+
+    .cld_head ul {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 1rem;
+        margin: 0;
+        list-style: none;
+    }
+
+    .cld_head ul li {
+        flex: 1;
+        text-align: center;
+        width: calc(100% / 7);
+        padding: 0;
+    }
+
+    .cld_date_wrap {
+        padding: 0 1rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transition: height 0.3s ease;
+    }
+
+    .cld_date_wrap .cld_date ul {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .cld_date_wrap .cld_date ul li {
+        width: calc(100% / 7);
+        text-align: center;
+        padding: 0;
+    }
+
+    /* 캘린더 전환 애니메이션 스타일 수정 */
+    .sch_wrap {
+        transition: transform 0.3s ease;
+        position: relative;
+    }
+    
+    .calendar-month-view {
+        height: auto;
+        max-height: 400px; /* 월간 뷰의 최대 높이 */
+    }
+    
+    .calendar-week-view {
+        height: auto;
+        max-height: 150px; /* 주간 뷰의 최대 높이 */
+    }
 </style>
 <link href="<?= CDN_HTTP ?>/lib/dragula/dragula.min.css" rel="stylesheet" />
 <script type="text/javascript" src="<?= CDN_HTTP ?>/lib/dragula/dragula.min.js"></script>
 <!-- <script type="text/JavaScript" src="https://developers.kakao.com/sdk/js/kakao.min.js"></script> -->
 <input type="hidden" id="share_url" value="">
 <script>
+    // PHP에서 전달된 translations 변수를 JavaScript 변수로 할당
+    const translations = <?= $translations_json ?>;
+    const arr_grant = <?= $arr_grant_json ?>;
+
     // Kakao.init("<?= KAKAO_JAVASCRIPT_KEY ?>");
+
+    // 스피너 색상 생성 함수
+    function generateSpinnerColor() {
+        const colorSets = [
+            '#0046FE', // 기본 파란색
+            '#4169E1', // 로얄 블루
+            '#1E90FF', // 도지블루
+            '#4682B4', // 스틸블루
+            '#6495ED'  // 콘플라워블루
+        ];
+        return colorSets[Math.floor(Math.random() * colorSets.length)];
+    }
 
     // 로딩 화면을 보이게 하는 함수
     function showMapLoading(center = true) {
         const loadingElement = document.getElementById('map-loading');
-        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
-        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
+        const spinnerDots = document.querySelectorAll('.dot');
 
         // 랜덤 색상 적용
         const randomColor = generateSpinnerColor();
-
-        // 두 스피너의 색상 변경
         spinnerDots.forEach(dot => {
             dot.style.backgroundColor = randomColor;
         });
 
-        // loadingElement.style.transform = 'translate(0, -10%)';
-        loadingElement.style.display = 'flex'; // 로딩바 표시
+        loadingElement.style.display = 'flex';
     }
 
     // 로딩 화면을 숨기는 함수
@@ -259,18 +386,580 @@ $expt_cnt = $row['cnt'];
     function isiOSDevice() {
         return /iPhone|iPad|iPod/i.test(navigator.userAgent) && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.smapIos;
     }
+
+    // 전역 변수로 현재 선택된 날짜를 저장
+    let currentSelectedDate = '';
+
+    function loadScheduleData(sdate) {
+        try {
+            console.log('loadScheduleData called with date:', sdate);
+            
+            // localStorage에 선택된 날짜 저장
+            localStorage.setItem('selectedDate', sdate);
+            
+            // URL 업데이트
+            if (typeof(history.pushState) != "undefined") {
+                var state = { date: sdate };
+                var url = './schedule?sdate=' + sdate;
+                history.pushState(state, '', url);
+            }
+
+            // 날짜 관련 값 업데이트
+            $('#event_start_date').val(sdate);
+            currentSelectedDate = sdate;
+            
+            // 선택된 날짜 하이라이트 처리
+            $('.c_id').removeClass('active selected');
+            $('#calendar_' + sdate).addClass('active selected');
+            
+            // 스케줄 데이터 로드
+            var form_data = new FormData();
+            form_data.append("act", "list");
+            form_data.append("event_start_date", sdate);
+            
+            $.ajax({
+                url: "./schedule_update",
+                type: "POST",
+                data: form_data,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                beforeSend: function() {
+                    showMapLoading();
+                    // HTML 초기화
+                    $('#mbr_wr').empty();
+                    $('.fs_12.fw_700.text-primary.mb-3.pt_20').text("");
+                },
+                success: function(response) {
+                    console.log('Schedule data received:', response);
+                    
+                    if (response) {
+                        updateScheduleHTML(response, sdate);
+                    } else {
+                        console.log('No data received');
+                        $('#mbr_wr').empty();
+                    }
+                    
+                    hideMapLoading();
+                    
+                    // 지도 일정 업데이트
+                    schedule_map_list(sdate);
+
+                    // 선택된 날짜 다시 한번 하이라이트 처리 (캘린더가 다시 그려진 경우를 대비)
+                    $('.c_id').removeClass('active selected');
+                    $('#calendar_' + sdate).addClass('active selected');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading schedule data:', {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                    hideMapLoading();
+                    $('#mbr_wr').empty();
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error in loadScheduleData:', error);
+            hideMapLoading();
+            $('#mbr_wr').empty();
+        }
+    }
+
+    // HTML 업데이트 함수
+    function updateScheduleHTML(data, sdate) {
+        // 날짜 표시 업데이트
+        if (data.event_start_date_t) {
+            $('.fs_12.fw_700.text-primary.mb-3.pt_20').text(data.event_start_date_t + data.txt_schedule_of);
+        }
+
+        var html = '';
+        
+        // 개인 일정 처리
+        if (data.mt_file1) {
+            html += '<div class="grp_list user_grplist">' +
+                '<ul class="mbr_wr_ul">' +
+                '<li class="schdl_list">' +
+                '<ul>' +
+                '<li id="mbr_hd01_1" class="mbr_hd">' +
+                '<div class="d-flex justify-content-between">' +
+                '<div class="d-flex align-items-center flex-auto">' +
+                '<a href="#" class="d-flex align-items-center flex-fill">' +
+                '<div class="prd_img flex-shrink-0 mr_12">' +
+                '<div class="rect_square rounded_14">' +
+                '<img src="' + data.mt_file1 + '" alt="이미지" onerror="this.src=\'' + data.ct_no_profile_img_url + '\'" />' +
+                '</div>' +
+                '</div>' +
+                '<p class="fs_14 fw_500 text_dynamic mr-2">' + (data.mt_nickname || data.mt_name) + '</p>' +
+                '</a>' +
+                '</div>' +
+                '<div class="d-flex align-items-center flex-shrink-0">' +
+                '<a href="./schedule_form?sdate=' + sdate + '&mt_idx=' + data.mt_idx + '" class="fs_13 fc_navy"><i class="xi-plus-min"></i>' + translations['txt_add_schedule'] + '</a>' +
+                '<button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr01_1" aria-expanded="false" aria-controls="mbr01" style="visibility:' + (data.list_sst_a && data.list_sst_a.length > 0 ? 'visible' : 'hidden') + '">' +
+                '<img class="open_ic" src="' + data.CDN_HTTP + '/img/ic_open.png" style="width:1.0rem;">' +
+                '</button>' +
+                '</div>' +
+                '</div>';
+
+            // 일정이 있을 때만 collapse 구조 추가
+            if (data.list_sst_a && data.list_sst_a.length > 0) {
+                html += '<div id="mbr01_1" class="collapse" aria-labelledby="mbr01_1" data-parent="#mbr_wr">' +
+                    '<ul class="pt-4 pb-3">';
+
+                data.list_sst_a.forEach(function(schedule, index) {
+                    var point_status = getScheduleStatus(schedule);
+                    html += generateScheduleListItem(schedule, index + 1, point_status);
+                });
+
+                html += '</ul></div>';
+            }
+
+            html += '</li></ul></li></ul></div>';
+        }
+
+        // 그룹 일정 처리
+        if (data.group_data && Array.isArray(data.group_data)) {
+            data.group_data.forEach(function(group) {
+                if (group.group && group.group.sgt_title) {
+                    html += generateGroupSchedule(group, sdate);
+                }
+            });
+        }
+
+        // HTML 업데이트
+        $('#mbr_wr').html(html);
+        console.log('HTML updated with length:', html.length);
+    }
+
+    function getScheduleStatus(schedule) {
+        var current_date = new Date();
+        if (schedule.sst_all_day == 'Y') {
+            return 'point_ing';
+        } else if (current_date >= new Date(schedule.sst_edate)) {
+            return 'point_done';
+        } else if (current_date >= new Date(schedule.sst_sdate) && current_date <= new Date(schedule.sst_edate)) {
+            return 'point_ing';
+        }
+        return 'point_gonna';
+    }
+
+    function generateScheduleListItem(schedule, index, point_status) {
+        var grantNumbers = schedule.sst_update_chk.split(',');
+        var grantStrings = grantNumbers.map(function(number) {
+            return arr_grant[number] || translations['txt_member']; // 기본값으로 'member' 사용
+        });
+        var grant = grantNumbers.includes('1') && grantNumbers.includes('2') && grantNumbers.includes('3') ? 
+            translations['txt_all'] : grantStrings.join(', ');
+
+        return '<li class="py-2">' +
+            '<a href="./schedule_form?sst_idx=' + schedule.sst_idx + '" class="d-flex align-items-center justify-content-between">' +
+            '<div class="d-flex align-items-center">' +
+            '<div class="task ' + point_status + '">' +
+            '<span class="point_inner">' +
+            '<span class="point_txt">' + index + '</span>' +
+            '</span>' +
+            '</div>' +
+            '<div class="mx-3">' +
+            '<p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text">' + schedule.sst_title + '</p>' +
+            '<p class="fs_10 fw_300 text_gray line_h1_3"><span>' + translations['txt_edit_rights'] + ' : </span> ' + grant + '</p>' +
+            '</div>' +
+            '</div>' +
+            '<p><i class="xi-angle-right-min text_light_gray fs_13"></i></p>' +
+            '</a>' +
+            '</li>';
+    }
+
+    function generateGroupSchedule(group, sdate) {
+        var html = '<div class="grp_list">' +
+            '<div class="grp_tit">' +
+            '<p class="fs_17 fw_700 line_h1_3 line1_text text_dynamic">' + group.group.sgt_title + '</p>' +
+            '</div>' +
+            '<ul class="mbr_wr_ul">';
+
+        if (group.members && group.members.length > 0) {
+            group.members.forEach(function(member, key) {
+                html += generateMemberSchedule(member, group.schedules, sdate);
+            });
+        } else {
+            html += '<li class="schdl_list">' +
+                '<button type="button" class="btn w-100 h-auto fs_13 fc_navy schdl_btn" onclick="share_link_modal(\'' + group.group.sgt_idx + '\')"><i class="xi-plus-min mr-2"></i>' + translations['txt_invite_group_members'] + '</button>' +
+                '</li>';
+        }
+
+        html += '</ul></div>';
+        return html;
+    }
+
+    function generateMemberSchedule(member, schedules, sdate) {
+        var memberSchedules = schedules ? schedules.filter(function(schedule) {
+            return schedule.sgdt_idx === member.sgdt_idx;
+        }) : [];
+
+        var html = '<li class="schdl_list">' +
+            '<ul>' +
+            '<li id="mbr_hd02_' + member.sgdt_idx + '" class="mbr_hd">' +
+            '<div class="d-flex justify-content-between">' +
+            '<div class="d-flex align-items-center flex-auto">' +
+            '<a href="#" class="d-flex align-items-center flex-fill">' +
+            '<div class="prd_img flex-shrink-0 mr_12">' +
+            '<div class="rect_square rounded_14">' +
+            '<img src="/img/uploads/' + member.mt_file1 + '" onerror="this.src=\'' + "<?= $ct_no_profile_img_url ?>" + '\'" alt="이미지" />' +
+            '</div>' +
+            '</div>' +
+            '<p class="fs_14 fw_500 text_dynamic mr-2">' + (member.mt_nickname ? member.mt_nickname : member.mt_name) + '</p>' +
+            '</a>' +
+            '</div>' +
+            '<div class="d-flex align-items-center flex-shrink-0">';
+
+        // 소유자나 리더인 경우에만 일정 추가 버튼 표시
+        if (member.sgdt_owner_leader_chk_t !== translations['txt_owner']) {
+            html += '<a href="./schedule_form?sdate=' + sdate + '&sgdt_idx=' + member.sgdt_idx + '" class="fs_13 fc_navy"><i class="xi-plus-min"></i>' + translations['txt_add_schedule'] + '</a>';
+        }
+
+        if (memberSchedules.length > 0) {
+            html += '<button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_' + member.sgdt_idx + '" aria-expanded="false" aria-controls="mbr02_' + member.sgdt_idx + '"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>';
+        } else {
+            html += '<button type="button" style="visibility:hidden" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_' + member.sgdt_idx + '" aria-expanded="false" aria-controls="mbr02_' + member.sgdt_idx + '"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>';
+        }
+
+        html += '</div></div>';
+
+        if (memberSchedules.length > 0) {
+            html += '<div id="mbr02_' + member.sgdt_idx + '" class="collapse" aria-labelledby="mbr02_' + member.sgdt_idx + '" data-parent="#mbr_wr">' +
+                '<ul class="pt-4 pb-3">';
+
+            memberSchedules.forEach(function(schedule, count) {
+                var point_status = getScheduleStatus(schedule);
+                html += generateScheduleListItem(schedule, count + 1, point_status);
+            });
+
+            html += '</ul></div>';
+        }
+
+        html += '</li></ul></li>';
+        return html;
+    }
+
+    // 페이지 로드 시 초기화 함수 수정
+    $(document).ready(function() {
+        console.log('Document ready');
+        
+        // 전역 이벤트 리스너 - 이벤트 위임 개선
+        $(document).on('click touchstart', '.cld_date_wrap .c_id', function(e) {
+            if (e.type === 'touchstart') {
+                // 터치 이벤트 발생 시 클릭 이벤트 방지
+                e.preventDefault();
+                $(this).off('click');
+            }
+            
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            const $this = $(this);
+            // 중복 클릭 방지
+            if ($this.data('processing')) {
+                return;
+            }
+            $this.data('processing', true);
+            
+            const date = $this.attr('id').replace('calendar_', '');
+            console.log('Calendar event triggered:', e.type, date);
+            
+            if (!date) {
+                console.log('No date found in clicked element');
+                $this.data('processing', false);
+                return;
+            }
+            
+            try {
+                const selectedDate = new Date(date);
+                const currentTitle = $('#calendar_date_title').text();
+                const selectedYearMonth = selectedDate.getFullYear() + "." + String(selectedDate.getMonth() + 1).padStart(2, '0');
+                
+                // 현재 타이틀과 선택된 날짜의 년월이 다른 경우에만 업데이트
+                if (currentTitle !== selectedYearMonth) {
+                    $('#calendar_date_title').text(selectedYearMonth);
+                }
+                
+                // 상태 업데이트를 즉시 처리
+                $('#event_start_date').val(date);
+                currentSelectedDate = date;
+                localStorage.setItem('selectedDate', date);
+                
+                // 선택된 날짜 하이라이트 처리 - 즉시 실행
+                $('.c_id').removeClass('active selected');
+                $this.addClass('active selected');
+                
+                // 데이터 로드 전에 시각적 피드백
+                showMapLoading();
+                
+                // 데이터 로드 - 약간의 지연을 두어 UI 업데이트가 완료되도록 함
+                requestAnimationFrame(() => {
+                    loadScheduleData(date);
+                    $this.data('processing', false);
+                });
+                
+            } catch (error) {
+                console.error('Error processing calendar event:', error);
+                $this.data('processing', false);
+            }
+        });
+
+        // 캘린더 이벤트 재바인딩 함수 개선
+        function rebindCalendarEvents() {
+            // 기존 이벤트 제거
+            $('.c_id').off('click touchstart');
+            
+            // 새로운 이벤트 바인딩은 document 레벨에서 이미 처리되므로 추가 바인딩 불필요
+            console.log('Calendar events rebound');
+            
+            // 현재 선택된 날짜 하이라이트 복원
+            if (currentSelectedDate) {
+                $('.c_id').removeClass('active selected');
+                $('#calendar_' + currentSelectedDate).addClass('active selected');
+            }
+        }
+
+        // f_calendar_init 함수 개선
+        const originalCalendarInit = window.f_calendar_init;
+        window.f_calendar_init = function(type, callback) {
+            console.log('Calendar init:', type);
+            originalCalendarInit(type, function() {
+                requestAnimationFrame(() => {
+                    rebindCalendarEvents();
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                });
+            });
+        };
+
+        // swiper 버튼 이벤트 처리
+        $('.swiper-button-prev').on('click', function() {
+            f_calendar_init('prev', function() {
+                updateCalendarTitle();
+                rebindCalendarEvents();
+            });
+        });
+        
+        $('.swiper-button-next').on('click', function() {
+            f_calendar_init('next', function() {
+                updateCalendarTitle();
+                rebindCalendarEvents();
+            });
+        });
+        
+        var urlParams = new URLSearchParams(window.location.search);
+        var today = '<?= date("Y-m-d") ?>';
+        
+        // localStorage에서 저장된 날짜를 가져오거나, URL 파라미터나 오늘 날짜를 사용
+        var storedDate = localStorage.getItem('selectedDate');
+        var initialDate = urlParams.get('sdate') || storedDate || today;
+        
+        console.log('Initial date:', initialDate);
+        
+        currentSelectedDate = initialDate;
+        $('#event_start_date').val(initialDate);
+        
+        // 초기 데이터 로드
+        showMapLoading();
+        loadScheduleData(initialDate);
+        f_get_box_list();
+        
+        // 캘린더 초기화 후 선택된 날짜 표시 - 타이밍 개선
+        f_calendar_init('today', function() {
+            // 캘린더가 완전히 로드된 후 실행되도록 타이머 추가
+            setTimeout(function() {
+                // 캘린더 초기화 후 선택된 날짜 하이라이트
+                $('.c_id').removeClass('active selected');
+                $('#calendar_' + initialDate).addClass('active selected');
+                
+                // 해당 날짜가 보이도록 스크롤 조정 - 지연 시간 증가 및 반복 체크
+                var maxAttempts = 5;
+                var currentAttempt = 0;
+                
+                function attemptScroll() {
+                    var selectedDate = $('#calendar_' + initialDate);
+                    var container = $('.cld_date_wrap');
+                    
+                    if (selectedDate.length && container.length) {
+                        var scrollTo = selectedDate.position().top + container.scrollTop() - (container.height() / 2);
+                        container.animate({ scrollTop: scrollTo }, 300);
+                    } else if (currentAttempt < maxAttempts) {
+                        currentAttempt++;
+                        setTimeout(attemptScroll, 100);
+                    }
+                }
+                
+                attemptScroll();
+            }, 300);
+        });
+
+        // URL에 sdate가 있으면 localStorage 업데이트
+        if (urlParams.get('sdate')) {
+            localStorage.setItem('selectedDate', urlParams.get('sdate'));
+        }
+
+        // 캘린더 뷰 상태를 저장하는 변수 추가
+        let isWeekView = true;
+        
+        // 화살표 클릭 이벤트 처리
+        $('.down_wrap').on('click', function() {
+            const arrow = $(this).find('img');
+            const calendarBox = $('#schedule_calandar_box');
+            const scheduleWrap = $('.sch_wrap');
+            isWeekView = !isWeekView;
+            
+            // 현재 선택된 날짜 가져오기
+            const currentDate = $('#event_start_date').val() || currentSelectedDate;
+            
+            if (isWeekView) {
+                arrow.css('transform', 'rotate(0deg)');
+                calendarBox.css({
+                    'transition': 'height 0.3s ease',
+                }).removeClass('calendar-month-view').addClass('calendar-week-view');
+                scheduleWrap.css({
+                    'transform': 'translateY(0)',
+                    'transition': 'transform 0.3s ease'
+                });
+            } else {
+                arrow.css('transform', 'rotate(180deg)');
+                calendarBox.css({
+                    'transition': 'height 0.3s ease',
+                }).removeClass('calendar-week-view').addClass('calendar-month-view');
+                
+                const monthViewHeight = calendarBox.height();
+                const weekViewHeight = 150;
+                const additionalOffset = 300;
+                const moveDistance = monthViewHeight - weekViewHeight + additionalOffset;
+                
+                scheduleWrap.css({
+                    'transform': `translateY(${moveDistance}px)`,
+                    'transition': 'transform 0.3s ease'
+                });
+            }
+            
+            $('#week_calendar').val(isWeekView ? 'Y' : 'N');
+            
+            // 현재 선택된 날짜로 캘린더 초기화
+            f_calendar_init('date', function() {
+                setTimeout(function() {
+                    $('.c_id').removeClass('active selected');
+                    $('#calendar_' + currentDate).addClass('active selected');
+                    
+                    // 해당 날짜가 보이도록 스크롤 조정
+                    const selectedDate = $('#calendar_' + currentDate);
+                    const container = $('.cld_date_wrap');
+                    
+                    if (selectedDate.length && container.length) {
+                        const scrollTo = selectedDate.position().top + container.scrollTop() - (container.height() / 2);
+                        container.animate({ scrollTop: scrollTo }, 300);
+                    }
+                }, 300);
+            });
+            
+            // 이벤트 재바인딩
+            rebindCalendarEvents();
+        });
+        
+        // 초기 상태 설정
+        $('#schedule_calandar_box').addClass('calendar-week-view');
+    });
+
+    function schedule_map_list(date) {
+        showMapLoading();
+        $.ajax({
+            type: "POST",
+            url: "./schedule_update.php",
+            data: {
+                act: "map_schedule_list",
+                event_start_date: date
+            },
+            success: function(response) {
+                $("#map_schedule_list").html(response);
+                hideMapLoading();
+            },
+            error: function() {
+                hideMapLoading();
+                console.error('지도 일정 로드 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+    function share_link_modal(i) {
+        var form_data = new FormData();
+        form_data.append("act", "link_modal");
+        form_data.append("sgt_idx", i);
+
+        $.ajax({
+            url: "./group_update",
+            enctype: "multipart/form-data",
+            data: form_data,
+            type: "POST",
+            async: true,
+            contentType: false,
+            processData: false,
+            cache: true,
+            timeout: 5000,
+            success: function(data) {
+                if (data == 'N') {
+                    jalert('초대드를 사용하였습니다.');
+                } else {
+                    $('#share_url').val(data);
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            },
+        });
+        $('#link_modal').modal('show');
+    }
+
+    // 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.date) {
+            loadScheduleData(event.state.date);
+        } else {
+            var today = '<?= date("Y-m-d") ?>';
+            loadScheduleData(today);
+        }
+    });
+
+    // 캘린더 타이틀 업데이트 함수 추가
+    function updateCalendarTitle() {
+        if ($('#week_calendar').val() === 'Y') {
+            // 주간 뷰일 때는 첫 번째 날짜 기준으로 타이틀 업데이트
+            const firstDayElement = $('.cld_date ul li:not(.disabled)').first();
+            if (firstDayElement.length) {
+                const firstDayId = firstDayElement.find('.c_id').attr('id');
+                if (firstDayId) {
+                    const date = firstDayId.replace('calendar_', '');
+                    const selectedDate = new Date(date);
+                    const selectedYearMonth = selectedDate.getFullYear() + "." + String(selectedDate.getMonth() + 1).padStart(2, '0');
+                    $('#calendar_date_title').text(selectedYearMonth);
+                }
+            }
+        } else {
+            // 월간 뷰일 때는 현재 선택된 날짜 기준으로 타이틀 업데이트
+            const currentDate = $('#event_start_date').val() || currentSelectedDate;
+            const selectedDate = new Date(currentDate);
+            const selectedYearMonth = selectedDate.getFullYear() + "." + String(selectedDate.getMonth() + 1).padStart(2, '0');
+            $('#calendar_date_title').text(selectedYearMonth);
+        }
+    }
 </script>
 <div class="container sub_pg bg_main px-0">
     <div class="sch_wrap_top">
         <div class="fixed_top sch_cld_wrap bg-white pt-3 border-bottom">
             <div class="cld_head_wr">
                 <div class="add_cal_tit">
-                    <button type="button" class="btn h-auto" onclick="f_calendar_init('prev');"><i class="xi-angle-left-min"></i></button>
+                    <button type="button" class="btn h-auto swiper-button-prev"><i class="xi-angle-left-min"></i></button>
                     <div class="sel_month d-inline-flex flex-grow-1 text-centerf">
-                        <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= $translations['txt_month'] ?>" style="width:1.6rem; "></a>
+                        <a href="javascript:;" onclick="f_calendar_init('today');"><img class="mr-2" src="<?= CDN_HTTP ?>/img/sel_month.png" alt="<?= $translations['txt_month_selection_icon'] ?>" style="width:1.6rem; "></a>
                         <p class="fs_15 fw_600" id="calendar_date_title"><?= $calendar_date_title ?></p>
                     </div>
-                    <button type="button" class="btn h-auto" onclick="f_calendar_init('next');"><i class="xi-angle-right-min"></i></button>
+                    <button type="button" class="btn h-auto swiper-button-next"><i class="xi-angle-right-min"></i></button>
                 </div>
                 <div class="cld_head fs_12">
                     <ul>
@@ -286,7 +975,7 @@ $expt_cnt = $row['cnt'];
             </div>
             <div id="schedule_calandar_box" class="cld_date_wrap"></div>
             <div class="down_wrap text-center pt_08 pb-3">
-                <img src="<?= CDN_HTTP ?>/img/btn_bl_arrow.png" class="top_down mx-auto" width="12px" alt="<?= $translations['txt_top_down'] ?>" />
+                <img src="<?= CDN_HTTP ?>/img/btn_bl_arrow.png" class="top_down mx-auto" width="12px" alt="<?= $translations['txt_top_down'] ?>" style="transform: rotate(0deg); transition: transform 0.3s ease;" />
             </div>
         </div>
         <form name="frm_list" id="frm_list">
@@ -312,377 +1001,6 @@ $expt_cnt = $row['cnt'];
             </div>
             <p class="fs_12 fw_700 text-primary mb-3 pt_20"></p>
             <div id="mbr_wr"></div>
-
-            <script>
-                $(document).ready(function() {
-                    // 초기 로드
-                    showMapLoading();
-                    loadScheduleData($('input[name="event_start_date"]').val());
-                    f_get_box_list();
-                    f_calendar_init('today');
-                });
-
-                // AJAX 요청 함수
-                function loadScheduleData() {
-                    // HTML 초기화 로직 추가
-                    $('#mbr_wr').empty(); // #mbr_wr 내용 비우기
-                    $('.fs_12.fw_700.text-primary.mb-3.pt_20').text(""); // 날짜 표시 초기화
-                    var form_data = new FormData();
-                    form_data.append("act", "list");
-                    form_data.append("event_start_date", $("#event_start_date").val());
-
-                    $.ajax({
-                        url: "./schedule_update",
-                        enctype: "multipart/form-data",
-                        data: form_data,
-                        type: "POST",
-                        async: true,
-                        contentType: false,
-                        processData: false,
-                        // cache: true,
-                        timeout: 10000,
-                        dataType: 'json',
-                        success: function(data) {
-                            if (data) {
-                                updateScheduleHTML(data);
-                            } else {
-                                console.log('No data received');
-                            }
-                        },
-                    });
-                }
-
-                function generateSpinnerColor() {
-                    const colorSets = [
-                        '#FF0000', // 빨간색
-                        '#FFA500', // 주황색
-                        '#0000FF', // 파란색
-                        '#000080', // 남색
-                        '#800080', // 보라색
-                    ];
-
-                    const randomIndex = Math.floor(Math.random() * colorSets.length);
-                    return colorSets[randomIndex];
-                }
-
-                // HTML 업데이트 함수
-                function updateScheduleHTML(data) {
-                    var event_start_date = data.event_start_date_t;
-                    // 날짜 표시
-                    $('.fs_12.fw_700.text-primary.mb-3.pt_20').text(event_start_date + "<?= $translations['txt_schedule_of'] ?>");
-                    var userScheduleHTML = updateUserSchedule(data);
-                    var groupSchedulesHTML = updateGroupSchedules(data);
-
-                    $('#mbr_wr').html(userScheduleHTML + groupSchedulesHTML);
-                    hideMapLoading();
-                }
-
-                // 사용자 일정 HTML 생성 함수
-                function updateUserSchedule(schedules) {
-                    var mt_file1 = schedules.mt_file1;
-                    var mt_nickname = schedules.mt_nickname ? schedules.mt_nickname : schedules.mt_name;
-                    var mt_idx = schedules.mt_idx;
-                    var CDN_HTTP = schedules.CDN_HTTP;
-                    var event_start_date = schedules.event_start_date;
-                    var list_sst_a = schedules.list_sst_a.filter(function(schedule) {
-                        return schedule.sgdt_idx == schedules.sgdt_idx;
-                    });
-
-                    var html = '<div class="grp_list user_grplist">' +
-                        '<ul class="mbr_wr_ul">' +
-                        '<li class="schdl_list">' +
-                        '<ul>' +
-                        '<li id="mbr_hd01_1" class="mbr_hd">' +
-                        '<div class="d-flex justify-content-between">' +
-                        '<div class="d-flex align-items-center flex-auto">' +
-                        '<a href="#" class="d-flex align-items-center flex-fill">' +
-                        '<div class="prd_img flex-shrink-0 mr_12">' +
-                        '<div class="rect_square rounded_14">' +
-                        '<img src="' + mt_file1 + '" alt="이미지" onerror="this.src=\'' + "<?= $ct_no_profile_img_url ?>" + '\'" />' +
-                        '</div>' +
-                        '</div>' +
-                        '<p class="fs_14 fw_500 text_dynamic mr-2">' + mt_nickname + '</p>' +
-                        '</a>' +
-                        '</div>' +
-                        '<div class="d-flex align-items-center flex-shrink-0">' +
-                        '<a href="./schedule_form?sdate=' + $('#event_start_date').val() + '&mt_idx=' + mt_idx + '" class="fs_13 fc_navy"><i class="xi-plus-min"></i>' + "<?= $translations['txt_add_schedule'] ?>" + '</a>';
-
-                    if (list_sst_a.length > 0) {
-                        html += '<button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr01_1" aria-expanded="false" aria-controls="mbr01"><img class="open_ic" src="' + CDN_HTTP + '/img/ic_open.png" style="width:1.0rem;"></button>';
-                    } else {
-                        html += '<button type="button" style="visibility:hidden" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr01_1" aria-expanded="false" aria-controls="mbr01"><img class="open_ic" src="' + CDN_HTTP + '/img/ic_open.png" style="width:1.0rem;"></button>';
-                    }
-
-                    html += '</div></div>';
-
-                    if (list_sst_a.length > 0) {
-                        html += '<div id="mbr01_1" class="collapse" aria-labelledby="mbr01_1" aria-labelledby="mbr_hd01_1" data-parent="#mbr_wr">' +
-                            '<ul class="pt-4 pb-3">';
-
-                        list_sst_a.forEach(function(schedule, index) {
-                            var current_date = new Date();
-                            var point_status = '';
-                            if (schedule.sst_all_day == 'Y') {
-                                point_status = 'point_ing';
-                            } else if (current_date >= new Date(schedule.sst_edate)) {
-                                point_status = 'point_done';
-                            } else if (current_date >= new Date(schedule.sst_sdate) && current_date <= new Date(schedule.sst_edate)) {
-                                point_status = 'point_ing';
-                            } else {
-                                point_status = 'point_gonna';
-                            }
-
-                            var arr_grant = <?= json_encode($arr_grant) ?>;
-                            var grantNumbers = schedule.sst_update_chk.split(',');
-                            var grantStrings = grantNumbers.map(function(number) {
-                                return arr_grant[number];
-                            });
-                            var grant = grantNumbers.includes('1') && grantNumbers.includes('2') && grantNumbers.includes('3') ? '전체' : grantStrings.join(', ');
-
-                            html += '<li class="py-2">' +
-                                '<a href="./schedule_form?sst_idx=' + schedule.sst_idx + '" class="d-flex align-items-center justify-content-between">' +
-                                '<div class="d-flex align-items-center">' +
-                                '<div class="task ' + point_status + '">' +
-                                '<span class="point_inner">' +
-                                '<span class="point_txt">' + (index + 1) + '</span>' +
-                                '</span>' +
-                                '</div>' +
-                                '<div class="mx-3">' +
-                                '<p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text">' + schedule.sst_title + '</p>' +
-                                '<p class="fs_10 fw_300 text_gray line_h1_3"><span>' + "<?= $translations['txt_edit_rights'] ?>" + ' : </span> ' + grant + '</p>' +
-                                '</div>' +
-                                '</div>' +
-                                '<p><i class="xi-angle-right-min text_light_gray fs_13"></i></p>' +
-                                '</a>' +
-                                '</li>';
-                        });
-
-                        html += '</ul></div>';
-                    }
-
-                    html += '</li></ul></li></ul></div>';
-
-                    // $('.user_grplist').replaceWith(html);
-                    return html;
-                }
-
-                // 그룹 일정 HTML 생성 함수
-                function updateGroupSchedules(data) {
-                    var html = '';
-
-                    if (data.user_groups.owner_count > 0 || data.user_groups.leader_count > 0) {
-                        data.group_list.forEach(function(group) {
-                            var member_cnt_t = data.list_sgdt.length;
-
-                            html += '<div class="grp_list">' +
-                                '<div class="grp_tit">' +
-                                '<p class="fs_17 fw_700 line_h1_3 line1_text text_dynamic">' + group.sgt_title + '</p>' +
-                                '</div>' +
-                                '<ul class="mbr_wr_ul">';
-
-                            if (member_cnt_t <= 1) {
-                                html += '<li class="schdl_list">' +
-                                    '<button type="button" class="btn w-100 h-auto fs_13 fc_navy schdl_btn" onclick="share_link_modal(\'' + group.sgt_idx + '\')"><i class="xi-plus-min mr-2"></i>' + translations['txt_invite_group_members'] + '</button>' +
-                                    '</li>';
-                            } else {
-                                if (data.list_sgdt.data) {
-                                    data.list_sgdt.data.forEach(function(member, key) {
-                                        if (member.sgdt_owner_leader_chk_t != "<?= $translations['txt_owner'] ?>") {
-                                            var cnt = data.list_sgdt.length;
-                                            var list_sst_a = data.list_sst_a.filter(function(schedule) {
-                                                return schedule.sgdt_idx != data.sgdt_idx;
-                                            });
-
-                                            html += '<li class="schdl_list">' +
-                                                '<ul>' +
-                                                '<li id="mbr_hd02_' + key + '" class="mbr_hd">' +
-                                                '<div class="d-flex justify-content-between">' +
-                                                '<div class="d-flex align-items-center flex-auto">' +
-                                                '<a href="#" class="d-flex align-items-center flex-fill">' +
-                                                '<div class="prd_img flex-shrink-0 mr_12">' +
-                                                '<div class="rect_square rounded_14">' +
-                                                '<img src="' + member.mt_file1_url + '" onerror="this.src=\'' + "<?= $ct_no_profile_img_url ?>" + '\'" alt="이미지" />' +
-                                                '</div>' +
-                                                '</div>' +
-                                                '<p class="fs_14 fw_500 text_dynamic mr-2">' + (member.mt_nickname ? member.mt_nickname : member.mt_name) + '</p>' +
-                                                '</a>' +
-                                                '</div>' +
-                                                '<div class="d-flex align-items-center flex-shrink-0">';
-
-                                            if (data.user_groups.owner_count > 0 || data.user_groups.leader_count > 0) {
-                                                if (member.sgdt_owner_leader_chk_t != "<?= $translations['txt_owner'] ?>") {
-                                                    html += '<a href="./schedule_form?sdate=' + $('#event_start_date').val() + '&sgdt_idx=' + member.sgdt_idx + '" class="fs_13 fc_navy"><i class="xi-plus-min"></i>' + "<?= $translations['txt_add_schedule'] ?>" + '</a>';
-                                                }
-                                            }
-
-                                            if (list_sst_a.length > 0 && list_sst_a.some(schedule => schedule.sgdt_idx === member.sgdt_idx)) {
-                                                html += '<button type="button" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_' + key + '" aria-expanded="false" aria-controls="mbr02_' + key + '"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>';
-                                            } else {
-                                                html += '<button type="button" style="visibility:hidden" class="btn btn-link ml-3" data-toggle="collapse" data-target="#mbr02_' + key + '" aria-expanded="false" aria-controls="mbr02_' + key + '"><img class="open_ic" src="./img/ic_open.png" style="width:1.0rem;"></button>';
-                                            }
-
-                                            html += '</div></div>';
-
-                                            if (list_sst_a.length > 0) {
-                                                html += '<div id="mbr02_' + key + '" class="collapse" aria-labelledby="mbr02_' + key + '" aria-labelledby="mbr_hd02_' + key + '" data-parent="#mbr_wr">' +
-                                                    '<ul class="pt-4 pb-3">';
-
-                                                if (list_sst_a && list_sst_a.some(schedule => schedule.sgdt_idx === member.sgdt_idx)) {
-                                                    list_sst_a.forEach(function(schedule, count) {
-                                                        var current_date = new Date();
-                                                        var point_status = '';
-                                                        if (schedule.sst_all_day == 'Y') {
-                                                            point_status = 'point_ing';
-                                                        } else if (current_date >= new Date(schedule.sst_edate)) {
-                                                            point_status = 'point_done';
-                                                        } else if (current_date >= new Date(schedule.sst_sdate) && current_date <= new Date(schedule.sst_edate)) {
-                                                            point_status = 'point_ing';
-                                                        } else {
-                                                            point_status = 'point_gonna';
-                                                        }
-
-                                                        // 수정권한 1:오너 2:리더 3:그룹원
-                                                        var arr_grant = <?= json_encode($arr_grant) ?>;
-                                                        var grantNumbers = schedule.sst_update_chk.split(',');
-                                                        var grantStrings = grantNumbers.map(function(number) {
-                                                            return arr_grant[number];
-                                                        });
-                                                        var grant = grantNumbers.includes('1') && grantNumbers.includes('2') && grantNumbers.includes('3') ? '<?= $translations['txt_all'] ?>' : grantStrings.join(', ');
-
-                                                        html += '<li class="py-2">' +
-                                                            '<a href="./schedule_form?sst_idx=' + schedule.sst_idx + '" class="d-flex align-items-center justify-content-between">' +
-                                                            '<div class="d-flex align-items-center">' +
-                                                            '<div class="task ' + point_status + '">' +
-                                                            '<span class="point_inner">' +
-                                                            '<span class="point_txt">' + (count + 1) + '</span>' +
-                                                            '</span>' +
-                                                            '</div>' +
-                                                            '<div class="mx-3">' +
-                                                            '<p class="fs_13 fw_700 text_dynamic line_h1_3 line1_text">' + schedule.sst_title + '</p>' +
-                                                            '<p class="fs_10 fw_300 text_gray line_h1_3"><span>' + "<?= $translations['txt_edit_rights'] ?>" + ' : </span> ' + grant + '</p>' +
-                                                            '</div>' +
-                                                            '</div>' +
-                                                            '<p><i class="xi-angle-right-min text_light_gray fs_13"></i></p>' +
-                                                            '</a>' +
-                                                            '</li>';
-                                                    });
-                                                }
-
-                                                html += '</ul></div>';
-                                            }
-
-                                            html += '</li></ul></li>';
-                                        }
-                                    });
-                                }
-                            }
-
-                            html += '</ul></div>';
-                        });
-                    }
-
-                    // $('#mbr_wr').html(html);
-                    return html;
-                }
-
-                // 날짜 변경 이벤트 핸들러
-                $('input[name="event_start_date"]').on('change', function() {
-                    loadScheduleData($(this).val());
-                });
-
-                function f_day_click(sdate) {
-                    if (typeof(history.pushState) != "undefined") {
-                        var state = '';
-                        var title = '';
-                        var url = './schedule?sdate=' + sdate;
-                        history.pushState(state, title, url);
-
-                        // f_cld_wrap();
-
-                        $('#event_start_date').val(sdate);
-                        $('#schedule-title').text(get_date_t(sdate));
-                        $('.c_id').removeClass('active');
-                        $('#calendar_' + sdate).addClass('active');
-                        setTimeout(() => {
-                            f_get_box_list();
-                        }, 100);
-                    } else {
-                        location.href = url;
-                    }
-                }
-
-                // 바텀시트 업다운
-                $('.down_wrap').click(function() {
-                    f_cld_wrap();
-                });
-
-                function f_cld_wrap() {
-                    var cldDateWrap = $('.sch_cld_wrap .cld_date_wrap');
-
-                    // .on 클래스를 토글
-                    cldDateWrap.toggleClass('on');
-
-                    // .on 클래스의 유무에 따라 이미지 파일 이름 변경
-                    var imgSrc = cldDateWrap.hasClass('on') ? 'btn_tl_arrow.png' : 'btn_bl_arrow.png';
-                    $('.down_wrap img.top_down').attr('src', '<?= CDN_HTTP ?>/img/' + imgSrc);
-
-                    if (cldDateWrap.hasClass('on')) {
-                        // $('.sch_wrap').css('padding-top', 'auto');
-                        $('.sch_wrap').css('padding-top', '38.7rem');
-                        $('#week_calendar').val('N');
-                    } else {
-                        // $('.sch_wrap').css('padding-top', '17rem');
-                        $('.sch_wrap').css('padding-top', '16.8rem');
-                        $('#week_calendar').val('Y');
-                    }
-
-                    var nmy = $('#nmy').val();
-                    var csm = $('#csdate').val().substr(0, 7);
-
-                    if (nmy == csm) {
-                        var tty = 'today';
-                    } else {
-                        var tty = '';
-                    }
-
-                    f_calendar_init(tty);
-                }
-
-                function f_go_schedule_form() {
-                    var sdate = $('#event_start_date').val();
-
-                    location.href = './schedule_form?sdate=' + sdate + '&mt_idx=<?= $_SESSION['_mt_idx'] ?>';
-                }
-
-                function share_link_modal(i) {
-                    var form_data = new FormData();
-                    form_data.append("act", "link_modal");
-                    form_data.append("sgt_idx", i);
-
-                    $.ajax({
-                        url: "./group_update",
-                        enctype: "multipart/form-data",
-                        data: form_data,
-                        type: "POST",
-                        async: true,
-                        contentType: false,
-                        processData: false,
-                        cache: true,
-                        timeout: 5000,
-                        success: function(data) {
-                            if (data == 'N') {
-                                jalert('초대코드를 다 사용하였습니다.');
-                            } else {
-                                $('#share_url').val(data);
-                            }
-                        },
-                        error: function(err) {
-                            console.log(err);
-                        },
-                    });
-                    $('#link_modal').modal('show');
-                }
-            </script>
         </div>
         <!-- <button type="button" class="btn w-100 floating_btn rounded b_botton_2" onclick="f_go_schedule_form();"><i class="xi-plus-min mr-3"></i> 일정 추가하기</button> -->
     </div>

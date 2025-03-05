@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'จำฉันไว้', // 자동 로그인 설정하기
+    'txt_group_delete' => 'ลบกลุ่ม', // 그룹 삭제
+    'txt_group_edit' => 'แก้ไขกลุ่ม',
     'txt_coupon_input' => 'ป้อนคูปอง', // 쿠폰 입력
     'txt_login_required' => 'ต้องลงชื่อเข้าใช้', // 로그인이 필요합니다.
     'txt_login_another_device' => 'ลงชื่อเข้าใช้จากอุปกรณ์อื่น', // 다른 기기에서 로그인되었습니다.
@@ -828,4 +831,9 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'นี่เป็นกำหนดการที่เกิดซ้ำ โปรดเลือกวิธีการลบ',
+    'txt_delete_this_schedule_only' => 'ลบกำหนดการนี้เท่านั้น',
+    'txt_delete_all_repeat_schedules' => 'ลบกำหนดการนี้และกำหนดการที่เกิดซ้ำในอนาคตทั้งหมด',
+    'txt_all_schedules_deleted_notification_alert' => 'กำหนดการที่เลือกและกำหนดการที่เกิดซ้ำในอนาคตทั้งหมดถูกลบแล้ว',
+    'txt_previous_schedules_kept' => '※ กำหนดการที่เกิดซ้ำก่อนหน้านี้จะยังคงอยู่',
 ];

@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'मुझे याद रखना', // 자동 로그인 설정하기
+    'txt_group_delete' => 'समूह हटाएं', // 그룹 삭제
+    'txt_group_edit' => 'समूह संपादित करें',
     'txt_coupon_input' => 'कूपन इनपुट', // 쿠폰 입력
     'txt_login_required' => 'लॉगिन आवश्यक है।', // 로그인이 필요합니다.
     'txt_login_another_device' => 'किसी अन्य डिवाइस से लॉग इन किया गया है।', // 다른 기기에서 로그인되었습니다.
@@ -833,4 +836,8 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'यह एक आवर्ती कार्यक्रम है। कृपया हटाने का तरीका चुनें।',
+    'txt_delete_this_schedule_only' => 'केवल इस कार्यक्रम को हटाएं',
+    'txt_delete_all_repeat_schedules' => 'इस कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रमों को हटाएं',
+    'txt_all_schedules_deleted_notification_alert' => 'चयनित कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रम हटा दिए गए हैं।',
 ];

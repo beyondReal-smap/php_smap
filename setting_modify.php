@@ -21,9 +21,17 @@ if ($_SESSION['_mt_idx'] == '') {
 $mt_info = get_member_t_info();
 ?>
 <style>
-    select[readonly] {
-        background-color: #ddd;
+    select[readonly], 
+    input[readonly] {
+        background-color: #eef0f2 !important;
         pointer-events: none;
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .readonly-input {
+        color: #6c757d !important;
+        background-color: #eef0f2 !important;
     }
 </style>
 <div class="container sub_pg">
@@ -41,7 +49,7 @@ $mt_info = get_member_t_info();
                         <h5 class=""><?=$translations['txt_enter_alias'] ?> <b class="text-danger">*</b></h5>
                         <p class="text_num fs_12 fc_gray_600">(<span id="mt_nickname_cnt">0</span>/12)</p>
                     </div>
-                    <input type="text" class="form-control txt-cnt" name="mt_nickname" id="mt_nickname" value="<?= $mt_info['mt_nickname'] ?>" minlength="2" maxlength="12" data-length-id="mt_nickname_cnt" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_enter_alias'] ?>">
+                    <input type="text" class="form-control txt-cnt" name="mt_nickname" id="mt_nickname" value="<?= $mt_info['mt_nickname'] ?>" minlength="2" maxlength="12" data-length-id="mt_nickname_cnt" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_enter_alias'] ?>" required>
                     <div class="d-flex align-items-center justify-content-between mt-2">
                         <div>
                             <div class="form_arm_text fs_13 fw_600 fc_gray_600 px-4 line_h1_2"><?=$translations['txt_correct_nickname_format'] ?></div>
@@ -52,25 +60,25 @@ $mt_info = get_member_t_info();
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5 class=""><?=$translations['txt_name_example'] ?> <b class="text-danger">*</b></h5>
                     </div>
-                    <input type="text" class="form-control txt-cnt" name="mt_name" id="mt_name" value="<?= $mt_info['mt_name'] ?>" maxlength="30" data-length-id="mt_name_cnt" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_name_example'] ?>">
+                    <input type="text" class="form-control txt-cnt" name="mt_name" id="mt_name" value="<?= $mt_info['mt_name'] ?>" maxlength="30" data-length-id="mt_name_cnt" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_name_example'] ?>" required>
                 </div>
                 <div class="ip_wr mt_25 ip_invalid">
                     <div class="ip_tit">
                         <h5 class=""><?=$translations['txt_phone_number'] ?></h5>
                     </div>
-                    <input type="text" class="form-control" name="mt_hp" id="mt_hp" value="<?= format_phone($mt_info['mt_hp']) ?>" readonly minlength="2" maxlength="20" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_phone_number'] ?>">
+                    <input type="text" class="form-control readonly-input" name="mt_hp" id="mt_hp" value="<?= format_phone($mt_info['mt_hp']) ?>" readonly>
                 </div>
                 <div class="ip_wr mt_25">
                     <div class="ip_tit">
                         <h5 class=""><?=$translations['txt_birthday'] ?></h5> 
                     </div>
-                    <input type="text" class="form-control d-flex align-items-center " name="mt_birth" id="mt_birth" value="<?= $mt_info['mt_birth'] ?>" maxlength="10" oninput="maxLengthCheck(this)" placeholder="<?=$translations['txt_date'] ?>">
+                    <input type="text" class="form-control readonly-input" name="mt_birth" id="mt_birth" value="<?= $mt_info['mt_birth'] ?>" readonly>
                 </div>
                 <div class="ip_wr mt_25">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5><?=$translations['txt_male_female'] ?></h5>
                     </div>
-                    <select class="form-control custom-select" name="mt_gender" id="mt_gender">
+                    <select class="form-control custom-select" name="mt_gender" id="mt_gender" readonly>
                         <option value=""><?=$translations['txt_select'] ?></option>
                         <option value="1"><?=$translations['txt_male'] ?></option> 
                         <option value="2"><?=$translations['txt_female'] ?></option> 

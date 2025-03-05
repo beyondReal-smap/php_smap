@@ -2,6 +2,10 @@
 
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
+// 세션 설정 부분 수정
+session_set_cookie_params(36500 * 24 * 60 * 60); // 100년
+ini_set('session.gc_maxlifetime', 36500 * 24 * 60 * 60); // 100년
+
 if ($_POST['act'] == "login") {
     global $userLang;
     $logger->write("Login action initiated.");
@@ -95,6 +99,23 @@ if ($_POST['act'] == "login") {
 
                 setcookie('_mt_token_id', $_SESSION['_mt_token_id']);
                 $_COOKIE['_mt_token_id'] = $_SESSION['_mt_token_id'];
+            }
+
+            // Remember Me 처리
+            if (isset($_POST['remember_me'])) {
+                // 안전한 토큰 생성
+                $remember_token = bin2hex(random_bytes(32));
+                $token_hash = password_hash($remember_token, PASSWORD_DEFAULT);
+                // 만료 날짜를 매우 먼 미래로 설정 (100년)
+                $expiry = date('Y-m-d H:i:s', strtotime('+36500 days'));
+                
+                // DB에 토큰 저장
+                $arr_query['mt_remember_token'] = $token_hash;
+                $arr_query['mt_token_expiry'] = $expiry;
+                
+                // 쿠키에 토큰 저장 (100년)
+                setcookie('remember_token', $remember_token, time() + (36500 * 24 * 60 * 60), '/', '', false, false);
+                setcookie('user_id', $row['mt_idx'], time() + (36500 * 24 * 60 * 60), '/', '', false, false);
             }
 
             $DB->where('mt_idx', $row['mt_idx']);

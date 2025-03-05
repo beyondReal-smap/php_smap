@@ -98,26 +98,6 @@ if ($_POST['act'] == "mt_push_chg") {
 
     p_gotourl("./setting_list");
 } elseif ($_POST['act'] == "withdraw_on") {
-    if ($_SESSION['_mt_idx'] == '') {
-        p_alert($translations['txt_login_required'], './login', '');
-    }
-    if ($_POST['mt_retire_chk'] == "") {
-        p_alert($translations['txt_invalid_access']  . " mt_retire_chk");
-    }
-
-    $mt_info = get_member_t_info();
-    $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']);
-
-    $sgdt_info = get_group_detail_info($_SESSION['_mt_idx'], $sgt_cnt);
-
-    update_member_info($_SESSION['_mt_idx'], $mt_info);
-
-    delete_member_related_data($_SESSION['_mt_idx']);
-
-    if ($sgt_cnt > 0) {
-        transfer_ownership($sgdt_info);
-    }
-
     function get_group_detail_info($mt_idx, $sgt_cnt) {
         global $DB;
         if ($sgt_cnt > 0) {
@@ -220,6 +200,27 @@ if ($_POST['act'] == "mt_push_chg") {
         $DB->where('sgt_idx', $sgt_idx);
         $DB->update('smap_group_t', $arr_query);
     }
+
+    if ($_SESSION['_mt_idx'] == '') {
+        p_alert($translations['txt_login_required'], './login', '');
+    }
+    if ($_POST['mt_retire_chk'] == "") {
+        p_alert($translations['txt_invalid_access']  . " mt_retire_chk");
+    }
+
+    $mt_info = get_member_t_info();
+    $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']);
+
+    $sgdt_info = get_group_detail_info($_SESSION['_mt_idx'], $sgt_cnt);
+
+    update_member_info($_SESSION['_mt_idx'], $mt_info);
+
+    delete_member_related_data($_SESSION['_mt_idx']);
+
+    if ($sgt_cnt > 0) {
+        transfer_ownership($sgdt_info);
+    }
+
     //회원 그룹 DB 삭제
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $DB->delete('smap_group_t');

@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'Ghi nhớ tôi', // 자동 로그인 설정하기
+    'txt_group_delete' => 'Xóa nhóm', // 그룹 삭제
+    'txt_group_edit' => 'Chỉnh sửa nhóm',
     'txt_coupon_input' => 'Nhập mã khuyến mãi', // 쿠폰 입력
     'txt_login_required' => 'Cần đăng nhập.', // 로그인이 필요합니다.
     'txt_login_another_device' => 'Đã đăng nhập từ thiết bị khác.', // 다른 기기에서 로그인되었습니다.
@@ -834,4 +837,9 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'Đây là lịch trình lặp lại. Vui lòng chọn phương thức xóa.',
+    'txt_delete_this_schedule_only' => 'Chỉ xóa lịch trình này',
+    'txt_delete_all_repeat_schedules' => 'Xóa lịch trình này và tất cả lịch trình lặp lại trong tương lai',
+    'txt_all_schedules_deleted_notification_alert' => 'Lịch trình đã chọn và tất cả lịch trình lặp lại trong tương lai đã được xóa.',
+    'txt_previous_schedules_kept' => '※ Các lịch trình lặp lại trước đó sẽ được giữ nguyên.',
 ];

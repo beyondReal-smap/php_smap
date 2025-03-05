@@ -85,7 +85,87 @@ if (!$sgdt_row['sgdt_idx']) {
         display: flex;
         flex-direction: column;
     }
+
+    /* 로딩 화면 스타일 */
+    #map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .dots-spinner {
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #0046FE;
+        border-radius: 50%;
+        animation: dot-bounce 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes dot-bounce {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.5);
+        }
+    }
+
+
+    .mt-2.mb-3.px_16 .dots-spinner {
+        display: flex;
+        gap: 10px;
+    }
+
+    .mt-2.mb-3.px_16 .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #0046FE;
+        /* 기본색 */
+        border-radius: 50%;
+        animation: dot-bounce 1s infinite ease-in-out;
+    }
+
+    .mt-2.mb-3.px_16 .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .mt-2.mb-3.px_16 .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
 </style>
+<div id="loading">
+    <!-- 로딩 화면 추가 -->
+    <div id="map-loading" style="display: none;">
+        <div class="dots-spinner">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+</div>
 <div class="container sub_pg  log_wrap px-0">
     <!-- 달력 -->
     <section class="sch_cld_wrap bg-white ">
@@ -235,6 +315,8 @@ if (!$sgdt_row['sgdt_idx']) {
     var markers;
     var polylines;
     var profileMarkers = [];
+    let optBottom = document.querySelector(".opt_bottom");
+    const loadingElement = document.getElementById('map-loading');
     $(document).ready(function() {
         // f_get_box_list2();
         f_calendar_log_init('today'); // 달력 스케쥴
@@ -316,7 +398,8 @@ if (!$sgdt_row['sgdt_idx']) {
     }
 
     function f_get_log_location(i, s = "") {
-        $('#splinner_modal').modal('toggle');
+        showMapLoading();
+        // $('#splinner_modal').modal('toggle');
         var form_data = new FormData();
         form_data.append("act", "location_log");
         if (s) {
@@ -373,7 +456,7 @@ if (!$sgdt_row['sgdt_idx']) {
     function f_member_location_info() {
 
         var form_data = new FormData();
-        form_data.append("act", "get_line");
+        form_data.append("act", "get_line2");
         form_data.append("sgdt_mt_idx", $('#sgdt_mt_idx').val());
         form_data.append("sgdt_idx", $('#sgdt_idx').val());
         form_data.append("event_start_date", $('#event_start_date').val());
@@ -415,7 +498,8 @@ if (!$sgdt_row['sgdt_idx']) {
             error: function(err) {
                 console.log(err);
                 jalert('타임아웃');
-                $('#splinner_modal').modal('hide');
+                // $('#splinner_modal').modal('hide');
+                hideMapLoading();
                 console.timeEnd("forEachLoopExecutionTime");
             },
         });
@@ -545,13 +629,16 @@ if (!$sgdt_row['sgdt_idx']) {
                 polylinePath.push(new naver.maps.LatLng(markerData['logmarkerLat_' + i], markerData['logmarkerLong_' + i]));
                 markers.push(marker);
             }
+
+            // 그라데이션 효과를 위한 폴리라인 생성
+            createGradientPolyline(polylinePath);
         }
         // range input 요소의 값이 변경될 때마다 호출되는 함수
         document.getElementById('timeSlider').addEventListener('input', function() {
             // range input 요소의 값 가져오기
             var sliderValue = parseFloat(this.value);
 
-            // 마커의 새로운 위도 및 경도 계산 (예시)
+            // 마커의 새로운 위도 및 경도 계산
             var newLat = markerData['logmarkerLat_' + (sliderValue)];
             var newLng = markerData['logmarkerLong_' + (sliderValue)];
 
@@ -567,7 +654,6 @@ if (!$sgdt_row['sgdt_idx']) {
             $('.point_wrap.point2.log_marker[data-rangeindex="' + sliderValue + '"]').removeClass('d-none');
             $('.point_wrap.point2[data-rangeindex="' + sliderValue + '"] .infobox').addClass('on');
 
-
             var optBottom = document.querySelector('.opt_bottom');
             if (optBottom) {
                 var transformY = optBottom.style.transform;
@@ -576,17 +662,6 @@ if (!$sgdt_row['sgdt_idx']) {
                 }
             }
         });
-
-        // 로그 경로 라인 추가
-        var polyline = new naver.maps.Polyline({
-            path: polylinePath, //선 위치 변수배열
-            strokeColor: '#140082',
-            strokeOpacity: 0.8, //선 투명도 0 ~ 1
-            strokeWeight: 4, //선 두께
-            map: map //오버레이할 지도,
-        });
-        resultdrawArr.push(polyline);
-        polylines.push(polyline);
 
         // 지도 이동 시 이벤트 리스너 추가
         naver.maps.Event.addListener(map, 'idle', function() {
@@ -609,23 +684,125 @@ if (!$sgdt_row['sgdt_idx']) {
             });
         });
 
-        // 지도 마커클릭시 상세내역 보여짐
+        // 지도 마커 클릭 시 상세 내역 보여짐
         $('.point_wrap').click(function() {
-            $('.point_wrap').click(function() {
-                $(this).find('.infobox').addClass('on');
-                $(this).find('.point_stay').addClass('on');
-                $('.point_wrap').not(this).find('.infobox').removeClass('on');
-                $('.point_wrap').not(this).find('.point_stay').removeClass('on');
-            });
+            $(this).find('.infobox').addClass('on');
+            $(this).find('.point_stay').addClass('on');
+            $('.point_wrap').not(this).find('.infobox').removeClass('on');
+            $('.point_wrap').not(this).find('.point_stay').removeClass('on');
         });
 
         // initializeMap 함수 끝에 map 변수의 상태를 체크하고 map이 정상적으로 생성되었을 때에만 setCursor 호출
         if (map) {
             map.setCursor('pointer');
         }
-        $('#splinner_modal').modal('hide');
+        // $('#splinner_modal').modal('hide');
+        hideMapLoading();
         console.timeEnd("forEachLoopExecutionTime");
     }
+
+    function generateSpinnerColor() {
+        const colorSets = [
+            '#FF0000', // 빨간색
+            '#FFA500', // 주황색
+            '#0000FF', // 파란색
+            '#000080', // 남색
+            '#800080', // 보라색
+        ];
+
+        const randomIndex = Math.floor(Math.random() * colorSets.length);
+        return colorSets[randomIndex];
+    }
+
+    // 로딩 화면을 보이게 하는 함수
+    function showMapLoading(center = true) {
+        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
+
+        // 랜덤 색상 적용
+        const randomColor = generateSpinnerColor();
+
+        // 두 스피너의 색상 변경
+        spinnerDots.forEach(dot => {
+            dot.style.backgroundColor = randomColor;
+        });
+        // otherSpinnerDots.forEach(dot => {
+        //     dot.style.backgroundColor = randomColor;
+        // });
+
+        loadingElement.style.display = 'flex'; // 로딩바 표시
+        // optBottom 이벤트 비활성화
+        optBottom.ontouchstart = null;
+        optBottom.ontouchmove = null;
+        optBottom.onmousedown = null;
+        document.onmousemove = null;
+        document.onmouseup = null;
+    }
+
+    // 로딩 화면을 숨기는 함수
+    function hideMapLoading() {
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+
+        // optBottom 이벤트 활성화
+        optBottom.ontouchstart = optBottomTouchStartListener;
+        optBottom.ontouchmove = optBottomTouchMoveListener;
+        optBottom.onmousedown = optBottomMouseDownListener;
+        document.onmousemove = optBottomMouseMoveListener;
+        document.onmouseup = optBottomMouseUpListener;
+    }
+
+    // 그라데이션 폴리라인 생성 함수
+    function createGradientPolyline(polylinePath) {
+        var totalPoints = polylinePath.length;
+
+        if (totalPoints < 2) return; // 포인트가 2개 미만이면 그릴 필요 없음
+
+        // 빨주노초파남보 색상 배열
+        const rainbow = [
+            '#FF0000', // 빨간색
+            '#FFA500', // 주황색
+            '#FFFF00', // 노란색
+            '#00FF00', // 초록색
+            '#0000FF', // 파란색
+            '#000080', // 남색
+            '#800080' // 보라색
+        ];
+
+        // 각 세그먼트에 대해 색상을 계산하여 그라데이션 폴리라인 생성
+        for (var i = 0; i < totalPoints - 1; i++) {
+            // 현재 세그먼트 위치에 따른 색상 비율 계산
+            var t = i / (totalPoints - 1);
+            const rainbowIndex = Math.floor(t * (rainbow.length - 1));
+            const ratio = t * (rainbow.length - 1) - rainbowIndex;
+
+            // 현재 위치의 두 색상 혼합
+            const color1 = rainbow[rainbowIndex];
+            const color2 = rainbow[Math.min(rainbowIndex + 1, rainbow.length - 1)];
+
+            const r = Math.round(parseInt(color1.slice(1, 3), 16) * (1 - ratio) + parseInt(color2.slice(1, 3), 16) * ratio);
+            const g = Math.round(parseInt(color1.slice(3, 5), 16) * (1 - ratio) + parseInt(color2.slice(3, 5), 16) * ratio);
+            const b = Math.round(parseInt(color1.slice(5, 7), 16) * (1 - ratio) + parseInt(color2.slice(5, 7), 16) * ratio);
+
+            const color = `rgb(${r},${g},${b})`;
+
+            // 현재 세그먼트의 경로 설정
+            const segmentPath = [polylinePath[i], polylinePath[i + 1]];
+
+            // 현재 세그먼트를 맵에 추가
+            const polylineSegment = new naver.maps.Polyline({
+                path: segmentPath,
+                strokeColor: color,
+                strokeOpacity: 1,
+                strokeWeight: 4,
+                map: map
+            });
+            polylines.push(polylineSegment);
+        }
+    }
+
+
 
     function map_panto(lat, lng) {
         map.setCenter(new naver.maps.LatLng(lat, lng));
@@ -667,7 +844,7 @@ if (!$sgdt_row['sgdt_idx']) {
             });
 
             document.addEventListener('mousemove', function(event) {
-                if (isDragging) {
+                if (typeof isDragging !== 'undefined' && isDragging) {
                     var currentY = event.clientY; // 현재 마우스 좌표
                     var deltaY = currentY - startY; // 움직임의 차이 계산
 

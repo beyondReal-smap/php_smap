@@ -1,5 +1,13 @@
 <?php
 return [
+    'txt_remember_me' => 'Remember Me', // 자동 로그인 설정하기
+    'txt_group_delete' => 'Group Delete', // 그룹 삭제
+    'txt_group_edit' => 'Group Edit', // 그룹 편집
+    'txt_enter_group_name' => 'Enter Group Name', // 그룹 이름을 입력하세요
+    'txt_max_groups_reached' => 'Maximum Group Reached', // 최대 그룹 수에 도달했습니다
+    'txt_group_creation_failed' => 'Group Creation Failed', // 그룹 생성에 실패했습니다
+    'txt_error_occurred' => 'An Error Occurred', // 오류가 발생했습니다
+    'txt_add_group' => 'Add Group', // 그룹 추가
     'txt_coupon_input' => 'Coupon Input',
     'txt_login_required' => 'Login Required.', // 로그인이 필요합니다.
     'txt_login_another_device' => 'Logged in from Another Device.', // 다른 기기에서 로그인되었습니다.
@@ -532,7 +540,7 @@ return [
     'txt_changed' => 'Changed.', // 변경되었습니다.
     'txt_cancel' => 'Cancel', // 취소
     'txt_warning' => 'Warning', // 경고
-    'txt_confirm_delete_irreversible' => 'Are you sure you want to delete? Deleted data cannot be recovered.', // 정말 삭제하시겠습니까? 삭제된 자료는 복구되지 않습니다.
+    'txt_confirm_delete_irreversible' => 'Are you sure you want to delete? Deleted data cannot be recovered.', // 정말 삭제하시겠습니까? 삭제된 자료는 복구할 수 없습니다.
     'txt_deleted' => 'Deleted.', // 삭제되었습니다.
     'txt_upload_size_limit_10mb' => 'Uploads are limited to 10MB.', // 업로드는 10메가 이하만 가능합니다.
     'txt_phone_number_example_2' => '(123) 456-7890',
@@ -833,4 +841,9 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'This is a recurring schedule. Please select a deletion method.',
+    'txt_delete_this_schedule_only' => 'Delete this schedule only',
+    'txt_delete_all_repeat_schedules' => 'Delete this and all future recurring schedules',
+    'txt_all_schedules_deleted_notification_alert' => 'Selected schedule and all future recurring schedules have been deleted.',
+    'txt_previous_schedules_kept' => '※ Previous recurring schedules will be kept.',
 ];

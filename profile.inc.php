@@ -42,13 +42,15 @@
         }
 
         function openAlbum(mt_idx) {
-            var message = {
-                "type": "openAlbum",
-                "param": mt_idx
-            };
             if (isAndroid()) {
-                window.smapAndroid.openAlbum(mt_idx);
+                // 안드로이드에서는 시스템 포토 피커 사용
+                window.smapAndroid.openSystemPhotoPicker(mt_idx);
             } else if (isiOS()) {
+                // iOS는 기존 방식 유지
+                var message = {
+                    "type": "openAlbum",
+                    "param": mt_idx
+                };
                 window.webkit.messageHandlers.smapIos.postMessage(message);
             }
         }

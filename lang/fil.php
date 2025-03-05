@@ -1,6 +1,9 @@
 <?php
 return 
 [
+    'txt_remember_me' => 'I-record ang aking login', // 자동 로그인 설정하기
+    'txt_group_delete' => 'I-delete ang grupo',
+    'txt_group_edit' => 'I-edit ang grupo',
     '로그인이 필요합니다.' => 'Kinakailangan ang pag-login.',
     '다른기기에서 로그인 시도 하였습니다.\n 다시 로그인 부탁드립니다.' => 'May nakitang pagtatangka sa pag-login mula sa ibang device.\nMangyaring mag-login muli.',
     '잠시만 기다려주세요! 주소 정보를 가져오는 중입니다.!' => 'Mangyaring maghintay! Kinukuha ang impormasyon ng address!',

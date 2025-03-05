@@ -639,78 +639,56 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 <script>
     $(document).ready(function() {
         if (<?= json_encode($sgdt_row) ?> !== null) {
+            // 그룹원 목록을 생성하고 첫 번째 그룹원의 데이터를 조회
             createGroupMember(<?= json_encode($sgdt_row['sgdt_idx']) ?>);
-            createLocationList(<?= json_encode($sgdt_row['sgt_idx']) ?>, <?= json_encode($sgdt_row['sgdt_idx']) ?>, <?= json_encode($sgdt_row['mt_idx']) ?>);
         } else {
             // $sgdt_row가 비어 있을 때의 로직
-            // 예: 기본값 설정 또는 다른 작업 수행
             createLocationList('', '', <?= $_SESSION['_mt_idx'] ?>);
         }
         f_get_box_list2();
         f_get_box_list();
         setTimeout(() => {
-            location_map(<?= json_encode($sgdt_row['sgdt_idx']) ?>);
             calcScreenOffset();
         }, 100);
-
     });
 
-    function renderMemberList(data) {
-        const grpWrap = $('.grp_wrap');
-        grpWrap.empty(); // 기존 내용 삭제
-
-        // 전체 HTML 구조 생성
-        const html = `
-        <div class="border bg-white rounded-lg px_16 py_16">
-            <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
-            <style>
-                @keyframes loading {
-                    0% {
-                        transform: rotate(0deg);
-                    }
-
-                    100% {
-                        transform: rotate(360deg);
-                    }
-                }
-                .loading-animation {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #3498db;
-                    animation: loading 1s infinite linear;
-                }
-            </style>
-
-            <div id="group_member_list_box">
-                <div class="mem_wrap mem_swiper">
-                    <div class="swiper-wrapper d-flex">
-                        ${generateMemberItems(data)}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-        grpWrap.html(html);
-
-        // Swiper 다시 초기화
-        mem_swiper = new Swiper(".mem_swiper", {
-            slidesPerView: 'auto',
-            spaceBetween: 12,
-        });
-    }
-
-    // 멤버 아이템 생성 함수
     function generateMemberItems(data) {
         let html = '';
+        let firstMemberKey = null;
+        
+        // 다른 그룹원들 먼저 추가
+        if (data.members && typeof data.members === 'object') {
+            Object.keys(data.members).forEach(key => {
+                const member = data.members[key];
+                // 본인이 아닌 첫 번째 멤버의 키를 저장
+                if (!firstMemberKey && key !== data.sgdt_idx.toString()) {
+                    firstMemberKey = key;
+                }
+                
+                if (key !== data.sgdt_idx.toString()) {
+                    html += `
+                    <div class="swiper-slide checks mem_box">
+                        <label>
+                            <input type="radio" name="rd2" ${key === firstMemberKey ? 'checked' : ''} onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
+                            <div class="prd_img mx-auto"> 
+                                <div class="rect_square rounded_14">
+                                    <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
+                                </div>
+                            </div>
+                            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.member_info.mt_nickname}</p>
+                        </label>
+                    </div>
+                `;
+                }
+            });
+        }
 
-        // 본인 정보 추가
+        // 본인 정보를 마지막에 추가 (checked 속성 제거)
         if (data.members && data.members[data.sgdt_idx]) {
             html += `
             <div class="swiper-slide checks mem_box">
                 <label>
-                    <input type="radio" name="rd2" checked onclick="mem_schedule(${data.members[data.sgdt_idx].member_info.sgt_idx}, ${data.members[data.sgdt_idx].member_info.sgdt_idx});">
+                    <input type="radio" name="rd2" onclick="mem_schedule(${data.members[data.sgdt_idx].member_info.sgt_idx}, ${data.members[data.sgdt_idx].member_info.sgdt_idx});">
                     <div class="prd_img mx-auto">
                         <div class="rect_square rounded_14">
                             <img src="${data.members[data.sgdt_idx].member_info.my_profile}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
@@ -722,29 +700,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         `;
         }
 
-        // 그룹 멤버 정보 추가
-        if (data.members && typeof data.members === 'object') {
-            Object.keys(data.members).forEach(key => {
-                const member = data.members[key];
-                if (key !== data.sgdt_idx.toString()) {
-                    html += `
-                <div class="swiper-slide checks mem_box">
-                    <label>
-                        <input type="radio" name="rd2" onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
-                        <div class="prd_img mx-auto"> 
-                            <div class="rect_square rounded_14">
-                                <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
-                            </div>
-                        </div>
-                        <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.member_info.mt_nickname}</p>
-                    </label>
-                </div>
-            `;
-                }
-            });
-        }
-
-        // 그룹원추가 버튼 추가
+        // 그룹원 추가 버튼
         html += `
         <div class="swiper-slide mem_box add_mem_box" ${data.sgt_cnt > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
             <button class="btn mem_add">
@@ -754,9 +710,88 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 <?= $translations['txt_add_member'] ?>
             </p>
         </div>
-    `;
+        `;
 
-        return html;
+        return { html, firstMemberKey };
+    }
+
+    function createGroupMember(sgdt_idx) {
+        showMapLoading();
+        return new Promise((resolve, reject) => {
+            var form_data = new FormData();
+            form_data.append("act", "member_schedule_list");
+            form_data.append("sgdt_idx", sgdt_idx);
+            form_data.append("event_start_date", '<?= $s_date ?>');
+            form_data.append("mt_lang", '<?= $userLang ?>');
+
+            $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 5000,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.result === 'Y') {
+                        hideMapLoading();
+                        sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
+                        
+                        // 첫 번째 그룹원 찾기
+                        let firstMemberKey = null;
+                        if (data.members && typeof data.members === 'object') {
+                            Object.keys(data.members).forEach(key => {
+                                if (!firstMemberKey && key !== data.sgdt_idx.toString()) {
+                                    firstMemberKey = key;
+                                }
+                            });
+                        }
+                        
+                        // 첫 번째 그룹원의 데이터로 초기화
+                        if (firstMemberKey && data.members[firstMemberKey]) {
+                            const firstMember = data.members[firstMemberKey];
+                            // 첫 번째 그룹원의 데이터 조회
+                            mem_schedule(firstMember.member_info.sgt_idx, firstMember.member_info.sgdt_idx);
+                            
+                            // HTML 렌더링
+                            const { html } = generateMemberItems(data);
+                            const grpWrap = $('.grp_wrap');
+                            grpWrap.html(`
+                                <div class="border bg-white rounded-lg px_16 py_16">
+                                    <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
+                                    <div id="group_member_list_box">
+                                        <div class="mem_wrap mem_swiper">
+                                            <div class="swiper-wrapper d-flex">
+                                                ${html}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+
+                            // Swiper 초기화
+                            mem_swiper = new Swiper(".mem_swiper", {
+                                slidesPerView: 'auto',
+                                spaceBetween: 12,
+                            });
+                        }
+                        
+                        resolve(data);
+                    } else {
+                        console.log("No loadMemberSchedule data available");
+                        resolve(null);
+                    }
+                },
+                error: function(err) {
+                    console.error('AJAX request failed: ', err);
+                    hideMapLoading();
+                    reject(err);
+                },
+            });
+        });
     }
 
     function renderLocationList(data) {
@@ -1120,7 +1155,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         showMapLoading();
         await loadGoogleMapsScript();
 
-        // sgdt_idx에 해당하는 멤버의 위치 정보를 사용하여 지도 중심 설정
+        // sgdt_idx에 해당하는 멤버의 위치 정��를 사용하여 지도 중심 설정
         if (!map) {
             await initMap(st_lat, st_lng);
         }
@@ -1278,7 +1313,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                     lat: parseFloat(lat),
                     lng: parseFloat(lng)
                 },
-                content: content,
+                content,
                 zIndex: 2,
             });
             profileMarkers.push(profileMarker);
@@ -1312,7 +1347,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                     element.setMap(null); // 지도에서 요소 제거
                 }
             });
-            elements.splice(0, elements.length); // 배열 요소 완전히 제거
+            elements.splice(0, elements.length); // 배열 요소 완전히 거
         }
     }
 
@@ -1344,84 +1379,6 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             } else {
                 alert("Geocode was not successful for the following reason: " + status);
             }
-        });
-    }
-
-    function createGroupMember(sgdt_idx) {
-        showMapLoading();
-        // sessionStorage에서 데이터를 먼저 확인
-        let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
-        if (cachedData) {
-            // 캐싱된 데이터가 있으면 사용
-            let response = JSON.parse(cachedData);
-            if (response.result === 'Y') {
-                renderMemberList(response);
-                return response; // 함수 종료
-            }
-        }
-        // var form_data = new FormData();
-        // form_data.append("act", "group_member_list");
-        // form_data.append("group_sgdt_idx", sgdt_idx);
-
-        // $.ajax({
-        //     url: "./location_update",
-        //     enctype: "multipart/form-data",
-        //     data: form_data,
-        //     type: "POST",
-        //     async: true,
-        //     contentType: false,
-        //     processData: false,
-        //     cache: true,
-        //     timeout: 10000,
-        //     dataType: 'json',
-        //     success: function(response) {
-        //         if (response.result === 'success') {
-        //             // sessionStorage에 데이터 저장
-        //             sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(response));
-        //             renderMemberList(response.data);
-        //         } else {
-        //             alert(response.message);
-        //         }
-        //     },
-        //     error: function(err) {
-        //         console.log(err);
-        //     },
-        // });
-        return new Promise((resolve, reject) => {
-            var form_data = new FormData();
-            form_data.append("act", "member_schedule_list");
-            form_data.append("sgdt_idx", sgdt_idx);
-            form_data.append("event_start_date", '<?= $s_date ?>');
-            form_data.append("mt_lang", '<?= $userLang ?>');
-
-            $.ajax({
-                url: "./schedule_update",
-                enctype: "multipart/form-data",
-                data: form_data,
-                type: "POST",
-                async: true,
-                contentType: false,
-                processData: false,
-                cache: true,
-                timeout: 5000,
-                dataType: 'json',
-                success: function(data) {
-                    if (data.result === 'Y') {
-                        hideMapLoading();
-                        sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
-                        renderMemberList(data);
-                        resolve(data);
-                    } else {
-                        console.log("No loadMemberSchedule data available");
-                        resolve(null);
-                    }
-                },
-                error: function(err) {
-                    console.error('AJAX request failed: ', err);
-                    hideMapLoading();
-                    reject(err);
-                },
-            });
         });
     }
 
@@ -1485,12 +1442,13 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 
                     if ('ko' == '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
                         initNaverMap(my_profile, st_lat, st_lng, data);
-                        hideMapLoading();
                     } else {
-                        initGoogleMap(my_profile, st_lat, st_lng, data);
-                        hideMapLoading();
+                        await initGoogleMap(my_profile, st_lat, st_lng, data);
                     }
+
+                    // 마커 추가와 지도 이동을 동시에 수행
                     map_panto(st_lat, st_lng);
+                    hideMapLoading();
                 } else {
                     console.error("Invalid data received:", data);
                     hideMapLoading();
@@ -1636,7 +1594,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                     $('#slt_title').val('');
                     createLocationList($('#sgt_idx').val(), $('#sgdt_idx').val(), '');
                 } else if (data == 'E') {
-                    // jalert("내장소는 최대 2개까지 등록 가능합니다.");
+                    jalert("내장소는 최대 3개까지 등록 가능합니다.");
                     $('#showSub_modal').modal('show');
                     $('#map_info_box').addClass('d-none-temp');
                     $('#slt_title').val('');
@@ -1794,7 +1752,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 map.panBy(new naver.maps.Point(0, verticalCenterOffset));
             }
 
-            // 해당 좌표에 있는 마커를 찾습니다.
+            // 해당 좌표에 있��� 마커를 찾습니다.
             var clickedMarker = findMarkerByPosition(lat, lng);
 
             // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.
@@ -2080,7 +2038,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 });
                 map.panTo(targetLatLng);
 
-                // 애니메이션 시간 이후 애니메이션 옵션 초기화
+                // 애니메이션 시간 이후 애니��이션 옵션 초기화
                 setTimeout(() => {
                     map.setOptions({
                         animation: null

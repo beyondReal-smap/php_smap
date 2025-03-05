@@ -31,7 +31,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     </ul>
                 </div>
             </div>
-            <div class="cld_date_wrap">
+            <div id="schedule_calandar_box" class="cld_date_wrap">
                 <form>
                     <div class="date_conent">
                         <div class="cld_content">
@@ -148,9 +148,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     </div>
                 </form>
             </div>
-            <div class="down_wrap text-center pt_08 pb-3">
-                <img src="<?=CDN_HTTP?>/img/btn_bl_arrow.png" class="top_down mx-auto" width="12px" alt="<?=$translations['txt_top_down'] ?>" />
-            </div>
         </div>
         <div class="sch_wrap">
             <!-- 지도 들어가는 영역 -->
@@ -206,26 +203,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
     </div>
 </div>
 
-<script>
-// 바텀시트 업다운
-$('.down_wrap').click(function() {
-    var cldDateWrap = $('.sch_cld_wrap .cld_date_wrap');
-
-    // .on 클래스를 토글
-    cldDateWrap.toggleClass('on');
-
-    // .on 클래스의 유무에 따라 이미지 파일 이름 변경
-    var imgSrc = cldDateWrap.hasClass('on') ? 'btn_tl_arrow.png' : 'btn_bl_arrow.png';
-    $('.down_wrap img.top_down').attr('src', './img/' + imgSrc);
-
-    // CSS 스타일 추가
-    if (cldDateWrap.hasClass('on')) {
-        $('.sch_wrap').css('padding-top', '34.7rem');
-    } else {
-        $('.sch_wrap').css('padding-top', '15.3rem');
-    }
-});
-</script>
 <?php
 include $_SERVER['DOCUMENT_ROOT']."/foot.inc.php";
 include $_SERVER['DOCUMENT_ROOT']."/tail.inc.php";

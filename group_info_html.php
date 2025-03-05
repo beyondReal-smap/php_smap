@@ -79,53 +79,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
     .drag-drop-item {
         touch-action: none;
     }
-
-    /* 로딩 화면 스타일 */
-    #map-loading {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-
-    .dots-spinner {
-        display: flex;
-        gap: 10px;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-        background-color: #0046FE;
-        border-radius: 50%;
-        animation: dot-bounce 1s infinite ease-in-out;
-    }
-
-    .dot:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .dot:nth-child(3) {
-        animation-delay: 0.4s;
-    }
-
-    @keyframes dot-bounce {
-
-        0%,
-        100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.5);
-        }
-    }
 </style>
 <link href="<?= CDN_HTTP ?>/lib/dragula/dragula.min.css" rel="stylesheet" />
 <script type="text/javascript" src="<?= CDN_HTTP ?>/lib/dragula/dragula.min.js"></script>
@@ -238,39 +191,18 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             <div class="bg-secondary px_16 py-4 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <p class="fs_16 fw_800 mr-2"><?= $row_sgt['sgt_title'] ?><span class="fs_15"> <span id="member_cnt">(<?= $member_cnt_t ?>)</span></p>
-                    <?php 
-                    // 디버깅을 위한 로그 추가
-                    error_log("sgdt_owner_chk value: " . $row_sgdt['sgdt_owner_chk']);
-                    error_log("Is owner check condition: " . ($row_sgdt['sgdt_owner_chk'] == 'Y' ? 'true' : 'false'));
-                    
-                    if ($row_sgdt['sgdt_owner_chk'] == 'Y') { 
-                        error_log("Owner edit button should be visible");
-                    ?>
+                    <?php if ($row_sgdt['sgdt_owner_chk'] == 'Y') { ?>
                         <!-- 오너일때 필요 -->
-                        <button type="button" class="btn h_fit_im px-0 py-0" data-toggle="modal" data-target="#name_edit_modal">
-                            <img src="<?= CDN_HTTP ?>/img/ico_edit.png" width="19px" alt="<?= $translations['txt_group_name_edit'] ?>" />
-                        </button>
+                        <button type="button" class="btn h_fit_im px-0 py-0" data-toggle="modal" data-target="#name_edit_modal"><img src="<?= CDN_HTTP ?>/img/ico_edit.png" width="19px" alt="<?= $translations['txt_group_name_edit'] ?>" /></button>
                     <?php } ?>
                 </div>
-                <?php 
-                // 디버깅을 위한 로그 추가
-                error_log("Checking delete/exit button condition");
-                error_log("sgdt_owner_chk for delete button: " . $row_sgdt['sgdt_owner_chk']);
-                
-                if ($row_sgdt['sgdt_owner_chk'] != 'Y') { 
-                    error_log("Showing exit button for non-owner");
-                ?>
+                <?php if ($row_sgdt['sgdt_owner_chk'] != 'Y') { ?>
                     <!--맴버 / 그룹리더 -->
-                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_idx_t ?>');">
-                        <?= $translations['txt_group_exit'] ?>
-                    </button>
-                <?php } else { 
-                    error_log("Showing delete button for owner");
-                ?>
+                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 py-0 mx-0 my-0 text-right" onclick="f_modal_out_group('<?= $sgdt_idx_t ?>');"><?= $translations['txt_group_exit'] ?></button>
+                <?php } ?>
+                <?php if ($row_sgdt['sgdt_owner_chk'] == 'Y') { ?>
                     <!--그룹오너 -->
-                    <button type="button" class="btn fs_14 fw_500 text-danger h_fit_im px-0 text-right" onclick="f_modal_group_delete('<?= $row_sgt['sgt_idx'] ?>');">
-                        <?= $translations['txt_group_delete'] ?>
-                    </button>
+                    <button type="button" class="btn fs_14 fw_500 text_gray h_fit_im px-0 text-right" onclick="f_modal_group_delete('<?= $row_sgt['sgt_idx'] ?>');"><?= $translations['txt_group_delete'] ?></button>
                 <?php } ?>
             </div>
             <div class="py_20 bg-white px_16">
@@ -314,28 +246,22 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                 <?php } ?>
             <?php } ?>
 
-            <form method="post" name="frm_list" id="frm_list" onsubmit="return false;">
-                <input type="hidden" name="act" id="act" value="list_info" />
+            <form name="frm_list" id="frm_list">
+                <!-- <input type="hidden" name="act" id="act" value="list_info" /> -->
                 <input type="hidden" name="obj_list" id="obj_list" value="group_info_list_box" />
                 <input type="hidden" name="obj_frm" id="obj_frm" value="frm_list" />
-                <input type="hidden" name="obj_uri" id="obj_uri" value="./group_update" />
+                <!-- <input type="hidden" name="obj_uri" id="obj_uri" value="./group_update" /> -->
                 <input type="hidden" name="obj_pg" id="obj_pg" value="1" />
                 <input type="hidden" name="obj_orderby" id="obj_orderby" value="" />
                 <input type="hidden" name="obj_order_desc_asc" id="obj_order_desc_asc" value="1" />
                 <input type="hidden" name="sgt_idx" id="sgt_idx" value="<?= $row_sgt['sgt_idx'] ?>" />
             </form>
-            <div id="map-loading" style="display: flex;">
-                <div class="dots-spinner">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-            </div>
+            <div id="group_info_list_box"></div>
 
             <script>
                 $(document).ready(function() {
-                    showMapLoading();
-                    f_get_box_list();
+                    createGroupMember();
+                    // f_get_box_list();
                     f_share_link_get('<?= $row_sgt['sgt_idx'] ?>');
 
                     dragula([document.getElementById("group_info_list_box")]).on('dragend', function(el) {
@@ -346,45 +272,72 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         var cnt_id = $(this).data('length-id');
                         $('#' + cnt_id).text($(this).val().length);
                     });
-
-                    // 로딩 화면 숨기기
-                    hideMapLoading();
                 });
 
-                // 로딩 화면을 보이게 하는 함수
-                function showMapLoading(center = true) {
-                    const loadingElement = document.getElementById('map-loading');
-                    const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
-                    // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
-
-                    // 랜덤 색상 적용
-                    const randomColor = generateSpinnerColor();
-
-                    // 두 스피너의 색상 변경
-                    spinnerDots.forEach(dot => {
-                        dot.style.backgroundColor = randomColor;
-                    });
-
-                    // loadingElement.style.transform = 'translate(0, -10%)';
-                    loadingElement.style.display = 'flex'; // 로딩바 표시
+                function createGroupMember() {
+                    // sessionStorage에서 데이터를 먼저 확인
+                    let cachedData = sessionStorage.getItem('group_data_' + <?= $_SESSION['_mt_idx'] ?>);
+                    if (cachedData) {
+                        // 캐싱된 데이터가 있으면 사용
+                        let response = JSON.parse(cachedData);
+                        if (response.result === 'success') {
+                            renderMemberList(response.data);
+                            return; // 함수 종료
+                        }
+                    }
                 }
 
-                // 로딩 화면을 숨기는 함수
-                function hideMapLoading() {
-                    document.getElementById("map-loading").style.display = 'none';
-                }
+                function renderMemberList(listData) {
+                    const container = document.getElementById('group_info_list_box');
 
-                function generateSpinnerColor() {
-                    const colorSets = [
-                        '#FF0000', // 빨간색
-                        '#FFA500', // 주황
-                        '#0000FF', // 파란색
-                        '#000080', // 남색
-                        '#800080', // 보라색
-                    ];
+                    if (!listData || !listData.groups || !listData.groups.length) {
+                        return;
+                    }
 
-                    const randomIndex = Math.floor(Math.random() * colorSets.length);
-                    return colorSets[randomIndex];
+                    const html = listData.groups.map(groupData => {
+                        return groupData.members.map(member => {
+                            // PHP 변수를 자바스크립트 문자열로 안전하게 전달
+                            const noProfileImgUrl = '<?= $ct_no_profile_img_url ?>';
+                            const txtImage = '<?= $translations['txt_image'] ?>'; // 텍스트 번역
+                            const txtRemainingPeriod = '<?= $translations['txt_remaining_period'] ?>'; // 남은 기간 텍스트
+
+                            // member 객체에 필요한 값이 없으면 빈 문자열로 처리
+                            const sgdt_idx = member.sgdt_idx || '';
+                            const sgdt_leader_chk = member.sgdt_leader_chk || '';
+                            const nickname = member.nickname || '';
+                            const mt_file1_url = member.mt_file1_url || '';
+                            const sgdt_owner_leader_chk_t = member.sgdt_owner_leader_chk_t || '';
+                            const sgdt_adate = member.sgdt_adate || '';
+
+                            return `
+                                <div class="py_16 d-flex align-items-center justify-content-between border-bottom group_info_member" data-sgdt-idx="${sgdt_idx}">
+                                    <div class="w_fit">
+                                        <a href="#" class="d-flex align-items-center">
+                                            <div class="prd_img flex-shrink-0 mr_12">
+                                                <div class="rect_square rounded_14">
+                                                    <img src="${mt_file1_url}" onerror="this.src='${noProfileImgUrl}'" alt="${txtImage}" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="fs_14 fw_500 text_dynamic line_h1_2 mr-2">${nickname}</p>
+                                                <div class="d-flex align-items-center flex-wrap">
+                                                    ${sgdt_owner_leader_chk_t ? `<p class="fs_12 fw_400 text_dynamic text-primary line_h1_2 mt-1">${sgdt_owner_leader_chk_t}</p>` : ''}
+                                                    ${sgdt_adate ? 
+                                                        `${sgdt_owner_leader_chk_t ? '<p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>' : ''}
+                                                        <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1">${txtRemainingPeriod}: ${sgdt_adate}</p>` : ''}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <button type="button" class="btn h-auto w-auto p-3 fc_gray" data-toggle="modal" onclick="moreButtonClick('${sgdt_leader_chk}', '${sgdt_idx}', '${nickname}')">
+                                        <i class="xi-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }).join(''); // members 배열 각 요소에 대한 join
+                    }).join(''); // groups 배열 각 요소에 대한 join
+
+                    container.innerHTML = html;
                 }
 
                 function f_order_group_member() {
@@ -426,7 +379,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                             console.log(err);
                         },
                     });
-                    
+
                     return false;
                 }
 
@@ -459,7 +412,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         success: function(data) {
                             if (data == 'Y') {
                                 $('#leader_delete_modal').modal('hide');
-                                f_get_box_list();
+                                // f_get_box_list();
                             }
                         },
                         error: function(err) {
@@ -500,7 +453,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         success: function(data) {
                             if (data == 'Y') {
                                 $('#leader_add_modal').modal('hide');
-                                f_get_box_list();
+                                // f_get_box_list();
                             }
                         },
                         error: function(err) {
@@ -792,7 +745,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-0">
-                        <button type="button" class="btn btn-lg btn-block btn-primary mx-0 my-0" onclick="$('#frm_form_name_edit_modal').submit();"><?= $translations['txt_change_group_name'] ?></button>
+                        <button type="submit" class="btn btn-lg btn-block btn-primary mx-0 my-0"><?= $translations['txt_change_group_name'] ?></button>
                     </div>
                 </form>
                 <script>

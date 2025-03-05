@@ -104,62 +104,105 @@ class weatherClass
         return $request;
     }
 
-    public function getResponseForecast($request, $type)
+    public function getResponseForecast($request, $type, $retryCount = 3, $retryDelay = 1)
     {
-        $ch = curl_init();
+        $attempt = 0;
+        
+        while ($attempt < $retryCount) {
+            try {
+                $ch = curl_init();
+                $queryParams = $this->buildUrlQuery($request);
 
-        $queryParams = $this->buildUrlQuery($request);
+                if($type == 2) {
+                    curl_setopt($ch, CURLOPT_URL, WEATHER_URL2."?".$queryParams);
+                } elseif($type == 3) {
+                    curl_setopt($ch, CURLOPT_URL, WEATHER_URL3."?".$queryParams);
+                } elseif($type == 4 || $type == 7) {
+                    curl_setopt($ch, CURLOPT_URL, WEATHER_URL5."?".$queryParams);
+                } elseif($type == 6) {
+                    curl_setopt($ch, CURLOPT_URL, WEATHER_URL6."?".$queryParams);
+                } else {
+                    curl_setopt($ch, CURLOPT_URL, WEATHER_URL."?".$queryParams);
+                }
 
-        if($type == 2) {
-            curl_setopt($ch, CURLOPT_URL, WEATHER_URL2."?".$queryParams);
-        } elseif($type == 3) {
-            curl_setopt($ch, CURLOPT_URL, WEATHER_URL3."?".$queryParams);
-        } elseif($type == 4 || $type == 7) {
-            curl_setopt($ch, CURLOPT_URL, WEATHER_URL5."?".$queryParams);
-        } elseif($type == 6) {
-            curl_setopt($ch, CURLOPT_URL, WEATHER_URL6."?".$queryParams);
-        } else {
-            curl_setopt($ch, CURLOPT_URL, WEATHER_URL."?".$queryParams);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_errno($ch);
+                
+                curl_close($ch);
+
+                // 타임아웃이나 연결 실패 체크
+                if ($curlError || $httpCode >= 500 || empty($response)) {
+                    error_log("Weather API attempt {$attempt} failed. Error: " . curl_error($ch) . ", HTTP Code: {$httpCode}");
+                    $attempt++;
+                    
+                    if ($attempt < $retryCount) {
+                        error_log("Retrying in {$retryDelay} seconds...");
+                        sleep($retryDelay);
+                        continue;
+                    }
+                    
+                    throw new Exception("Failed after {$retryCount} attempts");
+                }
+
+                return $response;
+
+            } catch (Exception $e) {
+                error_log("Exception in getResponseForecast: " . $e->getMessage());
+                $attempt++;
+                
+                if ($attempt >= $retryCount) {
+                    error_log("Max retry attempts reached. Returning empty response.");
+                    return json_encode([
+                        'response' => [
+                            'header' => [
+                                'resultCode' => '9999',
+                                'resultMsg' => 'API request failed after ' . $retryCount . ' attempts'
+                            ]
+                        ]
+                    ]);
+                }
+                
+                sleep($retryDelay);
+            }
         }
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-        //        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 타임아웃 추가
-
-        $response = curl_exec($ch);
-
-        curl_close($ch);
-
-        return $response;
     }
 
     public function parseWeather($response, ...$categorys)
     {
-        global $userLang, $translations; // $translations 배열 추가
+        global $userLang, $translations;
         $data = array();
         $currentDate = date("Ymd");
         $currentTime = date("H00");
 
-        // error_log("Parsing weather data - Current Date: $currentDate, Current Time: $currentTime");
+        error_log("Weather API Response: " . json_encode($response));
+        error_log("Current Date: $currentDate, Current Time: $currentTime");
+        error_log("Categories to parse: " . json_encode($categorys));
 
         if ($userLang == 'ko'){
             try {
                 if (isset($response) && isset($response['response']['body']['items']['item'])) {
                     $list = $response['response']['body']['items']['item'];
-                    // error_log("Response has items: " . count($list));
+                    error_log("Number of items in response: " . count($list));
 
                     if (isset($list) && count($list) > 0) {
                         foreach ($list as $row) {
                             foreach ($categorys as $category) {
                                 if ($category == $row['category']) {
-                                    // error_log("Processing category: $category");
+                                    error_log("Processing category: $category, Value: " . $row['fcstValue']);
 
                                     $data['date'] = $row['baseDate'];
                                     $date = date_create_from_format('Ymd', $row['baseDate']);
                                     $data['ts'] = $date->getTimestamp();
 
                                     list($data['lat'], $data['lon']) = $this->getLatLng($row['nx'], $row['ny']);
-                                    // error_log("Latitude: " . $data['lat'] . ", Longitude: " . $data['lon']);
+                                    error_log("Coordinates - Lat: " . $data['lat'] . ", Lon: " . $data['lon']);
 
                                     switch ($category) {
                                         case "POP": // 강수확률 %
@@ -190,6 +233,7 @@ class weatherClass
                                         case "TMX": // 낮 최고기온
                                             if ($currentDate == $row['fcstDate']) {
                                                 $data[$category] = $row['fcstValue'] . "℃";
+                                                error_log("TMX(최고기온) - Date: {$row['fcstDate']}, Value: {$row['fcstValue']}");
                                             }
                                             break;
                                         case "UUU": // 풍속(동서성분) m/s
@@ -207,6 +251,7 @@ class weatherClass
                                         case "TMN": // 아침 최저기온
                                             if ($currentDate == $row['fcstDate']) {
                                                 $data[$category] = $row['fcstValue'] . "℃";
+                                                error_log("TMN(최저기온) - Date: {$row['fcstDate']}, Value: {$row['fcstValue']}");
                                             }
                                             break;
                                         case "R06": // 6시간 강수량
@@ -236,16 +281,21 @@ class weatherClass
                             }
                         }
                     }
+                } else {
+                    error_log("Invalid response structure or empty response");
                 }
             } catch (Exception $e) {
-                error_log("Exception occurred: " . $e->getMessage());
+                error_log("Exception in parseWeather: " . $e->getMessage());
+                error_log("Exception trace: " . $e->getTraceAsString());
             }
         } else {
-            // OpenWeatherMap API 응답을 data.go.kr 형식으로 변환
+            // OpenWeatherMap API 응답 로깅
+            error_log("OpenWeatherMap API Response: " . json_encode($response));
             if (isset($response['main'])) {
-                $data['TMN'] = number_format($response['main']['temp_min'], 1) . "℃";
-                $data['TMX'] = number_format($response['main']['temp_max'], 1) . "℃";
-                $data['POP'] = number_format($response['main']['humidity'], 1) . "%";
+                $data['TMN'] = number_format($response['main']['temp_min'], 1);
+                $data['TMX'] = number_format($response['main']['temp_max'], 1);
+                $data['POP'] = number_format($response['main']['humidity'], 1);
+                error_log("Parsed OpenWeatherMap data - TMN: {$data['TMN']}, TMX: {$data['TMX']}, POP: {$data['POP']}");
             }
             if (isset($response['weather'][0]['id'])) {
                 $data['SKY'] = $this->convertOpenWeatherMapToSKY($response['weather'][0]['id']);
@@ -253,8 +303,7 @@ class weatherClass
             }
         }
 
-        // error_log("Parsed data: " . json_encode($data));
-
+        error_log("Final parsed weather data: " . json_encode($data));
         return $data;
     }
 

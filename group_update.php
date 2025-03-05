@@ -680,6 +680,82 @@ if ($_POST['act'] == "list" || $_POST['act'] == "invite_list") {
     } else {
         echo ('N');
     }
+} elseif ($_POST['act'] == "add_group") {
+    if ($_SESSION['_mt_idx'] == '') {
+        p_alert($translations['txt_login_required'], './login', '');
+    }
+    
+    // 현재 사용자의 그룹 수 확인
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $DB->where('sgdt_show', 'Y');
+    $current_groups = $DB->get('smap_group_detail_t');
+    $group_count = count($current_groups);
+
+    // 사용자 등급 확인
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $user = $DB->getOne('member_t');
+    $max_groups = ($user['mt_level'] == '5') ? 10 : 4;
+
+    if ($group_count >= $max_groups) {
+        echo json_encode([
+            'result' => 'error',
+            'message' => $translations['txt_max_groups_reached']
+        ]);
+        exit;
+    }
+
+    // 그룹 생성
+    unset($arr_query);
+    $arr_query = array(
+        "mt_idx" => $_SESSION['_mt_idx'],
+        "sgt_title" => $_POST['group_title'],
+        "sgt_code" => get_sgt_code(),
+        "sgt_show" => "Y",
+        "sgt_wdate" => $DB->now(),
+    );
+
+    $sgt_idx = $DB->insert('smap_group_t', $arr_query);
+
+    if ($sgt_idx) {
+        // 그룹 상세 정보 생성
+        unset($arr_query);
+        $arr_query = array(
+            "sgt_idx" => $sgt_idx,
+            "mt_idx" => $_SESSION['_mt_idx'],
+            "sgdt_owner_chk" => "Y",
+            "sgdt_leader_chk" => "N",
+            "sgdt_discharge" => "N",
+            "sgdt_exit" => "N",
+            "sgdt_show" => "Y",
+            "sgdt_push_chk" => "Y",
+            "sgdt_wdate" => $DB->now(),
+        );
+
+        $sgdt_idx = $DB->insert('smap_group_detail_t', $arr_query);
+
+        // 위치 멤버 정보 생성
+        unset($arr_query);
+        $arr_query = array(
+            "mt_idx" => $_SESSION['_mt_idx'],
+            "sgdt_idx" => $sgdt_idx,
+            "sgdt_mt_idx" => $_SESSION['_mt_idx'],
+            "slmt_wdate" => $DB->now(),
+        );
+        $DB->insert('smap_location_member_t', $arr_query);
+
+        echo json_encode([
+            'result' => 'success',
+            'sgt_idx' => $sgt_idx
+        ]);
+    } else {
+        echo json_encode([
+            'result' => 'error',
+            'message' => $translations['txt_group_creation_failed']
+        ]);
+    }
+    exit;
 }
 
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";

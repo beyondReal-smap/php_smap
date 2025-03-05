@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
 $b_menu = '2';
@@ -258,6 +261,29 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
             transform: scale(1.5);
         }
     }
+
+    .group_header {
+        background-color: rgba(0, 70, 254, 0.05) !important;
+        border-top-left-radius: 8px;
+        /* 곡률 증가 */
+        border-top-right-radius: 8px;
+        /* 곡률 증가 */
+    }
+
+    .group-body {
+        border-bottom-left-radius: 8px;
+        /* 곡률 증가 */
+        border-bottom-right-radius: 8px;
+        /* 곡률 증가 */
+        background-color: white;
+    }
+
+    /* 그룹 전체 컨테이너 스타일 수정 */
+    .border.bg-white.rounded-lg.mb-3 {
+        border-radius: 8px !important;
+        /* 곡률 증가 */
+        overflow: hidden;
+    }
 </style>
 <div class="container sub_pg bg_main">
     <!-- 로딩 화면 추가 -->
@@ -295,7 +321,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                     if ($sgdt_row['sgdt_group_chk'] == 'Y') {
                                         $sgdt_row['sgdt_adate'] = $translations['txt_indefinite'];
                                     } else if ($sgdt_row['sgdt_group_chk'] == 'N') {
-                                        // 오늘 날짜
+                                        // 오 날짜
                                         $today = new DateTime();
                                         $date = new DateTime($sgdt_row['sgdt_adate']); // 타임스탬프를 이용하여 DateTime 객체 생성
 
@@ -313,7 +339,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                                     }
 
                                 ?>
-                                    <!-- 남은기간 설정시에만 보여집니다. -->
+                                    <!-- 남기간 설정시에만 보여집니다. -->
                                     <?php if ($sgdt_row['sgdt_leader_chk'] == 'Y') { ?>
                                         <p class="fs_12 fw_400 text_dynamic text_gray line_h1_2 mt-1 mx-2"> | </p>
                                     <?php }
@@ -329,15 +355,37 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
             <div class="bargray_fluid"></div>
         </div>
         <script>
+            // 전역 변수로 API 호출 상태 체크 플래그 추가
+            let isGroupDataLoading = false;
+
             $(document).ready(function() {
+                // 페이지 로드시 세션 스토리지 초기화
+                sessionStorage.removeItem('group_data_' + <?= $_SESSION['_mt_idx'] ?>);
+                
+                // 그룹 멤버 생성 함수 호출
+                createGroupMember();
                 f_get_box_list();
+                
+                // 디바이스 체크 및 이미지/텍스트 설정
+                if (isAndroid()) {
+                    $('#kakao_text').text('<?= $translations['txt_share'] ?>');
+                    document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
+                } else if (isiOS()) {
+                    $('#kakao_text').text('<?= $translations['txt_share'] ?>');
+                    document.getElementById("kakao_image").src = "<?= CDN_HTTP ?>/img/ico_share.png";
+                }
             });
         </script>
         <div id="invite_group_list_box"></div>
     </div>
 
 
-    <? if ($sgt_cnt < 1 && $sgdt_cnt < 1) { ?>
+    <?php
+    // $sgt_cnt 값이 HTML 주석으로 출력됩니다
+    echo "<!-- sgt_cnt: " . $sgt_cnt . " -->";
+    echo "<!-- sgdt_cnt: " . $sgdt_cnt . " -->"; // sgdt_cnt도 함께 출력
+
+    if ($sgt_cnt < 1 && $sgdt_cnt < 1) { ?>
         <div class="floating_wrap on">
             <div class="flt_inner">
                 <div class="flt_head">
@@ -353,6 +401,14 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
             </div>
         </div>
     <? } ?>
+
+    <?php if ($sgt_cnt > 0) { ?>
+        <div class="b_botton mb-24">
+            <button type="button" class="btn w-100 rounded btn-primary btn-lg btn-block" onclick="location.href='./group_create'">
+                <i class="xi-plus-min mr-3"></i><?= $translations['txt_add_group'] ?>
+            </button>
+        </div>
+    <?php } ?>
 
     <? if ($sgt_cnt == 1 && $expt_cnt < 1) { ?>
         <div class="floating_wrap on">
@@ -483,18 +539,16 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         const userInput = document.getElementById('userInput');
 
         function createGroupMember() {
-            showMapLoading();
-            // sessionStorage에서 데이터를 먼저 확인
-            let cachedData = sessionStorage.getItem('group_data_' + <?= $_SESSION['_mt_idx'] ?>);
-            if (cachedData) {
-                // 캐싱된 데이터가 있으면 사용
-                let response = JSON.parse(cachedData);
-                if (response.result === 'success') {
-                    renderGroupList(response.data);
-                    return; // 함수 종료
-                }
+            // 이미 API 호출 중이면 리턴
+            if (isGroupDataLoading) {
+                console.log('API 호출이 이미 진행 중입니다.');
+                return;
             }
-
+            
+            // API 호출 시작을 표시
+            isGroupDataLoading = true;
+            showMapLoading();
+            
             var form_data = new FormData();
             if (<?= $sgdt_cnt ?> > 0) {
                 form_data.append("act", "invite_list");
@@ -514,17 +568,27 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                 timeout: 10000,
                 dataType: 'json',
                 success: function(response) {
+                    console.log('API 호출 완료');
                     if (response.result === 'success') {
+                        if (!response.data.groups || response.data.groups.length !== <?= $sgt_cnt ?>) {
+                            console.error('Expected ' + <?= $sgt_cnt ?> + ' groups but got ' +
+                                (response.data.groups ? response.data.groups.length : 0));
+                        }
                         renderGroupList(response.data);
-                        // sessionStorage에 데이터 저장
                         sessionStorage.setItem('group_data_' + <?= $_SESSION['_mt_idx'] ?>, JSON.stringify(response));
                     } else {
+                        console.error('API 응답 오류:', response.message);
                         alert(response.message);
                     }
                 },
                 error: function(err) {
-                    console.log(err);
+                    console.error('AJAX 오류:', err);
                 },
+                complete: function() {
+                    // API 호출 완료 후 상태 초기화
+                    isGroupDataLoading = false;
+                    hideMapLoading();
+                }
             });
         }
 
@@ -537,10 +601,16 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
 
             if (data.groups.length > 0) {
                 data.groups.forEach(group => {
+                    //                 let groupHeaderHtml = `
+                    //     <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=${group.sgt_idx}'">
+                    //       <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3">${group.sgt_title}<span class="ml-2">(${group.members ? group.members.length : 0})</span></p>
+                    //   `;
+                    //   // ... existing code ...
                     let groupHeaderHtml = `
-        <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=${group.sgt_idx}'">
-          <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3">${group.sgt_title}<span class="ml-2">(${group.member_cnt})</span></p>
-      `;
+    <div class="group_header d-flex align-items-center justify-content-between px_16 py_16 border-bottom cursor_pointer" onclick="location.href='./group_info?sgt_idx=${group.sgt_idx}'">
+        <p class="fs_15 fw_700 text_dynamic line_h1_2 mr-3">${group.sgt_title}<span class="ml-2">(${Array.isArray(group.members) ? group.members.length : 0})</span></p>
+`;
+                    // ... existing code ...
 
                     if (data.action === 'list') {
                         groupHeaderHtml += `<i class="fs_15 text_gray xi-angle-right-min"></i>`;
@@ -561,7 +631,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                         group.invites.forEach(invite => {
                             groupHtml += `
             <p class="fs_13 fw_500 text-primary px_14 py-3 rounded-sm w-100 bg-secondary my_12 group_list_ing">
-              ${invite.count}명 초대중
+              ${invite.count}명 대중
             </p>
           `;
                         });

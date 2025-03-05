@@ -81,52 +81,21 @@ if ($_POST['act'] == "event_source") {
     echo $rtn;
 } elseif ($_POST['act'] == "list") {
     if ($_SESSION['_mt_idx'] == '') {
-        p_alert(translate($translations['txt_login_required'], $userLang), './login', '');
+        p_alert($translations['txt_login_required'], './login', '');
     }
 
-    function getSchedules($sgdt_idx, $event_start_date, $mt_idx)
-    {
-        global $DB;
+    $mt_idx = $_SESSION['_mt_idx'];
+    $event_start_date = $_POST['event_start_date'];
 
-        //나의 일정
-        unset($list);
-        if ($sgdt_idx != '') {
-            $DB->where('sgdt_idx', $sgdt_idx);
-        } else {
-            $DB->where('mt_idx', $mt_idx);
-        }
-        $DB->where(" ( sst_sdate <= '" . $event_start_date . " 23:59:59' and sst_edate >= '" . $event_start_date . " 00:00:00' )");
-        $DB->where('sst_show', 'Y');
-        $DB->orderBy('sst_sdate', 'ASC');
-        $list = $DB->get('smap_schedule_t');
-
-        return $list;
-    }
-    // 스케줄 배열 가져오기
-    $arr_sst_idx = get_schedule_array($_SESSION['_mt_idx'], $_POST['event_start_date']);
-
-    // 스케줄 정보 가져오기 (필요한 경우에만)
-    $list_sst = [];
-    if (!empty($arr_sst_idx)) {
-        $arr_sst_idx_im = implode(',', $arr_sst_idx);
-        $list_sst = $DB->rawQuery("
-        SELECT * FROM smap_schedule_t
-        WHERE sst_idx IN (" . $arr_sst_idx_im . ") 
-         AND sst_show = 'Y'
-        GROUP BY mt_idx
-        ORDER BY sst_sdate ASC
-    ");
-    }
-
-    // 사용자 관련 그룹 정보 한 번에 가져오기
+    // 사용자 관련 그룹 정보 가져오기
     $user_groups = $DB->rawQuery("
         SELECT 
-            (SELECT COUNT(*) FROM smap_group_t WHERE mt_idx = " . $_SESSION['_mt_idx'] . " AND sgt_show = 'Y') as owner_count,
-            (SELECT COUNT(*) FROM smap_group_detail_t WHERE mt_idx = " . $_SESSION['_mt_idx'] . " AND sgdt_owner_chk = 'N' AND sgdt_leader_chk = 'Y' AND sgdt_show = 'Y' AND sgdt_discharge = 'N' AND sgdt_exit = 'N') as leader_count,
+            (SELECT COUNT(*) FROM smap_group_t WHERE mt_idx = $mt_idx AND sgt_show = 'Y') as owner_count,
+            (SELECT COUNT(*) FROM smap_group_detail_t WHERE mt_idx = $mt_idx AND sgdt_owner_chk = 'N' AND sgdt_leader_chk = 'Y' AND sgdt_show = 'Y' AND sgdt_discharge = 'N' AND sgdt_exit = 'N') as leader_count,
             GROUP_CONCAT(DISTINCT sgt.sgt_idx) as invited_group_ids
         FROM smap_group_detail_t sgdt
         LEFT JOIN smap_group_t sgt ON sgdt.sgt_idx = sgt.sgt_idx
-        WHERE sgdt.mt_idx = " . $_SESSION['_mt_idx'] . " AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N' AND sgt.sgt_show = 'Y'
+        WHERE sgdt.mt_idx = $mt_idx AND sgdt.sgdt_show = 'Y' AND sgdt.sgdt_discharge = 'N' AND sgdt.sgdt_exit = 'N' AND sgt.sgt_show = 'Y'
     ");
 
     $user_group_info = $user_groups[0];
@@ -137,45 +106,82 @@ if ($_POST['act'] == "event_source") {
     $list_sgt = [];
     if (!empty($user_group_info['invited_group_ids'])) {
         $list_sgt = $DB->rawQuery("
-        SELECT * FROM smap_group_t
-        WHERE sgt_idx IN (" . $user_group_info['invited_group_ids'] . ")
-        ORDER BY sgt_idx ASC, sgt_udate DESC
-    ");
+            SELECT * FROM smap_group_t
+            WHERE sgt_idx IN (" . $user_group_info['invited_group_ids'] . ")
+            ORDER BY sgt_idx ASC, sgt_udate DESC
+        ");
     }
-    
+
+    $group_data = [];
+
     if ($list_sgt) {
         foreach ($list_sgt as $row_sgt) {
-            $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
+            // 각 그룹에 대한 그룹원 목록을 가져옵니다.
+            $members = $DB->rawQuery("
+                SELECT sgdt.*, mem.mt_nickname, mem.mt_file1
+                FROM smap_group_detail_t sgdt
+                JOIN member_t mem ON sgdt.mt_idx = mem.mt_idx
+                WHERE sgdt.sgt_idx = " . $row_sgt['sgt_idx'] . " 
+                AND sgdt.sgdt_show = 'Y' 
+                AND sgdt.sgdt_discharge = 'N' 
+                AND sgdt.sgdt_exit = 'N'
+            ");
+
+            $member_data = [];
+            $schedule_data = [];
+
+            if ($members) {
+                foreach ($members as $member) {
+                    // 현재 사용자를 제외하고 그룹원 추가
+                    if ($member['mt_idx'] != $_SESSION['_mt_idx']) {
+                        $member_data[] = [
+                            'sgdt_idx' => $member['sgdt_idx'],
+                            'mt_nickname' => $member['mt_nickname'],
+                            'mt_file1' => $member['mt_file1']
+                        ];
+
+                        // 각 그룹원의 일정 가져오기
+                        $schedules = $DB->rawQuery("
+                            SELECT * FROM smap_schedule_t
+                            WHERE sgdt_idx = " . $member['sgdt_idx'] . " 
+                            AND sst_sdate <= '$event_start_date 23:59:59' 
+                            AND sst_edate >= '$event_start_date 00:00:00'
+                            AND sst_show = 'Y'
+                            ORDER BY sst_sdate ASC
+                        ");
+
+                        if ($schedules) {
+                            foreach ($schedules as $schedule) {
+                                $schedule_data[] = $schedule;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $group_data[] = [
+                'group' => $row_sgt,
+                'members' => $member_data,
+                'schedules' => $schedule_data
+            ];
         }
     }
-    
-    $list_sst_a = getSchedules($_POST['sgdt_idx'], $_POST['event_start_date'], $_SESSION['_mt_idx']);
-
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $sgdt_row = $DB->getone('smap_group_detail_t');
 
     // JSON 응답 생성
     $response = [
-        'event_start_date' => $_POST['event_start_date'],
-        'event_start_date_t' => DateType($_POST['event_start_date'], 20),
-        'arr_sst_idx' => $arr_sst_idx,
-        'list_sst' => $list_sst,
+        'event_start_date' => $event_start_date,
+        'event_start_date_t' => DateType($event_start_date, 20),
         'user_groups' => $user_group_info,
-        'user_group_info' => $user_group_info,
         'sgt_cnt' => $sgt_cnt,
         'sgdt_cnt' => $sgdt_cnt,
-        'group_list' => $list_sgt,
+        'group_data' => $group_data,
         'txt_schedule_of' => $translations['txt_schedule_of'],
         'txt_no_data' => $translations['txt_no_data'],
-        'mt_idx' => $_SESSION['_mt_idx'],
+        'mt_idx' => $mt_idx,
         'mt_nickname' => $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'],
         'mt_file1' => $_SESSION['_mt_file1'],
         'ct_no_profile_img_url' => $ct_no_profile_img_url,
         'CDN_HTTP' => CDN_HTTP,
-        'list_sst_a' => $list_sst_a,
-        'list_sgdt' => $list_sgdt,
-        'sgdt_idx' => $sgdt_row['sgdt_idx'],
     ];
 
     echo json_encode($response);
@@ -590,7 +596,7 @@ if ($_POST['act'] == "event_source") {
         $start_date = new DateTime($repeat_sdate);
         $end_date = new DateTime($repeat_edate);
 
-        if ($repeat_array['r1'] == 3) { // 매�� 반복일 시 요일 찾은 후 반복 실행
+        if ($repeat_array['r1'] == 3) { // 매 반복일 시 요일 찾은 후 반복 실행
             if (isset($repeat_array['r2']) && !empty($repeat_array['r2'])) {
                 // "r2" 값을 쉼표로 분리하여 배열로 변환
                 $r2_values = explode(',', $repeat_array['r2']);
@@ -752,86 +758,63 @@ if ($_POST['act'] == "event_source") {
             $DB->where('sst_pidx', $_POST['sst_idx']);
             $sst_plist = $DB->get('smap_schedule_t');
 
-            if ($sst_plist) {
-                $DB->where('sst_pidx', $_POST['sst_idx']);
-                $DB->delete('smap_schedule_t');
-
+            // 반복 일정 수정 옵션 처리
+            if (isset($_POST['edit_option']) && $_POST['edit_option'] != 'this') {
+                // 반복 일정 정보 가져오기
                 $DB->where('sst_idx', $_POST['sst_idx']);
-                $DB->delete('smap_schedule_t');
-                foreach ($all_dates as $date) {
-                    $sst_schedule_alarm = '';
-                    $sst_sdate = $date . ' ' . $_POST['pick_stime'];
-                    $sst_edate = $date . ' ' . $_POST['pick_etime'];
-                    // 일정알림시간 구하기
-                    if ($_POST['sst_all_day'] == 'N') {
-                        if ($_POST['sst_schedule_alarm_chk'] == 'Y') {
-                            // sst_pick_result 값이 시간(minute) 단위로 전송되므로, 이 값을 정수형으로 변환하여 사용합니다.
-                            $sst_pick_result = intval($_POST['sst_pick_result']);
-                            // sst_sdate 값을 DateTime 객체로 변환합니다.
-                            $sst_sdatetime = new DateTime($sst_sdate);
-                            if (
-                                $_POST['sst_pick_type'] == 'minute'
-                            ) {
-                                // sst_sdate로부터 sst_pick_result 시간 만큼 감산하여 알림 시간을 계산합니다.
-                                $sst_schedule_alarm = $sst_sdatetime->modify("-$sst_pick_result minute")->format('Y-m-d H:i:s');
-                            } else if ($_POST['sst_pick_type'] == 'hour') {
-                                // sst_sdate로부터 sst_pick_result 시간 만큼 감산하여 알림 시간을 계산합니다.
-                                $sst_schedule_alarm = $sst_sdatetime->modify("-$sst_pick_result hour")->format('Y-m-d H:i:s');
-                            } else if ($_POST['sst_pick_type'] == 'day') {
-                                // sst_sdate로부터 sst_pick_result 시간 만큼 감산하여 알림 시간을 계산합니다.
-                                $sst_schedule_alarm = $sst_sdatetime->modify("-$sst_pick_result day")->format('Y-m-d H:i:s');
-                            }
-                        }
-                    }
+                $sst_row = $DB->getone('smap_schedule_t');
+                $current_date = date('Y-m-d', strtotime($sst_row['sst_sdate']));
+                
+                if ($_POST['edit_option'] == 'all') {
+                    // 모든 반복 일정 수정 - 기존 로직대로 모두 삭제 후 다시 생성
+                    $DB->where('sst_pidx', $_POST['sst_idx']);
+                    $DB->delete('smap_schedule_t');
 
-                    unset($arr_query);
-                    $arr_query = array(
-                        "mt_idx" => $_SESSION['_mt_idx'],
-                        "sst_title" => $_POST['sst_title'],
-                        "sst_sdate" => $sst_sdate,
-                        "sst_edate" => $sst_edate,
-                        "sst_all_day" => $_POST['sst_all_day'],
-                        "sst_repeat_json" => $_POST['sst_repeat_json'],
-                        "sst_repeat_json_v" => $_POST['sst_repeat_json_v'],
-                        "sgt_idx" => $row_sgdt['sgt_idx'],
-                        "sgdt_idx" => $_POST['sgdt_idx'],
-                        "sgdt_idx_t" => $_POST['sgdt_idx_t'],
-                        "sst_alram" => $_POST['sst_alram'],
-                        "sst_alram_t" => $_POST['sst_alram_t'],
-                        "slt_idx" => $_POST['slt_idx'],
-                        "slt_idx_t" => $_POST['slt_idx_t'],
-                        "sst_location_title" => $_POST['sst_location_title'],
-                        "sst_location_add" => $_POST['sst_location_add'],
-                        "sst_location_lat" => $_POST['sst_location_lat'],
-                        "sst_location_long" => $_POST['sst_location_long'],
-                        "sst_supplies" => $_POST['sst_supplies'],
-                        "sst_memo" => $_POST['sst_memo'],
-                        "sst_show" => "Y",
-                        "sst_wdate" => $DB->now(),
-                        "sst_adate" => $_POST['sst_adate'],
-                        "sst_location_alarm" => $_POST['sst_location_alarm'],
-                        "sst_schedule_alarm_chk" => $_POST['sst_schedule_alarm_chk'],
-                        "sst_pick_type" => $_POST['sst_pick_type'],
-                        "sst_pick_result" => $_POST['sst_pick_result'],
-                        "sst_schedule_alarm" => $sst_schedule_alarm,
-                        "sst_update_chk" => $_POST['sst_update_chk'],
-                        "sst_sedate" => $_POST['sst_sdate'] . ' ~ ' . $_POST['sst_edate'],
-                    );
-                    if ($_last_idx) {
-                        $arr_query['sst_pidx'] = $_last_idx;
-                        $DB->insert('smap_schedule_t', $arr_query);
-                    } else {
-                        $_last_idx = $DB->insert('smap_schedule_t', $arr_query);
-                    }
+                    $DB->where('sst_idx', $_POST['sst_idx']);
+                    $DB->delete('smap_schedule_t');
+                } else if ($_POST['edit_option'] == 'future') {
+                    // 현재 및 이후 일정만 수정
+                    // 현재 일정 이전의 반복 일정은 유지
+                    $DB->where('sst_pidx', $_POST['sst_idx']);
+                    $DB->where("DATE(sst_sdate) >= ?", [$current_date]);
+                    $DB->delete('smap_schedule_t');
+                    
+                    // 부모 일정도 삭제
+                    $DB->where('sst_idx', $_POST['sst_idx']);
+                    $DB->delete('smap_schedule_t');
                 }
             } else {
+                // 단일 일정만 수정 - 해당 일정만 삭제하고 새로 생성
+                $DB->where('sst_idx', $_POST['sst_idx']);
+                $sst_row = $DB->getone('smap_schedule_t');
+                
+                if ($sst_row) {
+                    // 해당 일정만 삭제
+                    $DB->where('sst_idx', $_POST['sst_idx']);
+                    $DB->delete('smap_schedule_t');
+                    
+                    // 반복 일정 중 해당 날짜의 일정만 삭제
+                    $current_date = date('Y-m-d', strtotime($sst_row['sst_sdate']));
+                    $DB->where('sst_pidx', $_POST['sst_idx']);
+                    $DB->where("DATE(sst_sdate) = ?", [$current_date]);
+                    $DB->delete('smap_schedule_t');
+                }
+            }
+            
+            foreach ($all_dates as $date) {
+                $sst_schedule_alarm = '';
+                $sst_sdate = $date . ' ' . $_POST['pick_stime'];
+                $sst_edate = $date . ' ' . $_POST['pick_etime'];
+                // 일정알림시간 구하기
                 if ($_POST['sst_all_day'] == 'N') {
                     if ($_POST['sst_schedule_alarm_chk'] == 'Y') {
                         // sst_pick_result 값이 시간(minute) 단위로 전송되므로, 이 값을 정수형으로 변환하여 사용합니다.
                         $sst_pick_result = intval($_POST['sst_pick_result']);
                         // sst_sdate 값을 DateTime 객체로 변환합니다.
-                        $sst_sdatetime = new DateTime($_POST['sst_sdate']);
-                        if ($_POST['sst_pick_type'] == 'minute') {
+                        $sst_sdatetime = new DateTime($sst_sdate);
+                        if (
+                            $_POST['sst_pick_type'] == 'minute'
+                        ) {
                             // sst_sdate로부터 sst_pick_result 시간 만큼 감산하여 알림 시간을 계산합니다.
                             $sst_schedule_alarm = $sst_sdatetime->modify("-$sst_pick_result minute")->format('Y-m-d H:i:s');
                         } else if ($_POST['sst_pick_type'] == 'hour') {
@@ -843,11 +826,13 @@ if ($_POST['act'] == "event_source") {
                         }
                     }
                 }
+
                 unset($arr_query);
                 $arr_query = array(
+                    "mt_idx" => $_SESSION['_mt_idx'],
                     "sst_title" => $_POST['sst_title'],
-                    "sst_sdate" => $_POST['sst_sdate'],
-                    "sst_edate" => $_POST['sst_edate'],
+                    "sst_sdate" => $sst_sdate,
+                    "sst_edate" => $sst_edate,
                     "sst_all_day" => $_POST['sst_all_day'],
                     "sst_repeat_json" => $_POST['sst_repeat_json'],
                     "sst_repeat_json_v" => $_POST['sst_repeat_json_v'],
@@ -864,7 +849,8 @@ if ($_POST['act'] == "event_source") {
                     "sst_location_long" => $_POST['sst_location_long'],
                     "sst_supplies" => $_POST['sst_supplies'],
                     "sst_memo" => $_POST['sst_memo'],
-                    "sst_udate" => $DB->now(),
+                    "sst_show" => "Y",
+                    "sst_wdate" => $DB->now(),
                     "sst_adate" => $_POST['sst_adate'],
                     "sst_location_alarm" => $_POST['sst_location_alarm'],
                     "sst_schedule_alarm_chk" => $_POST['sst_schedule_alarm_chk'],
@@ -874,12 +860,12 @@ if ($_POST['act'] == "event_source") {
                     "sst_update_chk" => $_POST['sst_update_chk'],
                     "sst_sedate" => $_POST['sst_sdate'] . ' ~ ' . $_POST['sst_edate'],
                 );
-
-                $DB->where('sst_idx', $_POST['sst_idx']);
-
-                $DB->update('smap_schedule_t', $arr_query);
-
-                $_last_idx = $_POST['sst_idx'];
+                if ($_last_idx) {
+                    $arr_query['sst_pidx'] = $_last_idx;
+                    $DB->insert('smap_schedule_t', $arr_query);
+                } else {
+                    $_last_idx = $DB->insert('smap_schedule_t', $arr_query);
+                }
             }
         }
         //일정 확인하여 오너가 수정한지 본인이 수정한지 확인
@@ -1133,6 +1119,35 @@ if ($_POST['act'] == "event_source") {
     }
     // p_gotourl("./schedule");
     echo "Y";
+} elseif ($_POST['act'] == "check_repeat_schedule") {
+    if ($_SESSION['_mt_idx'] == '') {
+        p_alert($translations['txt_login_required'], './login', '');
+    }
+    if ($_POST['sst_idx'] == '') {
+        p_alert('잘못된 접근입니다. sst_idx');
+    }
+
+    // 해당 일정이 반복 일정인지 확인
+    $DB->where('sst_idx', $_POST['sst_idx']);
+    $sst_row = $DB->getone('smap_schedule_t');
+
+    // 반복 일정 여부 확인 (pidx가 있거나 자신이 pidx인 경우)
+    $is_repeat = false;
+    
+    if ($sst_row['sst_pidx'] > 0) {
+        // 자신이 반복 일정의 하위 일정인 경우
+        $is_repeat = true;
+    } else {
+        // 자신이 반복 일정의 부모인 경우
+        $DB->where('sst_pidx', $_POST['sst_idx']);
+        $child_count = $DB->getValue('smap_schedule_t', "count(*)");
+        
+        if ($child_count > 0) {
+            $is_repeat = true;
+        }
+    }
+
+    echo $is_repeat ? 'Y' : 'N';
 } elseif ($_POST['act'] == "schedule_delete") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert($translations['txt_login_required'], './login', '');
@@ -1141,22 +1156,76 @@ if ($_POST['act'] == "event_source") {
         p_alert('잘못된 접근입니다. sst_idx');
     }
 
-    unset($arr_query);
-    $arr_query = array(
-        "sst_show" => 'N',
-        "sst_ddate" => $DB->now(),
-    );
-
-    // $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sst_idx', $_POST['sst_idx']);
-
-    $DB->update('smap_schedule_t', $arr_query);
-
-
-    //일정 확인하여 오너가 수정한지 본인이 수정한지 확인
+    // 일정 정보 가져오기
     $DB->where('sst_idx', $_POST['sst_idx']);
     $sst_row = $DB->getone('smap_schedule_t');
 
+    // 삭제 유형 확인 (단일 일정 또는 모든 반복 일정)
+    $delete_type = isset($_POST['delete_type']) ? $_POST['delete_type'] : 'single';
+
+    if ($delete_type == 'all') {
+        // 모든 반복 일정 삭제 (해당 일자 및 이후만)
+        if ($sst_row['sst_pidx'] > 0) {
+            // 자신이 반복 일정의 하위 일정인 경우
+            $parent_idx = $sst_row['sst_pidx'];
+            
+            // 현재 일정의 시작 날짜 가져오기
+            $current_date = date('Y-m-d', strtotime($sst_row['sst_sdate']));
+            
+            // 부모 일정 삭제 (실제로는 숨김 처리)
+            unset($arr_query);
+            $arr_query = array(
+                "sst_show" => 'N',
+                "sst_ddate" => $DB->now(),
+            );
+            $DB->where('sst_idx', $parent_idx);
+            $DB->update('smap_schedule_t', $arr_query);
+            
+            // 현재 일정 및 이후의 반복 일정만 삭제
+            unset($arr_query);
+            $arr_query = array(
+                "sst_show" => 'N',
+                "sst_ddate" => $DB->now(),
+            );
+            $DB->where('sst_pidx', $parent_idx);
+            $DB->where("DATE(sst_sdate) >= ?", [$current_date]);
+            $DB->update('smap_schedule_t', $arr_query);
+        } else {
+            // 자신이 반복 일정의 부모인 경우
+            // 현재 일정의 시작 날짜 가져오기
+            $current_date = date('Y-m-d', strtotime($sst_row['sst_sdate']));
+            
+            // 부모 일정 삭제 (실제로는 숨김 처리)
+            unset($arr_query);
+            $arr_query = array(
+                "sst_show" => 'N',
+                "sst_ddate" => $DB->now(),
+            );
+            $DB->where('sst_idx', $_POST['sst_idx']);
+            $DB->update('smap_schedule_t', $arr_query);
+            
+            // 현재 일정 및 이후의 반복 일정만 삭제
+            unset($arr_query);
+            $arr_query = array(
+                "sst_show" => 'N',
+                "sst_ddate" => $DB->now(),
+            );
+            $DB->where('sst_pidx', $_POST['sst_idx']);
+            $DB->where("DATE(sst_sdate) >= ?", [$current_date]);
+            $DB->update('smap_schedule_t', $arr_query);
+        }
+    } else {
+        // 단일 일정만 삭제
+        unset($arr_query);
+        $arr_query = array(
+            "sst_show" => 'N',
+            "sst_ddate" => $DB->now(),
+        );
+        $DB->where('sst_idx', $_POST['sst_idx']);
+        $DB->update('smap_schedule_t', $arr_query);
+    }
+
+    // 그룹 정보 가져오기
     $DB->where('sgdt_idx', $sst_row['sgdt_idx']);
     $sgdt_row = $DB->getone('smap_group_detail_t');
 
@@ -1223,6 +1292,7 @@ if ($_POST['act'] == "event_source") {
         $mt_idx_t = $_SESSION['_mt_idx'];
     }
 
+    // 저장된 날짜가 있으면 사용, 없으면 현재 날짜 사용
     if ($_POST['sdate']) {
         $sdate = $_POST['sdate'];
     } else {
@@ -1367,6 +1437,7 @@ if ($_POST['act'] == "event_source") {
                                 $week_c = '';
                             }
 
+                            // 오늘 날짜 또는 저장된 선택 날짜와 일치하는지 확인
                             if ($c_id == date("Y-m-d")) {
                                 $today_c = ' today';
                             } else {
@@ -1391,6 +1462,69 @@ if ($_POST['act'] == "event_source") {
             </div>
         </div>
     </form>
+
+    <script>
+        // 페이지 로드 시 저장된 날짜 확인 및 적용
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedDate = localStorage.getItem('selectedDate');
+            if (savedDate) {
+                const calendarElement = document.getElementById('calendar_' + savedDate);
+                if (calendarElement) {
+                    // 기존 선택된 날짜의 스타일 제거
+                    const selectedElements = document.querySelectorAll('.c_id.selected, .c_id.active');
+                    selectedElements.forEach(el => {
+                        el.classList.remove('selected');
+                        el.classList.remove('active');
+                    });
+                    
+                    // 저장된 날짜에 선택 스타일 적용
+                    calendarElement.classList.add('selected');
+                    calendarElement.classList.add('active');
+                    
+                    // 일정 데이터 로드
+                    loadScheduleData(savedDate);
+                }
+            }
+        });
+
+        // 날짜 클릭 시 저장 및 스타일 적용
+        function f_day_click(date) {
+            // localStorage에 선택된 날짜 저장
+            localStorage.setItem('selectedDate', date);
+            
+            // 기존 선택된 날짜의 스타일 제거
+            const selectedElements = document.querySelectorAll('.c_id.selected, .c_id.active');
+            selectedElements.forEach(el => {
+                el.classList.remove('selected');
+                el.classList.remove('active');
+            });
+            
+            // 새로 선택된 날짜에 스타일 적용
+            const calendarElement = document.getElementById('calendar_' + date);
+            if (calendarElement) {
+                calendarElement.classList.add('selected');
+                calendarElement.classList.add('active');
+            }
+
+            // AJAX를 통한 일정 목록 조회
+            $.ajax({
+                type: "POST",
+                url: "./schedule_update.php",
+                data: {
+                    act: "schedule_list",
+                    event_start_date: date
+                },
+                success: function(response) {
+                    $("#schedule_list").html(response);
+                    schedule_map_list(date);
+                    
+                    // 날짜 선택 상태 유지
+                    $('.c_id').removeClass('selected active');
+                    $('#calendar_' + date).addClass('selected active');
+                }
+            });
+        }
+    </script>
 <? } elseif ($_POST['act'] == "group_member_list") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert($translations['txt_login_required'], './login', '');
@@ -1912,7 +2046,7 @@ if ($_POST['act'] == "event_source") {
         return $DB->getone('smap_group_detail_t');
     }
 
-    // 함수 정의: 그룹원 리스트 조회
+    // 함수 정��: 그룹원 리스트 조회
     function get_group_members($sgt_idx)
     {
         global $DB;
@@ -2399,6 +2533,58 @@ if ($_POST['act'] == "event_source") {
     $result_data['marker_reload'] = 'Y';
     echo json_encode($result_data);
     exit;
+} elseif ($_POST['act'] == "map_schedule_list") {
+    if ($_SESSION['_mt_idx'] == '') {
+        p_alert($translations['txt_login_required'], './login', '');
+    }
+
+    $event_start_date = $_POST['event_start_date'];
+    
+    // 사용자의 그룹 정보 가져오기
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx, GROUP_CONCAT(sgdt_idx) as gc_sgdt_idx');
+
+    // 지도에 표시할 일정 데이터 가져오기
+    $schedules = array();
+    
+    if ($row_sgdt['gc_sgt_idx']) {
+        $query = "SELECT sst.*, mt.mt_nickname, mt.mt_file1, 
+                        sgdt.sgdt_idx, sgt.sgt_title
+                 FROM smap_schedule_t sst
+                 JOIN smap_group_detail_t sgdt ON sst.sgdt_idx = sgdt.sgdt_idx
+                 JOIN smap_group_t sgt ON sgdt.sgt_idx = sgt.sgt_idx
+                 JOIN member_t mt ON sgdt.mt_idx = mt.mt_idx
+                 WHERE sgt.sgt_idx IN (" . $row_sgdt['gc_sgt_idx'] . ")
+                 AND sst.sst_sdate <= '$event_start_date 23:59:59'
+                 AND sst.sst_edate >= '$event_start_date 00:00:00'
+                 AND sst.sst_show = 'Y'
+                 ORDER BY sst.sst_sdate ASC";
+        
+        $schedules = $DB->rawQuery($query);
+    }
+    
+    // 결과 출력
+    if ($schedules) {
+        foreach ($schedules as $schedule) {
+            ?>
+            <div class="schedule-item">
+                <div class="schedule-info">
+                    <div class="group-name"><?= $schedule['sgt_title'] ?></div>
+                    <div class="member-name"><?= $schedule['mt_nickname'] ?></div>
+                    <div class="schedule-title"><?= $schedule['sst_title'] ?></div>
+                    <div class="schedule-time">
+                        <?= date('H:i', strtotime($schedule['sst_sdate'])) ?> - 
+                        <?= date('H:i', strtotime($schedule['sst_edate'])) ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+    } else {
+        echo '<div class="no-schedule">' . $translations['txt_no_schedule'] . '</div>';
+    }
 }
 
 

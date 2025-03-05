@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'Ingat Saya', // 자동 로그인 설정하기
+    'txt_group_delete' => 'Hapus Grup', // 그룹 삭제
+    'txt_group_edit' => 'Edit Grup',
     'txt_coupon_input' => 'Input Kupon', // 쿠폰 입력
     'txt_login_required' => 'Login Diperlukan.', // 로그인이 필요합니다.
     'txt_login_another_device' => 'Masuk dari Perangkat Lain.', // 다른 기기에서 로그인되었습니다.
@@ -822,4 +825,9 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'Ini adalah jadwal berulang. Silakan pilih metode penghapusan.',
+    'txt_delete_this_schedule_only' => 'Hapus jadwal ini saja',
+    'txt_delete_all_repeat_schedules' => 'Hapus jadwal ini dan semua jadwal berulang di masa depan',
+    'txt_all_schedules_deleted_notification_alert' => 'Jadwal yang dipilih dan semua jadwal berulang di masa depan telah dihapus.',
+    'txt_previous_schedules_kept' => '※ Jadwal berulang sebelumnya akan tetap dipertahankan.',
 ];

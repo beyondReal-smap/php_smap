@@ -3,16 +3,25 @@ include $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $b_menu = '';
 $h_menu = '2';
 $translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php'; // 번역 파일 로드
-// if ($_SESSION['_mt_idx'] == '') {
-//     alert($translations['txt_login_required'], './login', '');
-// } else {
-//     // 앱토큰값이 DB와 같은지 확인
-//     $DB->where('mt_idx', $_SESSION['_mt_idx']);
-//     $mem_row = $DB->getone('member_t');
-//     if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-//         alert($translations['txt_login_attempt_other_device'], './logout');
-//     }
-// }
+
+// 세션이 없을 때 자동 로그인 체크
+if (!isset($_SESSION['_mt_idx']) || $_SESSION['_mt_idx'] == '') {
+    // 자동 로그인 시도
+    if (checkAutoLogin()) {
+        // 자동 로그인 성공
+    } else {
+        // 자동 로그인 실패 시 로그인 페이지로 이동
+        alert($translations['txt_login_required'], './login', '');
+    }
+} else {
+    // 앱토큰값이 DB와 같은지 확인
+    $DB->where('mt_idx', $_SESSION['_mt_idx']);
+    $mem_row = $DB->getone('member_t');
+    if (isset($mem_row['mt_token_id']) && isset($_SESSION['_mt_token_id']) && $_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
+        alert($translations['txt_login_attempt_other_device'], './logout');
+    }
+}
+
 if ($_GET['sst_idx']) { // 수정
     $DB->where('sst_idx', $_GET['sst_idx']);
     $sst_row = $DB->getone('smap_schedule_t');
@@ -771,7 +780,40 @@ $debug_t = 'hidden';
 
                 <script>
                     $(document).ready(function() {
+                        // URL에서 선택된 날짜 가져오기
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var selectedDate = urlParams.get('sdate');
+                        
+                        if (selectedDate) {
+                            // 선택된 날짜가 있으면 해당 날짜로 설정
+                            var formattedDate = dateFormat_week(selectedDate);
+                            $('#sdate_txt').html(formattedDate);
+                            $('#pick_sdate').val(selectedDate);
+                            $('#sst_sdate').val(selectedDate + ' ' + $('#pick_stime').val());
+                            
+                            // 종료 날짜도 같은 날짜로 초기화
+                            $('#edate_txt').html(formattedDate);
+                            $('#pick_edate').val(selectedDate);
+                            $('#sst_edate').val(selectedDate + ' ' + $('#pick_etime').val());
+                        }
+
                         datetime_chk();
+                    });
+
+                    const btn_sdate_b = document.getElementById("btn_sdate");
+                    btn_sdate_b.addEventListener('click', (e) => {
+                        <? if ($readonly) {
+                        } else { ?>
+                            this.blur();
+                            e.preventDefault();
+                            btn_class_active();
+                            setTimeout(() => {
+                                $('#btn_sdate').addClass('btn_active');
+                            }, 100);
+                            setTimeout(() => {
+                                f_open_cal('stime');
+                            }, 100);
+                        <? } ?>
                     });
 
                     function get_time_format(hh_data, mm_data) {
@@ -805,24 +847,8 @@ $debug_t = 'hidden';
                         }
                     }
 
-                    const btn_sdate_b = document.getElementById("btn_sdate");
                     const btn_edate_b = document.getElementById("btn_edate");
 
-                    btn_sdate_b.addEventListener('click', (e) => {
-                        <? if ($readonly) {
-                        } else { ?>
-                            this.blur();
-                            e.preventDefault();
-                            btn_class_active();
-                            setTimeout(() => {
-                                $('#btn_sdate').addClass('btn_active');
-                            }, 100);
-                            setTimeout(() => {
-                                f_open_cal('stime');
-                            }, 100);
-                        <? } ?>
-                        // ttcc();
-                    });
                     btn_edate_b.addEventListener('click', (e) => {
                         <? if ($readonly) {
                         } else { ?>
@@ -1383,55 +1409,24 @@ $debug_t = 'hidden';
                     }
 
                     function datetime_chk() {
-                        var sd = $('#pick_sdate').val();
-                        var ed = $('#pick_edate').val();
-                        var st = $('#pick_stime').val();
-                        var et = $('#pick_etime').val();
-                        var pd = $('#pick_date').val();
-                        var pt = $('#pick_time').val();
+                        var pick_sdate = $('#pick_sdate').val();
+                        var pick_edate = $('#pick_edate').val();
+                        var pick_stime = $('#pick_stime').val();
+                        var pick_etime = $('#pick_etime').val();
 
-                        if (sd && ed && st && et) {
-                            var csdt = new Date(sd + ' ' + st);
-                            var cedt = new Date(ed + ' ' + et);
-
-                            console.log("csdt : " + csdt);
-                            console.log("cedt : " + cedt);
-                            // console.log(csdt > cedt);
-
-                            if (csdt == cedt) { //시작 == 마감
-                                var usd = (csdt.getTime() / 1000);
-                                var usc = Unix_timestamp(usd + 3600);
-                                var syd = new Date(usc);
-
-                                set_date_time(sd, ed, st, et);
-                            } else {
-                                if (csdt < cedt) { //시작 < 마감
-                                    set_date_time(sd, ed, st, et);
-                                } else { //시작 > 마감
-                                    console.log("pd pt " + pd + " " + pt);
-                                    if (pt == 'stime') { //시작 설정시
-                                        var usd = (csdt.getTime() / 1000);
-                                        var usc = Unix_timestamp(usd + 3600);
-                                        var syd = new Date(usc);
-
-                                        console.log(ed + et);
-
-                                        set_date_time(sd, ed, st, et);
-                                    } else { //마감 설정시
-                                        var ued = (cedt.getTime() / 1000);
-                                        var uec = Unix_timestamp(ued - 3600);
-                                        var eyd = new Date(uec);
-
-                                        set_date_time(sd, ed, st, et);
-                                    }
-                                }
-                            }
-                        } else {
-                            $('#sst_sdate').val('');
-                            $('#sst_edate').val('');
-
-                            return 'edate_chg';
+                        if (pick_sdate) {
+                            $('#sdate_txt').html(dateFormat_week(pick_sdate));
+                            $('#stime_txt').html(get_time_format(pick_stime.split(':')[0], pick_stime.split(':')[1]));
                         }
+
+                        if (pick_edate) {
+                            $('#edate_txt').html(dateFormat_week(pick_edate));
+                            $('#etime_txt').html(get_time_format(pick_etime.split(':')[0], pick_etime.split(':')[1]));
+                        }
+
+                        // sst_sdate와 sst_edate 업데이트
+                        $('#sst_sdate').val(pick_sdate + ' ' + pick_stime);
+                        $('#sst_edate').val(pick_edate + ' ' + pick_etime);
                     }
                 </script>
                 <div class="line_ip mt_25 d-none-temp">
@@ -1630,7 +1625,7 @@ $debug_t = 'hidden';
                     <div class="row line_ip mx-0 pl-0">
                         <div class="col col-auto line_tit pl-0"><img src="<?= CDN_HTTP ?>/img/ip_ic_contact.png" alt="<?= $translations['txt_contact'] ?>"></div>
                         <div class="col pl-0">
-                            <input type="text" readonly class="form-none cursor_pointer" placeholder="<?= $translations['txt_enter_contact_info'] ?>" value="" <? if (!$readonly) {
+                            <input type="text" readonly class="form-none cursor_pointer" placeholder="<?= $translations['txt_contact'] ?>" value="" <? if (!$readonly) {
                                                                                                                                                                     echo 'data-toggle="modal"';
                                                                                                                                                                 } ?> data-target="#schedule_contact">
                         </div>
@@ -1904,131 +1899,18 @@ $debug_t = 'hidden';
 
             $("#frm_form").validate({
                 submitHandler: function() {
-                    var sd = $('#sst_sdate').val();
-                    var ed = $('#sst_edate').val();
-                    var slt_idx_t = $('#slt_idx_t').val();
+                    var f = document.frm_form;
 
-                    if (sd && ed) {
-                        var csdt = new Date(sd);
-                        var cedt = new Date(ed);
-
-                        if (csdt > cedt) {
-                            /* $.alert({
-                                title: '',
-                                type: "blue",
-                                typeAnimated: true,
-                                content: '종료시간은 시작 시간보다 나중이어야 합니다.',
-                                buttons: {
-                                    confirm: {
-                                        btnClass: "btn-default btn-lg btn-block",
-                                        text: "확인",
-                                        action: function() {
-                                            var offset = $("#sst_sdate").offset();
-                                            $("html, body").animate({
-                                                scrollTop: offset.top
-                                            }, 400);
-                                        },
-                                    },
-                                },
-                            }); */
-                            jalert("<?= $translations['txt_end_time_later_than_start'] ?>");
-                            return false;
-                        }
-                    } else {
-                        jalert("<?= $translations['txt_enter_schedule_time'] ?>");
+                    // 반복 일정인 경우 수정 옵션 모달 표시
+                    <?php if ($row_sst['sst_idx'] && $sst_repeat_json_t && $sst_repeat_json_t['r1'] != '1') { ?>
+                        // 반복 일정 수정 모달 표시
+                        $('#schedule_repeat_edit').modal('show');
                         return false;
-                    }
-                    if (!slt_idx_t) {
-                        $('#sch_without_modal').modal('toggle');
+                    <?php } else { ?>
+                        // 일반 일정 또는 반복 없는 일정은 바로 제출
+                        submitScheduleForm('this');
                         return false;
-                    }
-
-                    $('#btn_submit').attr('disabled', true);
-
-                    // $('#splinner_modal').modal('toggle');
-
-                    var form_t = $("#frm_form")[0];
-                    var formData_t = new FormData(form_t);
-
-                    // 체크된 체크박스의 값을 저장할 배열
-                    var checkedValues = [];
-
-                    // 체크된 체크박스 요소 선택
-                    $('input[name="sst_update_chk"]:checked').each(function() {
-                        // 체크된 체크박스의 값 배열에 추가
-                        checkedValues.push($(this).val());
-                    });
-
-                    // 체크된 체크박스 값들을 콤마로 구분하여 문자열로 변환
-                    var checkedValuesString = checkedValues.join(',');
-
-                    // 체크된 체크박스 값 추가
-                    $('input[name="sst_update_chk"]:checked').each(function() {
-                        formData_t.append("sst_update_chk", checkedValuesString);
-                    });
-                    // 폼 데이터 확인
-                    for (var pair of formData_t.entries()) {
-                        // console.log(pair[0] + ': ' + pair[1]);
-                    }
-                    $.ajax({
-                        url: './schedule_update',
-                        enctype: "multipart/form-data",
-                        data: formData_t,
-                        type: "POST",
-                        async: true,
-                        contentType: false,
-                        processData: false,
-                        cache: true,
-                        timeout: 10000,
-                        success: function(data) {
-                            $('#btn_submit').attr('disabled', false);
-
-                            if (data == 'Y') {
-                                <?php if ($row_sst['sst_idx']) { ?>
-                                    /* $.alert({
-                                        title: '',
-                                        type: "blue",
-                                        typeAnimated: true,
-                                        content: '수정되었습니다.',
-                                        buttons: {
-                                            confirm: {
-                                                btnClass: "btn-default btn-lg btn-block",
-                                                text: "확인",
-                                                action: function() {
-                                                    location.href = './schedule';
-                                                },
-                                            },
-                                        },
-                                    }); */
-
-                                    jalert_url("<?= $translations['txt_schedule_edit_notification_alert'] ?>", './schedule');
-                                <?php } else { ?>
-                                    /* $.alert({
-                                        title: '',
-                                        type: "blue",
-                                        typeAnimated: true,
-                                        content: '등록되었습니다.',
-                                        buttons: {
-                                            confirm: {
-                                                btnClass: "btn-default btn-lg btn-block",
-                                                text: "확인",
-                                                action: function() {
-                                                    location.href = './schedule';
-                                                },
-                                            },
-                                        },
-                                    }); */
-                                    jalert_url("<?= $translations['txt_new_schedule_notification_alert'] ?>", './schedule');
-                                <?php } ?>
-                            } else {
-                                console.log(data);
-                            }
-                        },
-                        error: function(err) {
-                            console.log(err);
-                        },
-                    });
-                    return false;
+                    <?php } ?>
                 },
                 rules: {
                     sst_title: {
@@ -2065,6 +1947,77 @@ $debug_t = 'hidden';
                         .append(error);
                 },
             });
+
+            // 반복 일정 수정 모달에서 선택 시 처리
+            $('#btn_edit_single').click(function() {
+                submitScheduleForm('this');
+            });
+
+            $('#btn_edit_all').click(function() {
+                submitScheduleForm('all');
+            });
+
+            // 일정 폼 제출 함수
+            function submitScheduleForm(editOption) {
+                $('#btn_submit').attr('disabled', true);
+                
+                var form_t = $("#frm_form")[0];
+                var formData_t = new FormData(form_t);
+                
+                // 체크된 체크박스의 값을 저장할 배열
+                var checkedValues = [];
+                
+                // 체크된 체크박스 요소 선택
+                $('input[name="sst_update_chk"]:checked').each(function() {
+                    // 체크된 체크박스의 값 배열에 추가
+                    checkedValues.push($(this).val());
+                });
+                
+                // 체크된 체크박스 값들을 콤마로 구분하여 문자열로 변환
+                var checkedValuesString = checkedValues.join(',');
+                
+                // 체크된 체크박스 값 추가
+                $('input[name="sst_update_chk"]:checked').each(function() {
+                    formData_t.append("sst_update_chk", checkedValuesString);
+                });
+                
+                // 반복 일정 수정 옵션 추가
+                formData_t.append("edit_option", editOption);
+                
+                // 폼 데이터 확인
+                for (var pair of formData_t.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+                
+                $.ajax({
+                    url: './schedule_update',
+                    enctype: "multipart/form-data",
+                    data: formData_t,
+                    type: "POST",
+                    async: true,
+                    contentType: false,
+                    processData: false,
+                    cache: true,
+                    timeout: 5000,
+                    success: function(data) {
+                        $('#btn_submit').attr('disabled', false);
+                        console.log(data);
+                        
+                        if (data == 'Y') {
+                            <?php if ($row_sst['sst_idx']) { ?>
+                                jalert_url("<?= $translations['txt_schedule_edit_notification_alert'] ?>", './schedule');
+                            <?php } else { ?>
+                                jalert_url("<?= $translations['txt_new_schedule_notification_alert'] ?>", './schedule');
+                            <?php } ?>
+                        } else {
+                            console.log(data);
+                        }
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    },
+                });
+            }
 
             function f_modal_schedule_member() {
                 var form_data = new FormData();
@@ -2188,8 +2141,9 @@ $debug_t = 'hidden';
             }
 
             function f_delete_schedule(i) {
+                // 먼저 반복 일정인지 확인
                 var form_data = new FormData();
-                form_data.append("act", "schedule_delete");
+                form_data.append("act", "check_repeat_schedule");
                 form_data.append("sst_idx", i);
 
                 $.ajax({
@@ -2204,23 +2158,87 @@ $debug_t = 'hidden';
                     timeout: 5000,
                     success: function(data) {
                         if (data == 'Y') {
-                            // history.back();
-                            // $.alert({
-                            //     title: '',
-                            //     type: "blue",
-                            //     typeAnimated: true,
-                            //     content: '해당 일정이 삭제되었습니다.',
-                            //     buttons: {
-                            //         confirm: {
-                            //             btnClass: "btn-default btn-lg btn-block",
-                            //             text: "확인",
-                            //             action: function() {
-                            //                 location.href = './schedule';
-                            //             },
-                            //         },
-                            //     },
-                            // });
+                            // 반복 일정인 경우 반복 일정 삭제 모달 표시
+                            // 현재 일정 ID 저장
+                            currentScheduleId = i;
+                            
+                            // 버튼에 이벤트 핸들러 연결
+                            $('#btn_delete_single').off('click').on('click', function() {
+                                f_delete_schedule_single(currentScheduleId);
+                            });
+                            
+                            $('#btn_delete_all').off('click').on('click', function() {
+                                f_delete_schedule_all(currentScheduleId);
+                            });
+                            
+                            // 접근성 개선: 모달이 열릴 때 aria-hidden 속성 제거
+                            $('#schedule_repeat_delete').on('shown.bs.modal', function () {
+                                $(this).removeAttr('aria-hidden');
+                            });
+                            
+                            $('#schedule_repeat_delete').modal('show');
+                        } else {
+                            // 반복 일정이 아닌 경우 바로 삭제
+                            f_delete_schedule_single(i);
+                        }
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    },
+                });
+            }
+
+            // 전역 변수로 현재 일정 ID 저장
+            var currentScheduleId = 0;
+
+            // 해당 일정만 삭제
+            function f_delete_schedule_single(i) {
+                var form_data = new FormData();
+                form_data.append("act", "schedule_delete");
+                form_data.append("sst_idx", i);
+                form_data.append("delete_type", "single");
+
+                $.ajax({
+                    url: "./schedule_update",
+                    enctype: "multipart/form-data",
+                    data: form_data,
+                    type: "POST",
+                    async: true,
+                    contentType: false,
+                    processData: false,
+                    cache: true,
+                    timeout: 5000,
+                    success: function(data) {
+                        if (data == 'Y') {
                             jalert_url("<?= $translations['txt_schedule_delete_notification_alert'] ?>", './schedule');
+                        }
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    },
+                });
+            }
+
+            // 모든 반복 일정 삭제
+            function f_delete_schedule_all(i) {
+                var form_data = new FormData();
+                form_data.append("act", "schedule_delete");
+                form_data.append("sst_idx", i);
+                form_data.append("delete_type", "all");
+
+                $.ajax({
+                    url: "./schedule_update",
+                    enctype: "multipart/form-data",
+                    data: form_data,
+                    type: "POST",
+                    async: true,
+                    contentType: false,
+                    processData: false,
+                    cache: true,
+                    timeout: 5000,
+                    success: function(data) {
+                        if (data == 'Y') {
+                            jalert_url("<?= $translations['txt_all_schedules_deleted_notification_alert'] ?>", './schedule');
                         }
                     },
                     error: function(err) {
@@ -3270,22 +3288,61 @@ $debug_t = 'hidden';
     </div>
 </div>
 <!-- F-6 일정삭제 -->
-<div class="modal fade" id="schedule_delete" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
+<div class="modal fade" id="schedule_delete" tabindex="-1" role="dialog" aria-labelledby="scheduleDeleteTitle">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <!-- opt_bottom_wrap 이거 넣으면 바텀시트 / modal-dialog-scrollable 필요시-->
         <div class="modal-content">
             <div class="modal-body pt_40 pb_27 px-3 ">
-                <p class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= $translations['txt_delete_schedule_question'] ?></p>
+                <p id="scheduleDeleteTitle" class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= $translations['txt_delete_schedule_question'] ?></p>
             </div>
             <div class="modal-footer w-100 px-0 py-0 mt-0 border-0">
                 <div class="d-flex align-items-center w-100 mx-0 my-0">
-                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal" aria-label="Close"><?= $translations['txt_no'] ?></button>
-                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" aria-label="Close" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?= $translations['txt_delete'] ?></button>
+                    <button type="button" class="btn btn-bg_gray btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_right_0" data-dismiss="modal"><?= $translations['txt_no'] ?></button>
+                    <button type="button" class="btn btn-primary btn-md w-50 rounded_t_left_0 rounded_t_right_0 rounded_b_left_0" data-dismiss="modal" onclick="f_delete_schedule('<?= $row_sst['sst_idx'] ?>');"><?= $translations['txt_delete'] ?></button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- F-6-1 반복 일정삭제 선택 -->
+<div class="modal fade" id="schedule_repeat_delete" tabindex="-1" role="dialog" aria-labelledby="scheduleRepeatDeleteTitle">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body pt_40 pb_27 px-3">
+                <p id="scheduleRepeatDeleteTitle" class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= $translations['txt_delete_schedule_question'] ?></p>
+                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center"><?= $translations['txt_repeat_schedule_delete_option'] ?></p>
+                <p class="fs_12 fw_400 text_gray mt-2 text_dynamic text-center"><?= $translations['txt_previous_schedules_kept'] ?></p>
+            </div>
+            <div class="modal-footer w-100 px-3 py-3 mt-0 border-0">
+                <div class="d-flex flex-column align-items-center w-100 mx-0 my-0">
+                    <button type="button" id="btn_delete_single" class="btn btn-primary btn-md mb-2" style="width: 90%; border-radius: 8px;" data-dismiss="modal"><?= $translations['txt_delete_this_schedule_only'] ?></button>
+                    <button type="button" id="btn_delete_all" class="btn btn-danger btn-md" style="width: 90%; border-radius: 8px;" data-dismiss="modal"><?= $translations['txt_delete_all_repeat_schedules'] ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- F-6-2 반복 일정수정 선택 -->
+<div class="modal fade" id="schedule_repeat_edit" tabindex="-1" role="dialog" aria-labelledby="scheduleRepeatEditTitle">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body pt_40 pb_27 px-3">
+                <p id="scheduleRepeatEditTitle" class="fs_16 fw_700 line_h1_4 text_dynamic text-center py_14"><?= $translations['txt_edit_repeat_schedule'] ?></p>
+                <p class="fs_14 fw_400 text_gray mt-3 text_dynamic text-center"><?= $translations['txt_repeat_schedule_edit_option'] ?></p>
+                <p class="fs_12 fw_400 text_gray mt-2 text_dynamic text-center"><?= $translations['txt_previous_schedules_kept'] ?></p>
+            </div>
+            <div class="modal-footer w-100 px-3 py-3 mt-0 border-0">
+                <div class="d-flex flex-column align-items-center w-100 mx-0 my-0">
+                    <button type="button" id="btn_edit_single" class="btn btn-primary btn-md mb-2" style="width: 90%; border-radius: 8px;" data-dismiss="modal"><?= $translations['txt_edit_this_schedule_only'] ?></button>
+                    <button type="button" id="btn_edit_all" class="btn btn-danger btn-md" style="width: 90%; border-radius: 8px;" data-dismiss="modal"><?= $translations['txt_edit_all_repeat_schedules'] ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- F-5 일정상세 - 연락처 목록 – 수정 -->
 <div class="modal fade" id="contact_modify" tabindex="-1">
     <div class="modal-dialog modal-default modal-dialog-scrollable modal-dialog-centered">
@@ -3857,5 +3914,29 @@ $debug_t = 'hidden';
 </div>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
+?>
+
+<script>
+// 모달 접근성 개선을 위한 코드
+$(document).ready(function() {
+    // 모달이 열릴 때 aria-hidden 속성 제거
+    $('.modal').on('shown.bs.modal', function() {
+        $(this).removeAttr('aria-hidden');
+    });
+    
+    // 모달이 닫힐 때 포커스 제거
+    $('.modal').on('hide.bs.modal', function() {
+        // 모달 내부의 버튼에서 포커스 제거
+        $(this).find('button').blur();
+    });
+    
+    // 모달이 완전히 닫힌 후 aria-hidden 속성 설정
+    $('.modal').on('hidden.bs.modal', function() {
+        $(this).attr('aria-hidden', 'true');
+    });
+});
+</script>
+
+<?php
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
 ?>

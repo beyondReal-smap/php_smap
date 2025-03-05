@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_remember_me' => 'Recordarme', // 자동 로그인 설정하기
+    'txt_group_delete' => 'Eliminar grupo', // 그룹 삭제
+    'txt_group_edit' => 'Editar grupo',
     'txt_add_schedule' => 'Agregar horario', // 일정 추가
     'txt_coupon_input' => 'Entrada de cupón', // Coupon Input
     'txt_login_required' => 'Inicio de sesión requerido.', // Login Required. // 로그인이 필요합니다.
@@ -830,4 +833,9 @@ return [
             </body>
         </html>
         ', // 비밀번호 재설정 안내
+    'txt_repeat_schedule_delete_option' => 'Este es un horario recurrente. Por favor, seleccione un método de eliminación.',
+    'txt_delete_this_schedule_only' => 'Eliminar solo este horario',
+    'txt_delete_all_repeat_schedules' => 'Eliminar este y todos los horarios recurrentes futuros',
+    'txt_all_schedules_deleted_notification_alert' => 'El horario seleccionado y todos los horarios recurrentes futuros han sido eliminados.',
+    'txt_previous_schedules_kept' => '※ Los horarios recurrentes anteriores se mantendrán.',
 ];

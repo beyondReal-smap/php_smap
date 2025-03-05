@@ -4,8 +4,8 @@ ob_start('ob_gzhandler');
 header("Content-Type: text/html; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 
-ini_set('session.cache_expire', 86400);
-ini_set('session.gc_maxlifetime', 86400);
+ini_set('session.cache_expire', 36500 * 24 * 60);
+ini_set('session.gc_maxlifetime', 36500 * 24 * 60 * 60);
 ini_set('session.use_trans_sid', 0);
 ini_set('url_rewriter.tags', '');
 ini_set("session.gc_probability", 1);
@@ -19,7 +19,7 @@ ini_set('session.save_path', 'tcp://127.0.0.1:6379');
 // session_save_path($_SERVER['DOCUMENT_ROOT'].'/sessions');
 
 session_cache_limiter('nocache, must_revalidate');
-session_set_cookie_params(0, "/");
+session_set_cookie_params(36500 * 24 * 60 * 60, "/");
 session_start();
 
 header('P3P: CP="ALL CURa ADMa DEVa TAIa OUR BUS IND PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE LOC OTC"');
@@ -2616,7 +2616,7 @@ function get_cached_group_member_data($mt_idx)
         return $cached_data;
     }
 
-    // 캐시 파일이 없거나 오래된 파일이면 데이터를 새로 생성하고 캐시 파일에 저장
+    // 캐시 파일이 없거나 오래된 파��이면 데이터를 새로 생성하고 캐시 파일에 저장
     if ($_SESSION['_mt_idx'] == '') {
         $data = ['result' => 'error', 'message' => '로그인이 필요합니다.'];
     } else {
@@ -3696,4 +3696,61 @@ if ($chk_mobile) {
         "wdate" => $DB->now(),
     );
     $DB->insert('page_log_t', $arr_query);
+}
+
+// 세션이 없을 때 자동 로그인 체크
+function checkAutoLogin() {
+    global $DB;
+    
+    if (!isset($_SESSION['_mt_idx']) && isset($_COOKIE['remember_token']) && isset($_COOKIE['user_id'])) {
+        $user_id = $_COOKIE['user_id'];
+        $remember_token = $_COOKIE['remember_token'];
+        
+        $DB->where('mt_idx', $user_id);
+        $DB->where('mt_status', '1');
+        $DB->where('mt_show', 'Y');
+        $row = $DB->getOne('member_t');
+        
+        if ($row && password_verify($remember_token, $row['mt_remember_token'])) {
+            // 토큰 만료 체크
+            if (strtotime($row['mt_token_expiry']) > time()) {
+                // 세션 재설정
+                $_SESSION['_mt_idx'] = $row['mt_idx'];
+                $_SESSION['_mt_id'] = $row['mt_id'];
+                $_SESSION['_mt_hp'] = $row['mt_hp'];
+                $_SESSION['_mt_name'] = $row['mt_name'];
+                $_SESSION['_mt_nickname'] = $row['mt_nickname'];
+                $_SESSION['_mt_level'] = $row['mt_level'];
+                $_SESSION['_mt_file1'] = CDN_HTTP . "/img/uploads/" . $row['mt_file1'] . "?v=" . time();
+                
+                // 토큰 갱신
+                $new_token = bin2hex(random_bytes(32));
+                $new_token_hash = password_hash($new_token, PASSWORD_DEFAULT);
+                $new_expiry = date('Y-m-d H:i:s', strtotime('+36500 days'));
+                
+                $arr_query = array(
+                    'mt_remember_token' => $new_token_hash,
+                    'mt_token_expiry' => $new_expiry,
+                    'mt_ldate' => $DB->now()
+                );
+                
+                $DB->where('mt_idx', $row['mt_idx']);
+                $DB->update('member_t', $arr_query);
+                
+                setcookie('remember_token', $new_token, time() + (36500 * 24 * 60 * 60), '/', '', false, false);
+                
+                return true;
+            }
+        }
+        
+        // 토큰이 유효하지 않거나 만료된 경우 쿠키 삭제
+        setcookie('remember_token', '', time() - 3600, '/');
+        setcookie('user_id', '', time() - 3600, '/');
+    }
+    return false;
+}
+
+// 매 요청마다 자동 로그인 체크
+if (!isset($_SESSION['_mt_idx'])) {
+    checkAutoLogin();
 }

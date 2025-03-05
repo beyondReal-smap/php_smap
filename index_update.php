@@ -31,9 +31,9 @@ if ($_POST['act'] == "weather_get") {
     $response1 = $weatherClass->requestForecast($_SESSION['_mt_lat'], $_SESSION['_mt_long'], 0, 6, '');
 
     $today_weather1 = $weatherClass->parseWeather($response1, "TMN", "TMX", "POP");
-    $get_weather_min = $today_weather1['TMN'];
-    $get_weather_max = $today_weather1['TMX'];
-    $get_weather_per = $today_weather1['POP'];
+    $get_weather_min = isset($today_weather1['TMN']) && $today_weather1['TMN'] !== '' ? $today_weather1['TMN'] : '-';
+    $get_weather_max = isset($today_weather1['TMX']) && $today_weather1['TMX'] !== '' ? $today_weather1['TMX'] : '-';
+    $get_weather_per = isset($today_weather1['POP']) ? $today_weather1['POP'] : '0';
 
     //초단기예보
     $response2 = $weatherClass->requestForecast($_SESSION['_mt_lat'], $_SESSION['_mt_long'], 0, 0, '');
@@ -136,17 +136,24 @@ if ($_POST['act'] == "weather_get") {
     // $logger->write($get_weather_txt);
     if ($get_weather_t == 'Y') {
 ?>
-        <div class="d-flex align-items-center p_address">
-            <!-- <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area1'] ?>·</p> -->
+        <div class="d-flex align-items-center p_address mb-2">
             <p class="fs_12 text_light_gray fw_500 text_dynamic"><?= $region['area3'] ?></p>
         </div>
         <div class="d-flex align-items-center justify-content-between flex-wrap">
-            <div class="date_weather d-flex align-items-center flex-wrap">
-                <div class="fs_14 fw_600 text_dynamic mr-1 mt_08"><?= DateType(date("Y-m-d"), 3) ?><span class="ml-1"><img src="<?= CDN_HTTP ?>/img/<?= $get_weather_icon ?>" width="18px" alt="<?= $translations['txt_weather'] ?>" /></span></div>
-                <div class="d-flex align-items-center mt_08 mr-3">
-                    <!-- <p class="ml-1 fs_11 fw_600 text-text fw_500 mr-2"><span class="fs_11 text_light_gray mr-1"><?= $translations['txt_precipitation'] ?></span><?= $get_weather_per ?></p> -->
-                    <p class="ml-1 fs_11 fw_600 text-primary fw_500 mr-2"><span class="fs_11 text_light_gray mr-1"><?= $translations['txt_low'] ?></span><?= $get_weather_min ?></p>
-                    <p class="ml-1 fs_11 fw_600 fc_red fw_500"><span class="fs_11 text_light_gray mr-1"><?= $translations['txt_high'] ?></span><?= $get_weather_max ?></p>
+            <div class="date_weather d-flex align-items-center">
+                <div class="d-flex align-items-center mr-2">
+                    <p class="fs_14 fw_600 text_dynamic"><?= DateType(date("Y-m-d"), 3) ?></p>
+                    <span class="ml-2">
+                        <img src="<?= CDN_HTTP ?>/img/<?= $get_weather_icon ?>" width="18px" alt="<?= $translations['txt_weather'] ?>" />
+                    </span>
+                </div>
+                <div class="d-flex align-items-center temperature-info" style="white-space: nowrap;">
+                    <p class="ml-1 fs_11 fw_600 text-primary fw_500 mr-2">
+                        <span class="fs_11 text_light_gray mr-1"><?= $translations['txt_low'] ?></span><?= $get_weather_min ?>
+                    </p>
+                    <p class="ml-1 fs_11 fw_600 fc_red fw_500">
+                        <span class="fs_11 text_light_gray mr-1"><?= $translations['txt_high'] ?></span><?= $get_weather_max ?>
+                    </p>
                 </div>
             </div>
         </div>
