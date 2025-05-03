@@ -1617,107 +1617,114 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     $(document).ready(function() {
         // 그룹원 선택 관련 이벤트 리스너 추가
         $(document).on('change', 'input[name="rd2"]', function() {
-            // 모든 mem_box에서 selected 클래스 제거
+            // 1. 선택 클래스 관리
             $('.mem_box').removeClass('selected');
-            
-            // 클릭된 라디오 버튼의 부모 mem_box에 selected 클래스 추가
-            $(this).closest('.mem_box').addClass('selected');
-            
-            // 모든 rect_square 스타일 초기화
-            $('.mem_box .prd_img .rect_square').css({
-                'border': '0',
-                'padding': '3px'
+            const selectedBox = $(this).closest('.mem_box');
+            selectedBox.addClass('selected');
+
+            // 2. 모든 그룹원 테두리/패딩/효과 초기화 (더욱 강력하게)
+            $('.mem_box .prd_img .rect_square').each(function() {
+                // 테두리 완전 초기화
+                this.style.setProperty('border', 'none', 'important');
+                 // 개별 속성도 제거 (만약을 위해)
+                this.style.removeProperty('border-width');
+                this.style.removeProperty('border-style');
+                this.style.removeProperty('border-color');
+                 // 패딩 초기화
+                this.style.setProperty('padding', '3px', 'important');
+                 // 기타 효과 제거
+                this.style.setProperty('transform', 'none', 'important');
+                this.style.setProperty('scale', '1', 'important');
+                this.style.setProperty('transition', 'none', 'important');
+                this.style.setProperty('animation', 'none', 'important');
+                this.style.setProperty('box-shadow', 'none', 'important');
             });
-            
-            // 선택된 rect_square에 테두리 적용
-            $(this).closest('.mem_box').find('.prd_img .rect_square').css({
-                'border': '3px solid #0046FE',
-                'padding': '0'
+             $('.rect_square img').each(function() { // 이미지 자체 테두리도 제거
+                this.style.setProperty('border', 'none', 'important');
+                this.style.setProperty('outline', 'none', 'important');
             });
-            
-            // 모든 이미지 테두리 제거
-            $('.rect_square img').css('border', '0');
+             $('.mem_box, .mem_box .prd_img').each(function() { // 부모 요소 효과도 제거
+                 this.style.setProperty('transform', 'none', 'important');
+                 this.style.setProperty('scale', '1', 'important');
+                 this.style.setProperty('transition', 'none', 'important');
+                 this.style.setProperty('animation', 'none', 'important');
+                 this.style.setProperty('box-shadow', 'none', 'important');
+                 this.style.setProperty('background', 'none', 'important');
+            });
+
+
+            // 3. 선택된 그룹원에만 테두리 적용
+            selectedBox.find('.prd_img .rect_square').each(function() {
+                 // 테두리 속성 설정
+                this.style.setProperty('border-width', '3px', 'important');
+                this.style.setProperty('border-style', 'solid', 'important');
+                this.style.setProperty('border-color', '#0046FE', 'important');
+                 // 패딩 제거
+                this.style.setProperty('padding', '0', 'important');
+                 // 크기 고정 (선택 시에도 scale=1 유지)
+                this.style.setProperty('transform', 'none', 'important');
+                this.style.setProperty('scale', '1', 'important');
+            });
+             // 선택된 부모 요소 크기 고정 (만약을 위해)
+             selectedBox.each(function() {
+                 this.style.setProperty('transform', 'none', 'important');
+                 this.style.setProperty('scale', '1', 'important');
+             });
+             selectedBox.find('.prd_img').each(function() {
+                  this.style.setProperty('transform', 'none', 'important');
+                 this.style.setProperty('scale', '1', 'important');
+             });
+
+
+            // 4. fixAllBorderStyles 호출 제거 (핸들러 내에서 모두 처리)
+            // fixAllBorderStyles();
         });
-        
-        // 페이지 로드 후 테두리 문제 수정
-        setTimeout(fixBorderIssues, 500);
-        
-        // 기존 코드들...
-        f_calendar_log_init();
-        async function initializeData() {
-            try {
-                const data = await createGroupMember(<?= $sgdt_row['sgdt_idx'] ?>);
-                if (!data) {
-                    // 데이터가 없는 경우 본인 데이터로 초기화
-                    const myData = {
-                        mt_idx: <?= $_SESSION['_mt_idx'] ?>,
-                        sgdt_idx: <?= $sgdt_row['sgdt_idx'] ?? 'null' ?>
-                    };
-                    
-                    $('#sgdt_mt_idx').val(myData.mt_idx);
-                    $('#sgdt_idx').val(myData.sgdt_idx);
-                    
-                    // 본인 데이터로 초기화
-                    await Promise.all([
-                        f_calendar_log_init('today'),
-                        f_get_log_location(myData.mt_idx)
-                    ]);
-                    hideMapLoading();
-                    return;
-                }
 
-                // 첫 번째 멤버 찾기 (본인 제외)
-                let firstMemberKey = null;
-                if (data.members) {
-                    Object.keys(data.members).forEach(key => {
-                        if (key !== data.sgdt_idx.toString() && !firstMemberKey) {
-                            firstMemberKey = key;
-                        }
-                    });
-                }
+        // 페이지 로드 시 초기 스타일 정리 함수 (유지)
+        // function fixAllBorderStyles() { // 함수 정의 제거 시작
+        //     // ... (기존 fixAllBorderStyles 로직 유지) ...
+        //      console.log('테두리 스타일 직접 적용 (log.php)');
+        //      document.querySelectorAll('.mem_box, .mem_box .prd_img, .mem_box .rect_square, .mem_box *').forEach(el => {
+        //          el.style.removeProperty('border');
+        //          el.style.removeProperty('box-shadow');
+        //          el.style.removeProperty('transform');
+        //          el.style.removeProperty('transition');
+        //          el.style.removeProperty('animation');
+        //          el.style.removeProperty('scale');
+        //      });
+        //      document.querySelectorAll('.mem_box .prd_img .rect_square').forEach(el => {
+        //          el.style.setProperty('border', 'none', 'important'); // 초기화 시 border: none 사용
+        //          el.style.setProperty('padding', '3px', 'important');
+        //          el.style.setProperty('outline', 'none', 'important');
+        //          el.style.setProperty('box-shadow', 'none', 'important');
+        //          el.style.setProperty('transition', 'none', 'important');
+        //          el.style.setProperty('transform', 'none', 'important');
+        //          el.style.setProperty('animation', 'none', 'important');
+        //          el.style.setProperty('background', 'transparent', 'important');
+        //      });
+        //      document.querySelectorAll('.mem_box .prd_img .rect_square img').forEach(el => {
+        //          el.style.setProperty('border', 'none', 'important');
+        //          el.style.setProperty('outline', 'none', 'important');
+        //          el.style.setProperty('box-shadow', 'none', 'important');
+        //      });
+        //      document.querySelectorAll('.mem_box.selected .prd_img .rect_square').forEach(el => {
+        //          el.style.setProperty('border-width', '3px', 'important');
+        //          el.style.setProperty('border-style', 'solid', 'important');
+        //          el.style.setProperty('border-color', '#0046FE', 'important');
+        //          el.style.setProperty('padding', '0', 'important');
+        //      });
+        //      document.querySelectorAll('.mem_box, .mem_box .prd_img').forEach(el => {
+        //          el.style.setProperty('transform', 'none', 'important');
+        //          el.style.setProperty('scale', '1', 'important');
+        //          el.style.setProperty('transition', 'none', 'important');
+        //      });
+        //      console.log('모든 테두리 스타일 정리 완료 (log.php)');
+        // } // 함수 정의 제거 끝
 
-                // 첫 번째 멤버가 있는 경우
-                if (firstMemberKey && data.members[firstMemberKey]) {
-                    const member = data.members[firstMemberKey];
-                    $('#sgdt_mt_idx').val(member.member_info.mt_idx);
-                    $('#sgdt_idx').val(member.member_info.sgdt_idx);
-                    
-                    // 첫 번째 멤버의 데이터로 초기화
-                    await Promise.all([
-                        f_calendar_log_init('today'),
-                        f_get_log_location(member.member_info.mt_idx)
-                    ]);
-
-                    // 지도 데이터 업데이트
-                    await updateMemberLocationInfo();
-                } else {
-                    // 첫 번째 멤버가 없는 경우 본인 데이터로 초기화
-                    const myData = {
-                        mt_idx: <?= $_SESSION['_mt_idx'] ?>,
-                        sgdt_idx: <?= $sgdt_row['sgdt_idx'] ?? 'null' ?>
-                    };
-                    
-                    $('#sgdt_mt_idx').val(myData.mt_idx);
-                    $('#sgdt_idx').val(myData.sgdt_idx);
-                    
-                    await Promise.all([
-                        f_calendar_log_init('today'),
-                        f_get_log_location(myData.mt_idx)
-                    ]);
-                }
-            } catch (error) {
-                console.error("초기화 중 오류 발생:", error);
-                jalert('<?=$translations['txt_error_occurred'] ?>');
-            } finally {
-                hideMapLoading();
-            }
-        }
-
-        // 초기화 함수 실행
-        initializeData().catch(error => {
-            console.error("최종 에러:", error);
-            hideMapLoading(); // 에러 발생 시에도 로딩 화면을 숨김
-        });
+        // 페이지 로드 시 초기 스타일 정리 -> 제거
+        // fixAllBorderStyles();
+        // DOM 변경 후에도 스타일 정리 (Swiper 초기화 후 등) -> 제거
+        // setTimeout(fixAllBorderStyles, 500);
     });
 
     function createGroupMember(sgdt_idx) {
@@ -2761,7 +2768,7 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
             document.addEventListener('mousemove', function(event) {
                 if (isDragging) {
                     let currentY = event.clientY; // 현재 마우스 좌표
-                    let deltaY = currentY - startY; // 움직임의 차이 계��
+                    let deltaY = currentY - startY; // 움직임의 차이 계
 
                     // 움직임이 일정 값 이상이면 보이거나 숨김
                     if (Math.abs(deltaY) > 50) {
