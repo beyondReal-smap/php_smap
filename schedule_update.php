@@ -2457,15 +2457,19 @@ if ($_POST['act'] == "event_source") {
             exit;
         }
 
-        // 그룹 멤버 정보 조회
-        $DB->where('sgt_idx', $sgdt_row['sgt_idx']);
-        $DB->where('sgdt_show', 'Y');
-        $DB->where('sgdt_discharge', 'N');
-        $DB->where('sgdt_exit', 'N');
-        $DB->orderBy('sgdt_owner_chk', 'ASC');
-        $DB->orderBy('sgdt_leader_chk', 'ASC');
-        $DB->orderBy('sgdt_wdate', 'ASC');
-        $sgdt_list = $DB->get('smap_group_detail_t');
+        // 그룹 멤버 정보 조회 - 일반 멤버가 먼저, 오너/리더가 나중에 오도록 수정
+        $query = "SELECT * FROM smap_group_detail_t 
+                  WHERE sgt_idx = " . $sgdt_row['sgt_idx'] . " 
+                  AND sgdt_show = 'Y' 
+                  AND sgdt_discharge = 'N' 
+                  AND sgdt_exit = 'N' 
+                  ORDER BY 
+                    CASE 
+                        WHEN sgdt_owner_chk = 'Y' OR sgdt_leader_chk = 'Y' THEN 1 
+                        ELSE 0 
+                    END ASC,
+                    sgdt_wdate ASC";
+        $sgdt_list = $DB->rawQuery($query);
 
         // logToFile("[" . date("Y-m-d H:i:s") . "] sgdt_list: " . print_r($sgdt_list, true));
     }

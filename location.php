@@ -666,14 +666,21 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
     });
 
     function generateMemberItems(data, initialSelectedSgdtIdx) { // initialSelectedSgdtIdx 추가
-        let html = '';
-        const currentUserSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx']) ?>;
+        let otherMembersHtml = ''; // 일반 그룹원 HTML
+        let ownerLeaderHtml = ''; // 오너/리더 HTML
+        let currentUserSgdtIdx = '<?= $sgdt_row['sgdt_idx'] ?>'; // 현재 로그인한 사용자의 sgdt_idx
+        
+        console.log('현재 사용자 sgdt_idx:', currentUserSgdtIdx);
+        console.log('멤버 데이터:', data.members);
 
         // 멤버 목록 순회
         if (data.members && typeof data.members === 'object') {
             Object.keys(data.members).forEach(key => {
                 const member = data.members[key];
-                html += `
+                console.log('처리 중인 멤버:', key, member);
+                
+                // 멤버 HTML 생성
+                const memberHtml = `
                     <div class="swiper-slide checks mem_box">
                         <label>
                             <input type="radio" name="rd2" value="${key}" ${key == initialSelectedSgdtIdx ? 'checked' : ''} onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
@@ -686,14 +693,35 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                         </label>
                     </div>
                 `;
+
+                // 현재 처리 중인 멤버가 현재 로그인한 사용자인지 확인
+                const isCurrentUser = member.member_info.sgdt_idx == currentUserSgdtIdx;
+                
+                // 그룹 오너 또는 리더인지 확인 (여러 방법으로 체크)
+                const isOwner = member.member_info.sgdt_owner_chk === 'Y';
+                const isLeader = member.member_info.sgdt_leader_chk === 'Y';
+                
+                console.log(`멤버 ${key}: 현재 사용자=${isCurrentUser}, 오너=${isOwner}, 리더=${isLeader}`);
+                
+                // 현재 사용자 또는 오너/리더인 멤버를 맨 뒤로 배치
+                if (isCurrentUser || isOwner || isLeader) {
+                    // 오너/리더는 나중에 표시
+                    ownerLeaderHtml += memberHtml;
+                } else {
+                    // 일반 그룹원은 먼저 표시
+                    otherMembersHtml += memberHtml;
+                }
             });
         }
 
-        // 그룹원 추가 버튼 (소유권자 또는 리더에게만 보이도록 수정)
-        const showAddButton = <?= ($sgt_cnt > 0) ? 'true' : 'false' ?>; // 오너인 경우만 추가 버튼 표시 (리더는 제외)
+        // 일반 멤버 HTML + 오너/리더 HTML 순서로 조합 (일반 멤버가 먼저, 오너/리더가 나중에)
+        let finalHtml = otherMembersHtml + ownerLeaderHtml;
+
+        // 그룹원 추가 버튼 (오너에게만 보이도록)
+        const showAddButton = <?= ($sgt_cnt > 0) ? 'true' : 'false' ?>;
         if (showAddButton) {
-             html += `
-            <div class="swiper-slide mem_box add_mem_box" onclick="location.href='./group'">
+             finalHtml += `
+            <div class="swiper-slide mem_box add_mem_box" onclick="location.href='./group_info?sgt_idx=<?= $sgt_row_info['sgt_idx'] ?? '' ?>'">
                 <button class="btn mem_add">
                     <i class="xi-plus-min fs_20"></i>
                 </button>
@@ -704,8 +732,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             `;
         }
 
-
-        return { html }; // firstMemberKey 제거 (createGroupMember에서 처리)
+        return { html: finalHtml }; // 최종 HTML 반환
     }
 
     function createGroupMember(sgdt_idx) {
@@ -738,9 +765,35 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                         // 현재 로그인한 사용자의 정보
                         const currentUserSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx']) ?>;
                         const isOwnerOrLeader = <?= ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) ? 'true' : 'false' ?>;
-
-                        // 초기 선택될 사용자는 항상 현재 로그인한 사용자
-                        const initialSelectedSgdtIdx = currentUserSgdtIdx;
+                        
+                        // 초기 선택될 멤버 결정
+                        let initialSelectedSgdtIdx;
+                        const memberKeys = Object.keys(data.members);
+                        
+                        if (memberKeys.length > 0) {
+                            // 현재 사용자가 그룹 오너인지 확인
+                            console.log(`현재 사용자는 그룹 오너/리더 여부: ${isOwnerOrLeader}`);
+                            
+                            // 현재 사용자 키와 목록 내 존재 여부 확인
+                            const currentUserKey = currentUserSgdtIdx.toString();
+                            const currentUserInList = memberKeys.includes(currentUserKey);
+                            console.log(`현재 사용자(${currentUserSgdtIdx})가 멤버 목록에 ${currentUserInList ? '있음' : '없음'}`);
+                            
+                            if (isOwnerOrLeader && currentUserInList && memberKeys.length > 1) {
+                                // 그룹 오너이면서 다른 멤버가 있는 경우: 현재 사용자가 아닌 첫 번째 멤버 선택
+                                const otherMembers = memberKeys.filter(key => key !== currentUserKey);
+                                initialSelectedSgdtIdx = otherMembers[0]; // 현재 사용자가 아닌 첫 번째 멤버
+                                console.log('[location.php] 그룹 오너 계정: 다른 멤버 중 첫 번째 선택됨:', initialSelectedSgdtIdx);
+                            } else {
+                                // 그룹 오너가 아니거나 멤버가 1명뿐인 경우: 첫 번째 멤버 선택
+                                initialSelectedSgdtIdx = memberKeys[0];
+                                console.log('[location.php] 첫 번째 그룹원 선택됨:', initialSelectedSgdtIdx);
+                            }
+                        } else {
+                            // 멤버가 없으면 현재 사용자 선택
+                            initialSelectedSgdtIdx = currentUserSgdtIdx;
+                            console.warn('[location.php] 그룹원이 없어 현재 사용자 선택:', initialSelectedSgdtIdx);
+                        }
 
                         // 초기 선택된 멤버(현재 사용자)의 정보로 지도 및 목록 로드
                         const initialMemberData = data.members[initialSelectedSgdtIdx];

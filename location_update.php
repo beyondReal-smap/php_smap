@@ -488,7 +488,7 @@ if ($_POST['act'] == "recom_list") {
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
     if ($mem_row['mt_level'] == '2') {
-        $limit = 2;
+        $limit = 4;
     } else {
         $limit = 10;
     }
@@ -1887,18 +1887,13 @@ if ($_POST['act'] == "recom_list") {
     $row_sgdt = $DB->getone('smap_group_detail_t', 'GROUP_CONCAT(sgt_idx) as gc_sgt_idx');
 
     $data = [
-        'my_info' => [
-            'sgt_idx' => $sgdt_row['sgt_idx'],
-            'sgdt_idx' => $sgdt_row['sgdt_idx'],
-            'mt_idx' => $sgdt_row['mt_idx'],
-            'profile_image' => $_SESSION['_mt_file1'],
-            'nickname' => $_SESSION['_mt_nickname'] ? $_SESSION['_mt_nickname'] : $_SESSION['_mt_name'],
-        ],
         'group_members' => [],
         'sgt_cnt' => $sgt_cnt,
+        'sgt_idx' => $sgdt_row['sgt_idx'] ?? null,
+        'sgdt_idx' => $sgdt_row['sgdt_idx'] ?? null,
     ];
 
-    if ($row_sgdt) {
+    if ($row_sgdt && $row_sgdt['gc_sgt_idx']) { // Check if gc_sgt_idx is not null or empty
 
         $DB->where("sgt_idx in (" . $row_sgdt['gc_sgt_idx'] . ")");
         $DB->where('sgt_show', 'Y');
@@ -1907,26 +1902,46 @@ if ($_POST['act'] == "recom_list") {
         $list_sgt = $DB->get('smap_group_t');
 
         if ($list_sgt) {
-            foreach ($list_sgt as $row_sgt) {
-                $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']);
-                $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']);
+            $general_members = []; // 일반 멤버 배열
+            $leaders_owners = [];  // 오너/리더 멤버 배열
 
-                if ($invite_cnt || $list_sgdt['data']) {
-                    if ($list_sgdt['data']) {
-                        foreach ($list_sgdt['data'] as $val) {
-                            $data['group_members'][] = [
+            foreach ($list_sgt as $row_sgt) { // $row_sgt contains info about the group, including owner mt_idx
+                $list_sgdt = get_sgdt_member_list($row_sgt['sgt_idx']); // Assume returns array ['data' => [member1, member2...]]
+                $invite_cnt = get_group_invite_cnt($row_sgt['sgt_idx']); // Assuming invite logic is separate or handled elsewhere
+
+                // Check if $list_sgdt['data'] exists and is an array
+                if (isset($list_sgdt['data']) && is_array($list_sgdt['data'])) {
+                    foreach ($list_sgdt['data'] as $val) { // $val is a member's data
+                        // Check if essential keys exist in $val
+                        if (isset($val['sgdt_idx'], $val['mt_file1_url'], $val['mt_nickname'], $val['mt_name'], $val['mt_idx'])) {
+                            $member_data = [
                                 'sgt_idx' => $row_sgt['sgt_idx'],
                                 'sgdt_idx' => $val['sgdt_idx'],
                                 'profile_image' => $val['mt_file1_url'],
                                 'nickname' => $val['mt_nickname'] ? $val['mt_nickname'] : $val['mt_name'],
                                 'mt_idx' => $val['mt_idx']
                             ];
-                        }
-                    }
-                }
-            }
-        }
-    }
+
+                            // Check if this member ($val['mt_idx']) is the owner of the group ($row_sgt['mt_idx'])
+                            $is_owner = ($row_sgt['mt_idx'] == $val['mt_idx']);
+
+                            // Check if this member is a leader (assuming 'sgdt_leader_chk' exists in $val)
+                            $is_leader = isset($val['sgdt_leader_chk']) && $val['sgdt_leader_chk'] == 'Y';
+
+                            if ($is_owner || $is_leader) {
+                                $leaders_owners[] = $member_data;
+                            } else {
+                                $general_members[] = $member_data;
+                            }
+                        } // End check for essential keys in $val
+                    } // End foreach member ($val)
+                } // End check for $list_sgdt['data']
+                // Invite handling can be added here if needed, possibly adding invite placeholders to a separate list or adjusting frontend logic
+            } // End foreach group ($row_sgt)
+            // 일반 멤버와 오너/리더 멤버 배열을 병합하여 최종 group_members 생성
+            $data['group_members'] = array_merge($general_members, $leaders_owners);
+        } // End if ($list_sgt)
+    } // End if ($row_sgdt)
 
     echo json_encode(['result' => 'success', 'data' => $data]);
 } elseif ($_POST['act'] == "marker_reload") {

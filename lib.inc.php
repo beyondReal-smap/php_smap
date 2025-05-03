@@ -2815,8 +2815,9 @@ function get_sgdt_member_lists($sgt_idx)
     $DB->where('sgt_idx', $sgt_idx);
     $DB->where('sgdt_discharge', 'N');
     $DB->where('sgdt_exit', 'N');
-    $DB->orderBy("sgdt_owner_chk", "asc");
-    $DB->orderBy("sgdt_leader_chk", "asc");
+    // 기존 정렬 순서를 변경하여 일반 멤버가 먼저 나오도록 합니다
+    // $DB->orderBy("sgdt_owner_chk", "asc");
+    // $DB->orderBy("sgdt_leader_chk", "asc");
     $list_sgdt = $DB->get('smap_group_detail_t');
 
     unset($rtn);
@@ -2824,6 +2825,9 @@ function get_sgdt_member_lists($sgt_idx)
 
     $chk_leader = 0;
     $member_cnt = 0;
+    
+    $general_members = [];
+    $leaders_owners = [];
 
     if ($list_sgdt) {
         foreach ($list_sgdt as $row_sgdt) {
@@ -2832,8 +2836,8 @@ function get_sgdt_member_lists($sgt_idx)
             $my_working_cnt = $row_mllt['mt_health_work'];
 
             $mt_file1_url = get_image_url($mt_info['mt_file1']);
-
-            $rtn['data'][] = array(
+            
+            $member_data = array(
                 'sgdt_idx' => $row_sgdt['sgdt_idx'],
                 'sgdt_owner_chk' => $row_sgdt['sgdt_owner_chk'],
                 'sgdt_leader_chk' => $row_sgdt['sgdt_leader_chk'],
@@ -2846,11 +2850,21 @@ function get_sgdt_member_lists($sgt_idx)
                 'my_working_cnt' => number_format($my_working_cnt),
                 'sgdt_adate' => $row_sgdt['sgdt_adate'],
             );
+            
+            // 그룹 오너나 리더인 경우 별도 배열에 추가
+            if ($row_sgdt['sgdt_owner_chk'] == 'Y' || $row_sgdt['sgdt_leader_chk'] == 'Y') {
+                $leaders_owners[] = $member_data;
+            } else {
+                // 일반 멤버는 앞부분 배열에 추가
+                $general_members[] = $member_data;
+            }
 
             $member_cnt++;
         }
     }
-
+    
+    // 일반 멤버를 먼저 배치하고 오너/리더를 마지막에 추가
+    $rtn['data'] = array_merge($general_members, $leaders_owners);
     $rtn['chk_leader'] = $chk_leader;
     $rtn['member_cnt'] = $member_cnt;
 

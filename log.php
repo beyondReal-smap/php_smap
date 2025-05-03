@@ -94,7 +94,7 @@ $expt_cnt = $row['cnt'];
 ?>
 <style>
     .sch_cld_wrap {
-        padding: 0;
+        padding: 1rem 0;
     }
 
     #wrap {
@@ -126,7 +126,6 @@ $expt_cnt = $row['cnt'];
         justify-content: center;
         align-items: center;
         z-index: 1000;
-        transition: opacity 0.3s ease;
     }
 
     .dots-spinner {
@@ -185,145 +184,8 @@ $expt_cnt = $row['cnt'];
         animation-delay: 0.4s;
     }
 
-    /* 콘텐츠 컨테이너 스타일 */
-    .mbr_wr {
-        transition: opacity 0.3s ease;
-        min-height: 100px; /* 최소 높이 설정으로 레이아웃 이동 방지 */
-    }
-
-    /* 캘린더 선택 효과 개선 */
-    .c_id {
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    /* 오늘 날짜 위에 today 텍스트만 표시 */
-    .c_id.today {
-        position: relative;
-    }
-
-    .c_id.today::before {
-        content: "today";
-        position: absolute;
-        top: -15px; /* 날짜에서 좀 더 떨어지게 조정 */
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 8px;
-        color: #ff6600;
-        font-weight: bold;
-        text-transform: lowercase;
-        background-color: white;
-        padding: 1px 3px; /* 패딩 약간 증가 */
-        border-radius: 3px;
-        border: 1px solid #ffcc00;
-        white-space: nowrap;
-        z-index: 20; /* z-index 값 증가 */
-    }
-
-    /* 선택된 날짜 스타일 - 원형으로 표시 */
-    .c_id.active, 
-    .c_id.selected {
-        background-color: #0046FE !important; /* 앱의 primary 색상 */
-        color: #ffffff !important;
-        border-radius: 50% !important; /* 원형으로 표시 */
-        box-shadow: 0 2px 5px rgba(0, 70, 254, 0.3) !important;
-    }
-
-    /* 선택된 날짜의 텍스트 색상 */
-    .c_id.active span, 
-    .c_id.selected span {
-        color: #ffffff !important;
-    }
-
-    /* 그룹원 선택 관련 스타일 */
-    .mem_box, 
-    .mem_box * { /* 모든 하위 요소 포함하여 리셋 강화 */
-        /* mem_box 자체 및 하위 요소 스타일 리셋 */
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        background: none !important;
-        padding: 0 !important;
-        margin: 0 !important; /* 마진도 리셋 */
-        transition: none !important;
-        transform: none !important;
-        animation: none !important;
-        border-radius: 0 !important; /* border-radius도 리셋 */
-    }
-    .mem_box label {
-        cursor: pointer;
-        display: block; /* label이 div 크기만큼 차지하도록 */
-        /* label 자체 스타일 리셋 (추가) */
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    .mem_box .prd_img {
-        /* prd_img 스타일 리셋 */
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important; /* 마진 리셋 */
-        background: none !important;
-        transition: none !important;
-        transform: none !important;
-        animation: none !important;
-        width: 100%; /* 너비 명시 */
-        position: relative; /* 자식 요소(.rect_square)의 기준 */
-        border-radius: 0 !important; /* border-radius 리셋 */
-    }
-    .mem_box .prd_img .rect_square {
-        /* 기본 상태: 투명 테두리로 공간 확보 */
-        border: 3px solid transparent !important; 
-        padding: 0 !important; /* 패딩 제거, 테두리가 공간 차지 */
-        box-sizing: border-box !important;
-        border-radius: 14px !important; /* 테두리 포함한 radius */
-        overflow: hidden !important; /* 내부 이미지가 radius 넘지 않도록 */
-        width: 100%;
-        aspect-ratio: 1 / 1; /* 정사각형 비율 유지 */
-        position: relative;
-        background: transparent !important;
-        box-shadow: none !important;
-        margin: 0 !important; /* 마진 리셋 */
-        transition: none !important; /* 불필요한 효과 제거 */
-        transform: none !important;
-        animation: none !important;
-    }
-    .mem_box .prd_img .rect_square img {
-        /* 이미지 스타일 */
-        display: block !important;
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        border-radius: 11px !important; /* (14px - 3px) 테두리 두께 고려한 내부 이미지 radius */
-        border: none !important; /* 이미지 자체 테두리 제거 */
-        outline: none !important;
-        box-shadow: none !important;
-        padding: 0 !important; /* 패딩 리셋 */
-        margin: 0 !important; /* 마진 리셋 */
-        transition: none !important;
-        transform: none !important;
-        animation: none !important;
-    }
-
-    /* 선택된 상태: 테두리 색상 변경 */
-    .mem_box.selected .prd_img .rect_square {
-        border-color: #0046FE !important; 
-    }
-
-    /* 라디오 버튼 숨김 */
-    .mem_box input[type="radio"] {
-        display: none !important;
-    }
-    
-    /* 캘린더 선택 효과 개선 */
-    .c_id {
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
+    */
 </style>
-
 <div id="loading">
     <!-- 로딩 화면 추가 -->
     <div id="map-loading" style="display: none;">
@@ -359,7 +221,7 @@ $expt_cnt = $row['cnt'];
                 <button type="button" class="btn h-auto swiper-button-next"><i class="xi-angle-right-min"></i></button>
             </div>
         </div>
-        <div id="schedule_calandar_box" class="cld_date_wrap" style="margin-top: 10px;"></div>
+        <div id="schedule_calandar_box" class="cld_date_wrap"></div>
     </section>
     <!-- 지도 -->
     <section class="log_map_wrap" id="map">
@@ -975,7 +837,7 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     // 구글 지도 스크립트
 ?>
     <script>
-        // Google Maps API 로드 함수 수정
+        // Google Maps API 로드 함수
         function loadGoogleMapsScript() {
             if (googleMapsLoadPromise) {
                 return googleMapsLoadPromise;
@@ -983,7 +845,6 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
 
             googleMapsLoadPromise = new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                // Geocoding 라이브러리 제거
                 script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly`;
                 script.async = true;
                 script.defer = true;
@@ -996,18 +857,6 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
             });
 
             return googleMapsLoadPromise;
-        }
-
-        // Geocoding 관련 함수 비활성화
-        function geocodeLatLng(latitude, longitude) {
-            return new Promise((resolve) => {
-                // 기본값 반환
-                resolve({
-                    area1: '',
-                    area2: '',
-                    area3: ''
-                });
-            });
         }
 
         // 지도 초기화 함수
@@ -1615,141 +1464,138 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
 ?>
 <script>
     $(document).ready(function() {
-        // 그룹원 선택 관련 이벤트 리스너 추가
-        $(document).on('change', 'input[name="rd2"]', function() {
-            // 1. 선택 클래스 관리
-            $('.mem_box').removeClass('selected');
-            const selectedBox = $(this).closest('.mem_box');
-            selectedBox.addClass('selected');
+        showMapLoading();
+        // 함수 호출
+        const initialSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx'] ?? null) ?>;
+        if (initialSgdtIdx !== null) {
+             createGroupMember(initialSgdtIdx); // 그룹 멤버 로딩 및 첫 멤버 선택/데이터 로드 트리거
+        } else {
+            // 그룹 정보가 없을 경우 현재 사용자 정보로 로드 (예외 처리)
+             console.warn('[log.php] 초기 sgdt_idx가 null입니다. 현재 사용자 정보 로드 시도.');
+             f_profile_click(<?= $_SESSION['_mt_idx'] ?>, null); // 현재 사용자 정보 로드
+        }
+        f_calendar_log_init('today'); // 달력 스케줄 (이것은 멤버 선택과 별개로 초기화)
+        // f_get_log_location(sgdtMtIdx); // createGroupMember -> f_profile_click 에서 호출됨
+        // initMapAndData(); // createGroupMember -> f_profile_click 에서 호출됨
+        // debugLoading();
 
-            // 2. 모든 그룹원 테두리/패딩/효과 초기화 (더욱 강력하게)
-            $('.mem_box .prd_img .rect_square').each(function() {
-                // 테두리 완전 초기화
-                this.style.setProperty('border', 'none', 'important');
-                 // 개별 속성도 제거 (만약을 위해)
-                this.style.removeProperty('border-width');
-                this.style.removeProperty('border-style');
-                this.style.removeProperty('border-color');
-                 // 패딩 초기화
-                this.style.setProperty('padding', '3px', 'important');
-                 // 기타 효과 제거
-                this.style.setProperty('transform', 'none', 'important');
-                this.style.setProperty('scale', '1', 'important');
-                this.style.setProperty('transition', 'none', 'important');
-                this.style.setProperty('animation', 'none', 'important');
-                this.style.setProperty('box-shadow', 'none', 'important');
-            });
-             $('.rect_square img').each(function() { // 이미지 자체 테두리도 제거
-                this.style.setProperty('border', 'none', 'important');
-                this.style.setProperty('outline', 'none', 'important');
-            });
-             $('.mem_box, .mem_box .prd_img').each(function() { // 부모 요소 효과도 제거
-                 this.style.setProperty('transform', 'none', 'important');
-                 this.style.setProperty('scale', '1', 'important');
-                 this.style.setProperty('transition', 'none', 'important');
-                 this.style.setProperty('animation', 'none', 'important');
-                 this.style.setProperty('box-shadow', 'none', 'important');
-                 this.style.setProperty('background', 'none', 'important');
-            });
-
-
-            // 3. 선택된 그룹원에만 테두리 적용
-            selectedBox.find('.prd_img .rect_square').each(function() {
-                 // 테두리 속성 설정
-                this.style.setProperty('border-width', '3px', 'important');
-                this.style.setProperty('border-style', 'solid', 'important');
-                this.style.setProperty('border-color', '#0046FE', 'important');
-                 // 패딩 제거
-                this.style.setProperty('padding', '0', 'important');
-                 // 크기 고정 (선택 시에도 scale=1 유지)
-                this.style.setProperty('transform', 'none', 'important');
-                this.style.setProperty('scale', '1', 'important');
-            });
-             // 선택된 부모 요소 크기 고정 (만약을 위해)
-             selectedBox.each(function() {
-                 this.style.setProperty('transform', 'none', 'important');
-                 this.style.setProperty('scale', '1', 'important');
-             });
-             selectedBox.find('.prd_img').each(function() {
-                  this.style.setProperty('transform', 'none', 'important');
-                 this.style.setProperty('scale', '1', 'important');
-             });
-
-
-            // 4. fixAllBorderStyles 호출 제거 (핸들러 내에서 모두 처리)
-            // fixAllBorderStyles();
-        });
-
-        // 페이지 로드 시 초기 스타일 정리 함수 (유지)
-        // function fixAllBorderStyles() { // 함수 정의 제거 시작
-        //     // ... (기존 fixAllBorderStyles 로직 유지) ...
-        //      console.log('테두리 스타일 직접 적용 (log.php)');
-        //      document.querySelectorAll('.mem_box, .mem_box .prd_img, .mem_box .rect_square, .mem_box *').forEach(el => {
-        //          el.style.removeProperty('border');
-        //          el.style.removeProperty('box-shadow');
-        //          el.style.removeProperty('transform');
-        //          el.style.removeProperty('transition');
-        //          el.style.removeProperty('animation');
-        //          el.style.removeProperty('scale');
-        //      });
-        //      document.querySelectorAll('.mem_box .prd_img .rect_square').forEach(el => {
-        //          el.style.setProperty('border', 'none', 'important'); // 초기화 시 border: none 사용
-        //          el.style.setProperty('padding', '3px', 'important');
-        //          el.style.setProperty('outline', 'none', 'important');
-        //          el.style.setProperty('box-shadow', 'none', 'important');
-        //          el.style.setProperty('transition', 'none', 'important');
-        //          el.style.setProperty('transform', 'none', 'important');
-        //          el.style.setProperty('animation', 'none', 'important');
-        //          el.style.setProperty('background', 'transparent', 'important');
-        //      });
-        //      document.querySelectorAll('.mem_box .prd_img .rect_square img').forEach(el => {
-        //          el.style.setProperty('border', 'none', 'important');
-        //          el.style.setProperty('outline', 'none', 'important');
-        //          el.style.setProperty('box-shadow', 'none', 'important');
-        //      });
-        //      document.querySelectorAll('.mem_box.selected .prd_img .rect_square').forEach(el => {
-        //          el.style.setProperty('border-width', '3px', 'important');
-        //          el.style.setProperty('border-style', 'solid', 'important');
-        //          el.style.setProperty('border-color', '#0046FE', 'important');
-        //          el.style.setProperty('padding', '0', 'important');
-        //      });
-        //      document.querySelectorAll('.mem_box, .mem_box .prd_img').forEach(el => {
-        //          el.style.setProperty('transform', 'none', 'important');
-        //          el.style.setProperty('scale', '1', 'important');
-        //          el.style.setProperty('transition', 'none', 'important');
-        //      });
-        //      console.log('모든 테두리 스타일 정리 완료 (log.php)');
-        // } // 함수 정의 제거 끝
-
-        // 페이지 로드 시 초기 스타일 정리 -> 제거
-        // fixAllBorderStyles();
-        // DOM 변경 후에도 스타일 정리 (Swiper 초기화 후 등) -> 제거
-        // setTimeout(fixAllBorderStyles, 500);
+        // initMapAndData 함수를 사용하여 중복 실행을 방지하고 초기화 로직을 하나로 통합
+        async function initMapAndData() {
+            try {
+                await new Promise(resolve => setTimeout(resolve, 300)); // 300ms 지연
+                highlightSelectedDate();
+                checkAdCount(); // 광고 표시 여부 확인 및 처리
+            } catch (error) {
+                console.error("초기화 중 오류 발생:", error);
+            }
+        }
     });
 
-    function createGroupMember(sgdt_idx) {
-        return new Promise((resolve, reject) => {
-            // sgdt_idx가 없는 경우 빈 데이터 반환
-            if (!sgdt_idx) {
-                resolve(null);
-                return;
-            }
+    async function initializeMapAndMarkers(data, sgdt_idx) {
+        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+            await initNaverMap(data, sgdt_idx);
+        } else {
+            await initGoogleMap(data, sgdt_idx);
+        }
+    }
 
-            // 캐시된 데이터 확인
-            let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
-            if (cachedData) {
-                let response = JSON.parse(cachedData);
-                if (response.result === 'Y') {
-                    renderMemberList(response);
-                    return resolve(response);
+    function processGroupMemberData(data) {
+        // console.log('[log.php] processGroupMemberData 시작, 데이터:', data); // 로그 추가
+
+        // 현재 로그인한 사용자의 정보
+        const currentUserSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx'] ?? null) ?>;
+        const isOwnerOrLeader = <?= ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) ? 'true' : 'false' ?>;
+        // console.log(`[log.php] currentUserSgdtIdx: ${currentUserSgdtIdx}, isOwnerOrLeader: ${isOwnerOrLeader}`);
+
+        // 초기 선택될 멤버 결정
+        let initialSelectedSgdtIdx = null;
+        let initialMemberData = null;
+        let initial_mt_idx = null;
+        let initial_sgdt_idx_val = null;
+
+        if (data.members && typeof data.members === 'object') {
+            const memberKeys = Object.keys(data.members);
+            // console.log('[log.php] 멤버 키:', memberKeys);
+
+            if (memberKeys.length > 0) {
+                const currentUserKey = currentUserSgdtIdx ? currentUserSgdtIdx.toString() : null;
+                const currentUserInList = currentUserKey && memberKeys.includes(currentUserKey);
+                // console.log(`[log.php] currentUserKey: ${currentUserKey}, currentUserInList: ${currentUserInList}`);
+
+                if (isOwnerOrLeader && currentUserInList && memberKeys.length > 1) {
+                    // 그룹 오너/리더이면서 다른 멤버가 있는 경우: 현재 사용자가 아닌 첫 번째 멤버 선택
+                    const otherMembers = memberKeys.filter(key => key !== currentUserKey);
+                     if (otherMembers.length > 0) {
+                        initialSelectedSgdtIdx = otherMembers[0]; // 키 값 (문자열)
+                        // console.log('[log.php] 오너/리더 계정: 다른 멤버 중 첫 번째 선택됨 (키):', initialSelectedSgdtIdx);
+                    } else {
+                        // 다른 멤버가 없는 경우 (오너/리더 혼자)
+                        initialSelectedSgdtIdx = currentUserKey;
+                        // console.log('[log.php] 오너/리더 계정: 다른 멤버 없어 현재 사용자 선택됨 (키):', initialSelectedSgdtIdx);
+                    }
+                } else {
+                    // 그룹 오너/리더가 아니거나 멤버가 1명뿐인 경우: 첫 번째 멤버 선택
+                    initialSelectedSgdtIdx = memberKeys[0]; // 키 값 (문자열)
+                    // console.log('[log.php] 첫 번째 그룹원 선택됨 (키):', initialSelectedSgdtIdx);
                 }
-            }
 
-            // AJAX 요청
+                 // 선택된 키로 멤버 데이터 가져오기
+                initialMemberData = data.members[initialSelectedSgdtIdx];
+
+            } else {
+                // console.warn('[log.php] 그룹원이 없어 현재 사용자 선택 시도');
+                initialSelectedSgdtIdx = currentUserSgdtIdx; // PHP 변수 값 사용
+                // 이 경우 initialMemberData는 null이 될 수 있음
+            }
+        } else {
+             // console.warn('[log.php] data.members 객체가 없거나 유효하지 않음');
+             initialSelectedSgdtIdx = currentUserSgdtIdx; // PHP 변수 값 사용
+        }
+
+
+        // 초기 선택 멤버 정보 추출 및 f_profile_click 호출
+        if (initialMemberData) {
+             // console.log('[log.php] 초기 선택 멤버 데이터 찾음:', initialMemberData);
+             initial_mt_idx = initialMemberData.member_info.mt_idx;
+             initial_sgdt_idx_val = initialMemberData.member_info.sgdt_idx; // 실제 sgdt_idx 값
+        } else {
+             // 멤버 데이터가 없거나 못 찾은 경우 (fallback)
+             console.warn(`[log.php] 초기 멤버 데이터 없음 (키: ${initialSelectedSgdtIdx}), fallback.`);
+             initial_mt_idx = <?= $_SESSION['_mt_idx'] ?>; // 현재 세션 사용자 mt_idx
+             initial_sgdt_idx_val = currentUserSgdtIdx; // 현재 사용자의 sgdt_idx (PHP 변수 값)
+        }
+
+        // console.log(`[log.php] 최종 선택된 initial_sgdt_idx_val: ${initial_sgdt_idx_val}`);
+        // console.log(`[log.php] f_profile_click 호출 예정: mt_idx=${initial_mt_idx}, sgdt_idx=${initial_sgdt_idx_val}`);
+
+        // HTML 렌더링 (초기 선택된 사용자 기준으로 checked)
+        renderMemberList(data, initial_sgdt_idx_val); // 실제 sgdt_idx 값을 전달하여 checked 상태 결정
+
+        // 초기 선택된 멤버의 데이터 로드
+        f_profile_click(initial_mt_idx, initial_sgdt_idx_val);
+
+        // console.log('[log.php] processGroupMemberData 종료'); // 로그 추가
+    }
+
+
+    function createGroupMember(sgdt_idx) {
+        // sessionStorage에서 데이터를 먼저 확인
+        let cachedData = sessionStorage.getItem('groupMemberData_' + sgdt_idx);
+        if (cachedData) {
+            // 캐싱된 데이터가 있으면 사용
+            let response = JSON.parse(cachedData);
+            if (response.result === 'Y') {
+                // 캐싱된 데이터로 멤버 리스트 렌더링 및 첫 멤버 데이터 로드
+                processGroupMemberData(response);
+                return response; // 함수 종료
+            }
+        }
+       
+        return new Promise((resolve, reject) => {
             var form_data = new FormData();
             form_data.append("act", "member_schedule_list");
             form_data.append("sgdt_idx", sgdt_idx);
-            form_data.append("event_start_date", '<?= $s_date ?>');
+            form_data.append("event_start_date", currentSelectedDate); // Use currentSelectedDate global variable
             form_data.append("mt_lang", '<?= $userLang ?>');
 
             $.ajax({
@@ -1765,43 +1611,38 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
                 dataType: 'json',
                 success: function(data) {
                     if (data.result === 'Y') {
-                        sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
-                        renderMemberList(data);
+                        // sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data)); // 데이터를 가져올 때 캐싱
+                        // 데이터 처리 및 첫 멤버 로드
+                        processGroupMemberData(data);
+                        // Resolve with the fetched data
                         resolve(data);
                     } else {
-                        // 데이터가 없는 경우에도 정상적으로 처리
                         console.log("No loadMemberSchedule data available");
-                        resolve(null);
+                        // 멤버 데이터가 없을 경우, 현재 사용자 정보로 f_profile_click 호출
+                        console.warn('[log.php] 그룹 멤버 데이터 없음. 현재 사용자 정보 로드 시도.');
+                        f_profile_click(<?= $_SESSION['_mt_idx'] ?>, '<?= $sgdt_row['sgdt_idx'] ?>'); // 현재 사용자의 mt_idx와 sgdt_idx 전달
+                        resolve(null); // Resolve with null if no data
                     }
                 },
                 error: function(err) {
                     console.error('AJAX request failed: ', err);
-                    resolve(null); // 에러 발생 시에도 null 반환하여 계속 진행
-                }
+                    reject(err); // Reject on error
+                },
             });
         });
     }
 
-    async function initializeMapAndMarkers(data, sgdt_idx) {
-        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
-            await initNaverMap(data, sgdt_idx);
-        } else {
-            await initGoogleMap(data, sgdt_idx);
-        }
-    }
-
-    function renderMemberList(data) {
+    function renderMemberList(data, initialSelectedSgdtIdx) { // initialSelectedSgdtIdx 파라미터 추가
         const grpWrap = $('.grp_wrap');
-        grpWrap.empty(); // 기존 내용 삭제
+        grpWrap.empty();
 
-        // 전체 HTML 구조 생성
         const html = `
-        <div       class="border bg-white rounded-lg px_16 py_16">
+        <div class="border bg-white rounded-lg px_16 py_16">
             <p class="fs_16 fw_600 mb-3"><?=$translations['txt_group_members'] ?></p>
             <div id="group_member_list_box">
                 <div class="mem_wrap mem_swiper">
                     <div class="swiper-wrapper d-flex">
-                        ${generateMemberItems(data)}
+                        ${generateMemberItems(data, initialSelectedSgdtIdx)} 
                     </div>
                 </div>
             </div>
@@ -1809,145 +1650,84 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     `;
         grpWrap.html(html);
 
-        // Swiper 다시 초기화
         mem_swiper = new Swiper(".mem_swiper", {
             slidesPerView: 'auto',
             spaceBetween: 12,
         });
-        
-        // 초기 선택된 라디오 버튼 확인 및 선택 클래스 적용
-        setTimeout(() => {
-            const initiallyCheckedRadio = document.querySelector('input[name="rd2"]:checked');
-            if (initiallyCheckedRadio) {
-                // 모든 mem_box에서 selected 클래스 제거
-                document.querySelectorAll('.mem_box').forEach(box => {
-                    box.classList.remove('selected');
-                    
-                    // 추가: 모든 rect_square 테두리 제거
-                    const rectSquare = box.querySelector('.prd_img .rect_square');
-                    if (rectSquare) {
-                        rectSquare.style.border = '0';
-                        rectSquare.style.padding = '3px';
-                    }
-                });
-                
-                // 선택된 라디오 버튼의 mem_box에 selected 클래스 추가
-                const selectedBox = initiallyCheckedRadio.closest('.mem_box');
-                if (selectedBox) {
-                    selectedBox.classList.add('selected');
-                    
-                    // 추가: 직접 스타일 적용
-                    const rectSquare = selectedBox.querySelector('.prd_img .rect_square');
-                    if (rectSquare) {
-                        rectSquare.style.border = '3px solid #0046FE';
-                        rectSquare.style.padding = '0';
-                    }
-                }
-            }
-            
-            // 모든 이미지 테두리 제거
-            document.querySelectorAll('.rect_square img').forEach(img => {
-                img.style.border = '0';
-            });
-        }, 0);
     }
 
-    // 멤버 아이템 생성 함수
-    function generateMemberItems(data) {
-        let html = '';
-        let firstMemberKey = null;
+    function generateMemberItems(data, initialSelectedSgdtIdx) { // initialSelectedSgdtIdx 추가
+        let otherMembersHtml = ''; // 일반 그룹원 HTML
+        let ownerLeaderHtml = ''; // 오너/리더 HTML
+        let currentUserSgdtIdx = '<?= $sgdt_row['sgdt_idx'] ?>'; // 현재 로그인한 사용자의 sgdt_idx
 
-        // 그룹 멤버 정보 먼저 추가 (본인 제외)
+        // 디버깅 로그 추가
+        // console.log('[log.php] generateMemberItems 시작');
+        // console.log('[log.php] initialSelectedSgdtIdx:', initialSelectedSgdtIdx);
+        // console.log('[log.php] currentUserSgdtIdx:', currentUserSgdtIdx);
+        // console.log('[log.php] data.members:', data.members);
+
         if (data.members && typeof data.members === 'object') {
-            Object.keys(data.members).forEach(key => {
+            const memberKeys = Object.keys(data.members);
+
+            memberKeys.forEach(key => {
                 const member = data.members[key];
-                if (key !== data.sgdt_idx.toString()) {
-                    // 첫 번째 멤버의 키 저장
-                    if (!firstMemberKey) {
-                        firstMemberKey = key;
-                    }
-                    
-                    // 첫 번째 멤버를 기본 선택으로 처리
-                    const isSelected = key === firstMemberKey;
-                    const selectedClass = isSelected ? 'selected' : '';
-                    
-                    const mt_nickname = member.member_info.mt_nickname ? member.member_info.mt_nickname : member.member_info.mt_name;
-                    
-                    // 테두리 관련 인라인 스타일 직접 적용
-                    const rectStyle = isSelected 
-                        ? `style="border:3px solid #0046FE !important; padding:0 !important; outline:none !important; box-shadow:none !important; background:none !important; transform:none !important;"` 
-                        : `style="border:0 !important; border-width:0 !important; border-style:none !important; padding:3px !important; outline:none !important; box-shadow:none !important; background:none !important; transform:none !important;"`;
-                    
-                    // 이미지 인라인 스타일
-                    const imgStyle = `style="border:0 !important; outline:none !important; box-shadow:none !important; width:100% !important; height:100% !important; object-fit:cover !important; display:block !important;"`;
-                    
-                    html += `
-                        <div class="swiper-slide checks mem_box ${selectedClass}" id="mem_box_${key}" style="transition:none !important; transform:none !important;">
-                            <label style="transition:none !important; transform:none !important;">
-                                <input type="radio" name="rd2" value="${key}" ${isSelected ? 'checked' : ''}
-                                    onclick="f_profile_click('${member.member_info.mt_idx}', '${key}')" style="display:none !important;">
-                                <div class="prd_img mx-auto" style="border:0 !important; transition:none !important; transform:none !important;">
-                                    <div class="rect_square rounded_14" ${rectStyle}>
-                                        <img src="${member.member_info.my_profile}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" ${imgStyle} />
-                                    </div>
+                const isChecked = member.member_info.sgdt_idx == initialSelectedSgdtIdx; // sgdt_idx 비교
+
+                // 디버깅 로그 추가
+                // console.log(`[log.php] 멤버 ${key} 처리 중: sgdt_idx=${member.member_info.sgdt_idx}, isChecked=${isChecked}`);
+
+                const memberHtml = `
+                    <div class="swiper-slide checks mem_box" data-sgdt-idx="${member.member_info.sgdt_idx}">
+                        <label>
+                            <input type="radio" name="rd2" value="${member.member_info.sgdt_idx}" ${isChecked ? 'checked' : ''} onclick="f_profile_click(${member.member_info.mt_idx}, ${member.member_info.sgdt_idx});">
+                            <div class="prd_img mx-auto">
+                                <div class="rect_square rounded_14">
+                                    <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
                                 </div>
-                                <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${mt_nickname}</p>
-                            </label>
-                        </div>
-                    `;
+                            </div>
+                            <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${member.member_info.mt_nickname}</p>
+                        </label>
+                    </div>
+                `;
+
+                // 현재 사용자 또는 오너/리더 여부 확인
+                const isCurrentUser = member.member_info.sgdt_idx == currentUserSgdtIdx;
+                const isOwner = member.member_info.sgdt_owner_chk === 'Y';
+                const isLeader = member.member_info.sgdt_leader_chk === 'Y';
+
+                // 디버깅 로그 추가
+                // console.log(`[log.php] 멤버 ${key}: isCurrentUser=${isCurrentUser}, isOwner=${isOwner}, isLeader=${isLeader}`);
+
+                if (isCurrentUser || isOwner || isLeader) {
+                     ownerLeaderHtml += memberHtml;
+                } else {
+                    otherMembersHtml += memberHtml;
                 }
             });
         }
 
-        // 본인 정보 추가
-        if (data.member_info) {
-            const isSelected = !firstMemberKey || firstMemberKey === data.sgdt_idx.toString();
-            const selectedClass = isSelected ? 'selected' : '';
-            
-            // 테두리 관련 인라인 스타일 직접 적용
-            const rectStyle = isSelected 
-                ? `style="border:3px solid #0046FE !important; padding:0 !important; outline:none !important; box-shadow:none !important; background:none !important; transform:none !important;"` 
-                : `style="border:0 !important; border-width:0 !important; border-style:none !important; padding:3px !important; outline:none !important; box-shadow:none !important; background:none !important; transform:none !important;"`;
-            
-            // 이미지 인라인 스타일
-            const imgStyle = `style="border:0 !important; outline:none !important; box-shadow:none !important; width:100% !important; height:100% !important; object-fit:cover !important; display:block !important;"`;
-            
-            html += `
-                <div class="swiper-slide checks mem_box ${selectedClass}" id="mem_box_${data.sgdt_idx}" style="transition:none !important; transform:none !important;">
-                    <label style="transition:none !important; transform:none !important;">
-                        <input type="radio" name="rd2" value="${data.sgdt_idx}" ${isSelected ? 'checked' : ''}
-                            onclick="f_profile_click('${data.member_info.mt_idx}', '${data.sgdt_idx}')" style="display:none !important;">
-                        <div class="prd_img mx-auto" style="border:0 !important; transition:none !important; transform:none !important;">
-                            <div class="rect_square rounded_14" ${rectStyle}>
-                                <img src="${data.member_info.my_profile}" alt="프로필이미지" onerror="this.src='<?= $ct_no_profile_img_url ?>'" ${imgStyle} />
-                            </div>
-                        </div>
-                        <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.member_info.mt_nickname ? data.member_info.mt_nickname : data.member_info.mt_name}</p>
-                    </label>
-                </div>
-            `;
-        }
+        // 일반 멤버 + 오너/리더 순서로 조합
+        let finalHtml = otherMembersHtml + ownerLeaderHtml;
 
-        // 그룹원추가 버튼 추가
-        html += `
-        <div class="swiper-slide mem_box add_mem_box" ${data.sgt_cnt > 0 || data.sgdt_leader_cnt > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
-            <button class="btn mem_add">
-                <i class="xi-plus-min fs_20"></i>
-            </button>
-            <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
-                <?= $translations['txt_add_member'] ?>
-            </p>
-        </div>
-    `;
+        // 그룹원 추가 버튼 (오너/리더에게만 보이도록) - PHP 변수 사용
+        <?php if ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) { ?>
+        finalHtml += `
+            <div class="swiper-slide mem_box add_mem_box" onclick="location.href='./group'">
+                <button class="btn mem_add">
+                    <i class="xi-plus-min fs_20"></i>
+                </button>
+                <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
+                    <?= $translations['txt_add_member'] ?>
+                </p>
+            </div>
+        `;
+        <?php } ?>
 
-        // 첫 번째 멤버의 데이터로 초기화
-        if (firstMemberKey && data.members[firstMemberKey]) {
-            const firstMember = data.members[firstMemberKey];
-            $('#sgdt_mt_idx').val(firstMember.member_info.mt_idx);
-            $('#sgdt_idx').val(firstMemberKey);
-        }
+        // 디버깅 로그 추가
+        // console.log('[log.php] generateMemberItems 종료, 생성된 HTML 길이:', finalHtml.length);
 
-        return html;
+        return finalHtml;
     }
 
     function createGradient(steps) {
@@ -1986,57 +1766,41 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
 
     // 로딩 화면을 보이게 하는 함수
     function showMapLoading(center = true) {
-        const loadingElement = document.getElementById('map-loading');
-        const spinnerDots = document.querySelectorAll('.dot');
+        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
 
         // 랜덤 색상 적용
         const randomColor = generateSpinnerColor();
+
+        // 두 스피너의 색상 변경
         spinnerDots.forEach(dot => {
             dot.style.backgroundColor = randomColor;
         });
+        // otherSpinnerDots.forEach(dot => {
+        //     dot.style.backgroundColor = randomColor;
+        // });
 
-        // 부드러운 페이드인 효과 적용
-        loadingElement.style.opacity = '0';
-        loadingElement.style.display = 'flex';
-        
-        // 강제 리플로우 트리거
-        void loadingElement.offsetWidth;
-        
-        // 트랜지션 적용
-        loadingElement.style.transition = 'opacity 0.3s ease';
-        loadingElement.style.opacity = '1';
-        
+        loadingElement.style.display = 'flex'; // 로딩바 표시
         // optBottom 이벤트 비활성화
-        if (optBottom) {
-            optBottom.ontouchstart = null;
-            optBottom.ontouchmove = null;
-            optBottom.onmousedown = null;
-            document.onmousemove = null;
-            document.onmouseup = null;
-        }
+        optBottom.ontouchstart = null;
+        optBottom.ontouchmove = null;
+        optBottom.onmousedown = null;
+        document.onmousemove = null;
+        document.onmouseup = null;
     }
 
     // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        const loadingElement = document.getElementById("map-loading");
-        
-        // 부드러운 페이드아웃 효과 적용
-        loadingElement.style.transition = 'opacity 0.3s ease';
-        loadingElement.style.opacity = '0';
-        
-        // 트랜지션이 완료된 후 display 속성 변경
-        setTimeout(() => {
+        if (loadingElement) {
             loadingElement.style.display = 'none';
-        }, 300);
-        
-        // 이벤트 리스너 재설정
-        if (optBottom) {
-            optBottom.ontouchstart = optBottomTouchStartListener;
-            optBottom.ontouchmove = optBottomTouchMoveListener;
-            optBottom.onmousedown = optBottomMouseDownListener;
-            document.onmousemove = optBottomMouseMoveListener;
-            document.onmouseup = optBottomMouseUpListener;
         }
+
+        // optBottom 이벤트 활성화
+        optBottom.ontouchstart = optBottomTouchStartListener;
+        optBottom.ontouchmove = optBottomTouchMoveListener;
+        optBottom.onmousedown = optBottomMouseDownListener;
+        document.onmousemove = optBottomMouseMoveListener;
+        document.onmouseup = optBottomMouseUpListener;
     }
 
     function generateSpinnerColor() {
@@ -2193,51 +1957,6 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
 
     async function f_profile_click(mt_idx, sgdt_idx) {
         try {
-            // 기존의 selected 클래스 제거
-            document.querySelectorAll('.mem_box').forEach(box => {
-                box.classList.remove('selected');
-                
-                // 모든 rect_square의 테두리 초기화
-                const rectSquare = box.querySelector('.prd_img .rect_square');
-                if (rectSquare) {
-                    rectSquare.style.removeProperty('border');
-                    rectSquare.style.setProperty('border', '0', 'important');
-                    rectSquare.style.setProperty('padding', '3px', 'important');
-                }
-            });
-            
-            // 선택된 라디오 버튼의 부모 mem_box에 selected 클래스 추가
-            const radioElement = document.querySelector(`input[name="rd2"][onclick*="f_profile_click(${mt_idx}, ${sgdt_idx})"]`);
-            if (radioElement) {
-                const selectedBox = radioElement.closest('.mem_box');
-                if (selectedBox) {
-                    selectedBox.classList.add('selected');
-                    
-                    // 추가: 직접 스타일 적용
-                    const rectSquare = selectedBox.querySelector('.prd_img .rect_square');
-                    if (rectSquare) {
-                        // 기존 테두리 초기화
-                        rectSquare.style.removeProperty('border');
-                        
-                        // 테두리 개별 속성으로 적용
-                        rectSquare.style.setProperty('border-width', '3px', 'important');
-                        rectSquare.style.setProperty('border-style', 'solid', 'important');
-                        rectSquare.style.setProperty('border-color', '#0046FE', 'important');
-                        rectSquare.style.setProperty('padding', '0', 'important');
-                        
-                        // 다른 테두리 제거
-                        const img = rectSquare.querySelector('img');
-                        if (img) {
-                            img.style.setProperty('border', '0', 'important');
-                            img.style.setProperty('outline', 'none', 'important');
-                        }
-                    }
-                    
-                    // 전체 스타일 정리 함수 호출
-                    setTimeout(fixAllBorderStyles, 10);
-                }
-            }
-            
             $('#sgdt_mt_idx').val(mt_idx);
             $('#sgdt_idx').val(sgdt_idx);
 
@@ -2257,18 +1976,6 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
         if (sdate === currentSelectedDate) return; // 이미 선택된 날짜면 아무 것도 하지 않음
 
         currentSelectedDate = sdate;
-
-        // 선택한 날짜의 년월 추출
-        const selectedDate = new Date(sdate);
-        const selectedYear = selectedDate.getFullYear();
-        const selectedMonth = String(selectedDate.getMonth() + 1).padStart(2, '0');
-        const newCalendarTitle = `${selectedYear}.${selectedMonth}`;
-
-        // calendar_date_title 업데이트
-        const calendarTitleElement = document.getElementById('calendar_date_title');
-        if (calendarTitleElement) {
-            calendarTitleElement.textContent = newCalendarTitle;
-        }
 
         if (typeof(history.pushState) != "undefined") {
             let url = './log?sdate=' + sdate;
@@ -2319,25 +2026,29 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
             processData: false,
             cache: true,
             timeout: 5000,
-            dataType: 'json', // JSON 데이터 타입 명시
             success: function(data) {
                 if (data) {
+                    // 위치기록 요약 데이터를 JSON 형태로 파싱
+                    const locationLogData = JSON.parse(data);
+
                     // 기존 요소 찾기
                     const grpWrap = document.querySelector('.mt-2.mb-3.px_16');
 
                     if (grpWrap) {
+                        // 기존 newUl 요소 찾기
                         let newUl = grpWrap.querySelector('#location_log_box_dynamic');
 
+                        // newUl이 없으면 새로 생성
                         if (!newUl) {
                             const newDiv2 = document.createElement('div');
-                            newDiv2.className = 'border bg-white rounded-lg px_16 py_12';
+                            newDiv2.className = 'border bg-white rounded-lg px_16 py_16';
 
                             const newP = document.createElement('p');
-                            newP.className = 'fs_16 fw_600 mb-3';
+                            newP.className = 'fs_16 fw_600 mt-2';
                             newP.textContent = "<?=$translations['txt_log_summary'] ?>";
 
                             newUl = document.createElement('ul');
-                            newUl.className = 'loc_rog_ul d-flex align-item-center justify-content-between py-2';
+                            newUl.className = 'loc_rog_ul d-flex align-item-center justify-content-between py-4';
                             newUl.id = 'location_log_box_dynamic';
 
                             newP.appendChild(newUl);
@@ -2345,32 +2056,31 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
                             grpWrap.appendChild(newDiv2);
                         }
 
+                        // newUl 내용 업데이트
                         newUl.innerHTML = `
                             <li class="text-center border-right flex-fill loc_rog_ul_l12">
-                                <p class="fs_15 fw_400 text_gray line_h1_2 text_dynamic d-flex align-items-center justify-content-center" style="height: 32px;"><?=$translations['txt_distance_km'] ?></p>
-                                <hr class="my-1">
-                                <p class="fs_15 fw_600 line_h1_2 text_dynamic">${data.distance}</p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_distance_km'] ?></p>
+                                <hr class="my-2">
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.distance}</p>
                             </li>
                             <li class="text-center border-right flex-fill loc_rog_ul_l13">
-                                <p class="fs_15 fw_400 text_gray line_h1_2 text_dynamic d-flex align-items-center justify-content-center" style="height: 32px;"><?=$translations['txt_travel_time'] ?></p>
-                                <hr class="my-1">
-                                <p class="fs_15 fw_600 line_h1_2 text_dynamic">${data.duration}</p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_travel_time'] ?></p>
+                                <hr class="my-2">
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.duration}</p>
                             </li>
                             <li class="text-center flex-fill loc_rog_ul_l14">
-                                <p class="fs_15 fw_400 text_gray line_h1_2 text_dynamic d-flex align-items-center justify-content-center" style="height: 32px;"><?=$translations['txt_steps'] ?></p>
-                                <hr class="my-1">
-                                <p class="fs_15 fw_600 line_h1_2 text_dynamic">${data.steps.toLocaleString()} <?=$translations['txt_steps_short'] ?></p>
+                                <p class="fs_15 fw_400 text_gray line_h1_3 text_dynamic d-flex align-items-center justify-content-center" style="height: 40px;"><?=$translations['txt_steps'] ?></p>
+                                <hr class="my-2">
+                                <p class="fs_15 fw_600 mt-2 line_h1_3 text_dynamic">${locationLogData.steps.toLocaleString()} <?=$translations['txt_steps_short'] ?></p>
                             </li>
                         `;
+                        // 위치슬라이더 그리기
+                        // addLocationAdjustmentSlider();
                     } else {
                         console.error("위치 요약을 표시할 요소를 찾을 수 없습니다.");
                     }
                 }
             },
-            error: function(xhr, status, error) {
-                console.error("Error:", error);
-                console.log("Response:", xhr.responseText);
-            }
         });
     }
 
@@ -2401,39 +2111,38 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     //     }
     // }
 
-    function checkAdCount() {
+    async function checkAdCount() { // Make async
         let ad_data = fetchAdDisplayStatus();
         console.log('log.php - ad_alert : ' + ad_data.ad_alert + ' ad_show : ' + ad_data.ad_show + ' ad_count : ' + ad_data.ad_count);
 
         try {
             if (ad_data.ad_show == 'Y') {
-                requestAdDisplay(ad_data)
+                await requestAdDisplay(ad_data) // Wait for ad display attempt
                     .then(() => {
                         console.log("Ad shown successfully");
-                    })
-                    .catch((error) => {
-                        console.error("Error in requestAdDisplay:", error);
-                    })
-                    .finally(() => {
-                        updateAdDisplayCount(ad_data);
-                        gtag('event', 'log_ad', {
+                         gtag('event', 'log_ad', {
                             'event_category': 'show_log',
                             'event_label': 'show',
                             'user_id': '<?= $_SESSION['_mt_idx'] ?>',
                             'platform': isAndroidDevice() ? 'Android' : (isiOSDevice() ? 'iOS' : 'Unknown')
                         });
-                        setTimeout(() => {
-                            updateMemberLocationInfo();
-                        }, 1000); // 광고 표시 시도 후 1초 뒤에 지도 로드
+                    })
+                    .catch((error) => {
+                        console.error("Error in requestAdDisplay:", error);
+                    })
+                    .finally(async () => { // Make finally async
+                        updateAdDisplayCount(ad_data);
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait after ad
+                        await updateMemberLocationInfo(); // Wait for data loading
                     });
             } else {
                 updateAdDisplayCount(ad_data);
-                updateMemberLocationInfo();
+                await updateMemberLocationInfo(); // Wait for data loading
             }
         } catch (err) {
             console.log("Error in checkAdCount: " + err);
             updateAdDisplayCount(ad_data);
-            updateMemberLocationInfo();
+            await updateMemberLocationInfo(); // Wait for data loading even on error
         }
     }
 
@@ -2768,7 +2477,7 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
             document.addEventListener('mousemove', function(event) {
                 if (isDragging) {
                     let currentY = event.clientY; // 현재 마우스 좌표
-                    let deltaY = currentY - startY; // 움직임의 차이 계
+                    let deltaY = currentY - startY; // 움직임의 차이 계산
 
                     // 움직임이 일정 값 이상이면 보이거나 숨김
                     if (Math.abs(deltaY) > 50) {
@@ -2843,137 +2552,8 @@ if ($userLang === 'ko' && $mem_row['mt_map'] == 'N') {
     //     let sgdt_idx = $('#sgdt_idx').val();
     //     marker_reload(sgdt_idx);
     // }, 30000);
-
-    // 새로운 함수 추가: 테두리 문제 해결
-    function fixBorderIssues() {
-        console.log('테두리 문제 수정 중...');
-        
-        // 모든 mem_box의 rect_square 테두리 제거
-        $('.mem_box .prd_img .rect_square').css({
-            'border': '0',
-            'padding': '3px',
-            'transition': 'none',
-            'transform': 'none',
-            'animation': 'none'
-        });
-        
-        // 선택된 mem_box의 rect_square에만 테두리 적용
-        $('.mem_box.selected .prd_img .rect_square').css({
-            'border': '3px solid #0046FE',
-            'padding': '0'
-        });
-        
-        // 모든 이미지 테두리 제거
-        $('.rect_square img').css('border', '0');
-        
-        // 모든 transition, transform, animation 효과 제거
-        $('#group_member_list_box *').css({
-            'transition': 'none !important',
-            'transform': 'none !important', 
-            'animation': 'none !important'
-        });
-    }
 </script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
 ?>
-<!-- 테두리 중복 문제 해결을 위한 추가 스크립트 -->
-<script>
-// 페이지 로드 시 실행
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('테두리 수정 스크립트 로드됨');
-    
-    // 스타일 직접 적용 함수 호출
-    fixAllBorderStyles();
-    
-    // 500ms 후 다시 한번 적용 (지연 로드된 요소 처리)
-    setTimeout(fixAllBorderStyles, 500);
-    
-    // 1초 후 한번 더 적용 (안정성 향상)
-    setTimeout(fixAllBorderStyles, 1000);
-    
-    // 모든 라디오 버튼에 이벤트 리스너 추가
-    document.querySelectorAll('.mem_box input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            console.log('라디오 버튼 변경됨');
-            fixAllBorderStyles();
-        });
-    });
-});
-
-// 스타일을 직접 적용하는 함수
-function fixAllBorderStyles() {
-    console.log('테두리 스타일 직접 적용');
-    
-    // 모든 테두리 초기화
-    document.querySelectorAll('.mem_box, .mem_box .prd_img, .mem_box .rect_square, .mem_box *').forEach(el => {
-        el.style.removeProperty('border');
-        el.style.removeProperty('box-shadow');
-        el.style.removeProperty('transform');
-        el.style.removeProperty('transition');
-        el.style.removeProperty('animation');
-    });
-    
-    // 모든 rect_square 초기화 - border: 0 적용
-    document.querySelectorAll('.mem_box .prd_img .rect_square').forEach(el => {
-        el.style.setProperty('border', '0', 'important');
-        el.style.setProperty('padding', '3px', 'important');
-        el.style.setProperty('outline', 'none', 'important');
-        el.style.setProperty('box-shadow', 'none', 'important');
-        el.style.setProperty('transition', 'none', 'important');
-        el.style.setProperty('transform', 'none', 'important');
-        el.style.setProperty('animation', 'none', 'important');
-        el.style.setProperty('background', 'transparent', 'important');
-    });
-    
-    // 모든 이미지 테두리 제거
-    document.querySelectorAll('.mem_box .prd_img .rect_square img').forEach(el => {
-        el.style.setProperty('border', '0', 'important');
-        el.style.setProperty('outline', 'none', 'important');
-        el.style.setProperty('box-shadow', 'none', 'important');
-    });
-    
-    // 선택된 rect_square에만 테두리 적용
-    document.querySelectorAll('.mem_box.selected .prd_img .rect_square').forEach(el => {
-        // 기존 테두리 초기화 후 새로 적용
-        el.style.removeProperty('border');
-        el.style.setProperty('border-width', '3px', 'important');
-        el.style.setProperty('border-style', 'solid', 'important');
-        el.style.setProperty('border-color', '#0046FE', 'important');
-        el.style.setProperty('padding', '0', 'important');
-    });
-    
-    console.log('모든 테두리 스타일 정리 완료');
-}
-
-// 페이지가 완전히 로드된 후 추가 로직 실행
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        console.log('페이지 완전 로드 후 스타일 최종 정리');
-        // 모든 테두리 관련 요소 스타일 정리
-        fixAllBorderStyles();
-        
-        // 라디오 버튼 변경 이벤트 리스너 추가
-        document.querySelectorAll('.mem_box input[type="radio"]').forEach(input => {
-            input.addEventListener('change', function() {
-                console.log('라디오 버튼 변경됨:', this.value);
-                
-                // 모든 mem_box에서 selected 클래스 제거
-                document.querySelectorAll('.mem_box').forEach(box => {
-                    box.classList.remove('selected');
-                });
-                
-                // 선택된 라디오 버튼의 mem_box에 selected 클래스 추가
-                const selectedBox = this.closest('.mem_box');
-                if (selectedBox) {
-                    selectedBox.classList.add('selected');
-                }
-                
-                // 모든 테두리 스타일 재적용
-                fixAllBorderStyles();
-            });
-        });
-    }, 200);
-});
-</script>
