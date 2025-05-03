@@ -215,7 +215,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         bottom: 14rem
     }
 
-    /* 로딩 화면 스타일 */
+    /* 로딩 화면 스타일 개선 */
     #map-loading {
         position: absolute;
         top: 0;
@@ -227,6 +227,7 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        transition: opacity 0.3s ease;
     }
 
     .dots-spinner {
@@ -283,6 +284,12 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
         border-radius: 8px !important;
         /* 곡률 증가 */
         overflow: hidden;
+    }
+
+    /* 콘텐츠 컨테이너 스타일 */
+    .mbr_wr {
+        transition: opacity 0.3s ease;
+        min-height: 100px; /* 최소 높이 설정으로 레이아웃 이동 방지 */
     }
 </style>
 <div class="container sub_pg bg_main">
@@ -769,7 +776,8 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
 
         // 로딩 화면을 보이게 하는 함수
         function showMapLoading(center = true) {
-            const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+            const loadingElement = document.getElementById('map-loading');
+            const spinnerDots = document.querySelectorAll('.dot');
 
             // 랜덤 색상 적용
             const randomColor = generateSpinnerColor();
@@ -777,27 +785,38 @@ $row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
                 dot.style.backgroundColor = randomColor;
             });
 
-            loadingElement.style.display = 'flex'; // 로딩바 표시
+            // 부드러운 페이드인 효과 적용
+            loadingElement.style.opacity = '0';
+            loadingElement.style.display = 'flex';
+            
+            // 강제 리플로우 트리거
+            void loadingElement.offsetWidth;
+            
+            // 트랜지션 적용
+            loadingElement.style.transition = 'opacity 0.3s ease';
+            loadingElement.style.opacity = '1';
         }
 
         // 로딩 화면을 숨기는 함수
         function hideMapLoading() {
-            if (loadingElement) {
+            const loadingElement = document.getElementById("map-loading");
+            
+            // 부드러운 페이드아웃 효과 적용
+            loadingElement.style.transition = 'opacity 0.3s ease';
+            loadingElement.style.opacity = '0';
+            
+            // 트랜지션이 완료된 후 display 속성 변경
+            setTimeout(() => {
                 loadingElement.style.display = 'none';
-            }
+            }, 300);
         }
 
         function generateSpinnerColor() {
-            const colorSets = [
-                '#FF0000', // 빨간색
-                '#FFA500', // 주황색
-                '#0000FF', // 파란색
-                '#000080', // 남색
-                '#800080', // 보라색
-            ];
-
-            const randomIndex = Math.floor(Math.random() * colorSets.length);
-            return colorSets[randomIndex];
+            // 랜덤 색상 생성 (파스텔 톤)
+            const hue = Math.floor(Math.random() * 360); // 0-359 사이의 색조
+            const saturation = 70 + Math.floor(Math.random() * 20); // 70-89% 채도
+            const lightness = 60 + Math.floor(Math.random() * 20); // 60-79% 밝기
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>

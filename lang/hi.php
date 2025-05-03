@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => 'स्थान जानकारी',
+    'txt_location_info_minutes' => 'मिनट पहले',
+    'txt_location_info_hours' => 'घंटे पहले',
     'txt_remember_me' => 'मुझे याद रखना', // 자동 로그인 설정하기
     'txt_group_delete' => 'समूह हटाएं', // 그룹 삭제
     'txt_group_edit' => 'समूह संपादित करें',
@@ -433,6 +436,8 @@ return [
     'txt_select_member' => 'सदस्य चुनें', // 구성원 선택
     'txt_notification' => 'सूचना', // 알림
     'txt_notification_settings_info' => 'कार्यक्रम और स्थान परिवर्तनों के लिए सूचनाएं सेट करें।',
+    'txt_all_schedules_edited_notification_alert' => 'सभी आवर्ती कार्यक्रम संशोधित किए गए हैं।',
+    'txt_schedule_edit_error_check_required' => 'कार्यक्रम संपादित करते समय एक त्रुटि हुई। कृपया जांचें कि सभी आवश्यक फ़ील्ड भरे गए हैं।',
     // 일정 및 위치 변경에 대한 알림을 설정하세요.
     'txt_enter_schedule_location' => 'कार्यक्रम का स्थान दर्ज करें।', // 일정 위치를 입력하세요.
     'txt_items_to_prepare' => 'तैयार करने के लिए आइटम', // 준비물
@@ -836,8 +841,20 @@ return [
         </body>
     </html>
     ', // 비밀번호 재설정 안내
-    'txt_repeat_schedule_delete_option' => 'यह एक आवर्ती कार्यक्रम है। कृपया हटाने का तरीका चुनें।',
+    'txt_repeat_schedule_delete_option' => 'यह एक आवर्ती कार्यक्रम है। कृपया हटाने की विधि चुनें।',
     'txt_delete_this_schedule_only' => 'केवल इस कार्यक्रम को हटाएं',
     'txt_delete_all_repeat_schedules' => 'इस कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रमों को हटाएं',
     'txt_all_schedules_deleted_notification_alert' => 'चयनित कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रम हटा दिए गए हैं।',
+    'txt_previous_schedules_kept' => '※ पिछले आवर्ती कार्यक्रम बरकरार रहेंगे।',
+
+    // 새로 추가된 번역 텍스트
+    'txt_edit_repeat_schedule' => 'आवर्ती कार्यक्रम संपादित करें',
+    'txt_repeat_schedule_edit_option' => 'यह एक आवर्ती कार्यक्रम है। कृपया संपादन विधि चुनें।',
+    'txt_edit_this_schedule_only' => 'केवल इस कार्यक्रम को संपादित करें',
+    'txt_edit_future_schedules' => 'इस कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रमों को संपादित करें',
+    'txt_edit_all_schedules' => 'सभी आवर्ती कार्यक्रमों को संपादित करें',
+    'txt_delete_this_schedule' => 'केवल इस कार्यक्रम को हटाएं',
+    'txt_delete_future_schedules' => 'इस कार्यक्रम और सभी भविष्य के आवर्ती कार्यक्रमों को हटाएं',
+    'txt_delete_all_schedules' => 'सभी आवर्ती कार्यक्रमों को हटाएं',
+    'txt_delete_schedule_confirm' => 'क्या आप वाकई इस कार्यक्रम को हटाना चाहते हैं?',
 ];

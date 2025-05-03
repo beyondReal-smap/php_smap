@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => '位置情報',
+    'txt_location_info_minutes' => '分前',
+    'txt_location_info_hours' => '時間前',
     'txt_remember_me' => 'ログインを記憶する', // 자동 로그인 설정하기
     'txt_group_delete' => 'グループ削除', // 그룹 삭제
     'txt_group_edit' => 'グループ編集',
@@ -442,6 +445,8 @@ return [
     'txt_repeat' => '繰り返し', // 반복
     'txt_select_member' => 'メンバーを選択', // 멤버 선택
     'txt_notification' => '通知', // 알림
+    'txt_all_schedules_edited_notification_alert' => 'すべての繰り返しスケジュールが修正されました。',
+    'txt_schedule_edit_error_check_required' => 'スケジュールの編集中にエラーが発生しました。必須項目がすべて入力されているか確認してください。',
     'txt_notification_settings_info' => 'スケジュールと場所の変更に関する通知を設定します。', // 스케줄과 장소 변경에 대한 알림을 설정합니다.
     'txt_location' => '場所', // 장소
     'txt_enter_schedule_location' => 'スケジュールの場所を入力してください。', // 스케줄 장소를 입력하세요.
@@ -811,6 +816,15 @@ return [
     'txt_delete_this_schedule_only' => 'このスケジュールのみ削除',
     'txt_delete_all_repeat_schedules' => 'このスケジュールと今後の繰り返しスケジュールをすべて削除',
     'txt_all_schedules_deleted_notification_alert' => '選択したスケジュールと今後の繰り返しスケジュールがすべて削除されました。',
-    'txt_previous_schedules_kept' => '※ 過去の繰り返しスケジュールは維持されます。',
+    'txt_previous_schedules_kept' => '※ 以前の繰り返しスケジュールは維持されます。',
+    'txt_edit_repeat_schedule' => '繰り返しスケジュールの編集',
+    'txt_repeat_schedule_edit_option' => '繰り返しスケジュールです。編集方法を選択してください。',
+    'txt_edit_this_schedule_only' => 'このスケジュールのみ編集',
+    'txt_edit_future_schedules' => 'このスケジュールと今後の繰り返しスケジュールを編集',
+    'txt_edit_all_schedules' => 'すべての繰り返しスケジュールを編集',
+    'txt_delete_this_schedule' => 'このスケジュールのみ削除',
+    'txt_delete_future_schedules' => 'このスケジュールと今後の繰り返しスケジュールを削除',
+    'txt_delete_all_schedules' => 'すべての繰り返しスケジュールを削除',
+    'txt_delete_schedule_confirm' => 'このスケジュールを削除しますか？',
 ];
 ?>

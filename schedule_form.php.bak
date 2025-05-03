@@ -2661,10 +2661,10 @@ $debug_t = 'hidden';
                             hideLoading();
                             console.log('서버 응답:', data);
                             if (data == 'Y') {
-                                jalert_url("<?= $translations['txt_all_schedules_edited_notification_alert'] ?>", './schedule');
+                                jalert_url("모든 반복 일정이 성공적으로 수정되었습니다.", './schedule');
                             } else {
                                 console.error('서버 응답이 예상과 다릅니다:', data);
-                                jalert("<?= $translations['txt_schedule_edit_error_check_required'] ?>");
+                                jalert("일정 수정 중 오류가 발생했습니다. 필수 값이 모두 입력되었는지 확인해주세요.");
                             }
                         },
                         error: function(err) {
@@ -4696,4 +4696,4 @@ function f_edit_schedule_future(i) {
     });
 }
 
-</script>
+</script></script>

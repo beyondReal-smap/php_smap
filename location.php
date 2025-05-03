@@ -18,48 +18,46 @@ if (empty($_SESSION['_mt_idx'])) {
     }
 }
 
-if ($_GET['sdate'] == '') {
+if (empty($_GET['sdate'])) {
     $_GET['sdate'] = date('Y-m-d');
 }
 
 $sgt_cnt = f_get_owner_cnt($_SESSION['_mt_idx']); //오너인 그룹수
 $sgdt_leader_cnt = f_get_leader_cnt($_SESSION['_mt_idx']); //리더인 그룹수
 $sgdt_cnt = f_group_invite_cnt($_SESSION['_mt_idx']); //초대된 그룹수
-$sgt_row = f_group_info($_SESSION['_mt_idx']); // 그룹생성여부
+$sgt_row_info = f_group_info($_SESSION['_mt_idx']); // 그룹생성여부 (오너인 그룹 정보)
 
+// 현재 로그인한 사용자의 smap_group_detail_t 정보 조회
 $DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgt_idx', $sgt_row['sgt_idx']);
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_exit', 'N');
-$DB->where('sgdt_owner_chk', 'Y');
-$DB->where('sgdt_discharge', 'N');
-$sgdt_row_temp = $DB->getone('smap_group_detail_t');
+// $DB->where('sgdt_show', 'Y'); // 필요 시 주석 해제
+// $DB->where('sgdt_exit', 'N'); // 필요 시 주석 해제
+// $DB->where('sgdt_discharge', 'N'); // 필요 시 주석 해제
+$sgdt_row = $DB->getone('smap_group_detail_t');
 
-if ($sgdt_row_temp) {
-    $sgdt_row = $sgdt_row_temp;
-} else {
-    $DB->where('mt_idx', $_SESSION['_mt_idx']);
-    $DB->where('sgdt_show', 'Y');
-    $DB->where('sgdt_exit', 'N');
-    $DB->where('sgdt_owner_chk', 'N');
-    $DB->where('sgdt_discharge', 'N');
-    $sgdt_row = $DB->getone('smap_group_detail_t');
+// $sgdt_row가 없을 경우 (예: 그룹에 속하지 않은 경우) 대비
+if (!$sgdt_row) {
+    // 기본값 또는 오류 처리 로직 추가 (예: 빈 배열 할당)
+    $sgdt_row = []; // 빈 배열 또는 적절한 기본값 설정
+    // 또는 에러 메시지 표시 후 종료
+    // alert('사용자의 그룹 정보를 찾을 수 없습니다.', './', '');
 }
+
 
 $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
 
-//오너제외한 그룹원 수
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$DB->where('sgt_show', 'Y');
-$row_sgt = $DB->getone('smap_group_t', 'sgt_idx');
+//오너제외한 그룹원 수 (현재 사용자가 오너인 경우)
+$expt_cnt = 0;
+if ($sgt_cnt > 0 && isset($sgt_row_info['sgt_idx'])) {
+    $DB->where('sgt_idx', $sgt_row_info['sgt_idx']);
+    $DB->where('mt_idx', $_SESSION['_mt_idx'], '!='); // 본인 제외
+    $DB->where('sgdt_owner_chk', 'N');
+    $DB->where('sgdt_show', 'Y');
+    $DB->where('sgdt_discharge', 'N');
+    $DB->where('sgdt_exit', 'N');
+    $row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
+    $expt_cnt = $row['cnt'];
+}
 
-$DB->where('sgt_idx', $row_sgt['sgt_idx']);
-$DB->where('sgdt_owner_chk', 'N');
-$DB->where('sgdt_show', 'Y');
-$DB->where('sgdt_discharge', 'N');
-$DB->where('sgdt_exit', 'N');
-$row = $DB->getone('smap_group_detail_t', 'count(*) as cnt');
-$expt_cnt = $row['cnt'];
 
 $s_date = date("Y-m-d");
 
@@ -100,6 +98,7 @@ $s_date = date("Y-m-d");
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        transition: opacity 0.3s ease;
     }
 
     .dots-spinner {
@@ -133,6 +132,12 @@ $s_date = date("Y-m-d");
         50% {
             transform: scale(1.5);
         }
+    }
+
+    /* 콘텐츠 컨테이너 스타일 */
+    .mbr_wr {
+        transition: opacity 0.3s ease;
+        min-height: 100px; /* 최소 높이 설정으로 레이아웃 이동 방지 */
     }
 </style>
 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
@@ -638,11 +643,18 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 <?php } ?>
 <script>
     $(document).ready(function() {
-        if (<?= json_encode($sgdt_row) ?> !== null) {
+        console.log('[location.php] $(document).ready 시작'); // 로그 추가
+
+        const initialSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx'] ?? null) ?>; // null 병합 연산자 사용
+        console.log('[location.php] 초기 sgdt_idx 값:', initialSgdtIdx); // 로그 추가
+
+        if (initialSgdtIdx !== null) {
             // 그룹원 목록을 생성하고 첫 번째 그룹원의 데이터를 조회
-            createGroupMember(<?= json_encode($sgdt_row['sgdt_idx']) ?>);
+            console.log('[location.php] createGroupMember 호출 시도, sgdt_idx:', initialSgdtIdx); // 로그 추가
+            createGroupMember(initialSgdtIdx);
         } else {
             // $sgdt_row가 비어 있을 때의 로직
+            console.warn('[location.php] 초기 sgdt_idx가 null입니다. 현재 사용자 정보로 location list 로드 시도.'); // 로그 추가
             createLocationList('', '', <?= $_SESSION['_mt_idx'] ?>);
         }
         f_get_box_list2();
@@ -650,27 +662,22 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         setTimeout(() => {
             calcScreenOffset();
         }, 100);
+         console.log('[location.php] $(document).ready 종료'); // 로그 추가
     });
 
-    function generateMemberItems(data) {
+    function generateMemberItems(data, initialSelectedSgdtIdx) { // initialSelectedSgdtIdx 추가
         let html = '';
-        let firstMemberKey = null;
-        
-        // 다른 그룹원들 먼저 추가
+        const currentUserSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx']) ?>;
+
+        // 멤버 목록 순회
         if (data.members && typeof data.members === 'object') {
             Object.keys(data.members).forEach(key => {
                 const member = data.members[key];
-                // 본인이 아닌 첫 번째 멤버의 키를 저장
-                if (!firstMemberKey && key !== data.sgdt_idx.toString()) {
-                    firstMemberKey = key;
-                }
-                
-                if (key !== data.sgdt_idx.toString()) {
-                    html += `
+                html += `
                     <div class="swiper-slide checks mem_box">
                         <label>
-                            <input type="radio" name="rd2" ${key === firstMemberKey ? 'checked' : ''} onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
-                            <div class="prd_img mx-auto"> 
+                            <input type="radio" name="rd2" value="${key}" ${key == initialSelectedSgdtIdx ? 'checked' : ''} onclick="mem_schedule(${member.member_info.sgt_idx}, ${member.member_info.sgdt_idx});">
+                            <div class="prd_img mx-auto">
                                 <div class="rect_square rounded_14">
                                     <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
                                 </div>
@@ -679,40 +686,26 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                         </label>
                     </div>
                 `;
-                }
             });
         }
 
-        // 본인 정보를 마지막에 추가 (checked 속성 제거)
-        if (data.members && data.members[data.sgdt_idx]) {
-            html += `
-            <div class="swiper-slide checks mem_box">
-                <label>
-                    <input type="radio" name="rd2" onclick="mem_schedule(${data.members[data.sgdt_idx].member_info.sgt_idx}, ${data.members[data.sgdt_idx].member_info.sgdt_idx});">
-                    <div class="prd_img mx-auto">
-                        <div class="rect_square rounded_14">
-                            <img src="${data.members[data.sgdt_idx].member_info.my_profile}" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
-                        </div>
-                    </div>
-                    <p class="fs_12 fw_400 text-center mt-2 line_h1_2 line2_text text_dynamic">${data.members[data.sgdt_idx].member_info.mt_nickname}</p>
-                </label>
+        // 그룹원 추가 버튼 (소유권자 또는 리더에게만 보이도록 수정)
+        const showAddButton = <?= ($sgt_cnt > 0) ? 'true' : 'false' ?>; // 오너인 경우만 추가 버튼 표시 (리더는 제외)
+        if (showAddButton) {
+             html += `
+            <div class="swiper-slide mem_box add_mem_box" onclick="location.href='./group'">
+                <button class="btn mem_add">
+                    <i class="xi-plus-min fs_20"></i>
+                </button>
+                <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
+                    <?= $translations['txt_add_member'] ?>
+                </p>
             </div>
-        `;
+            `;
         }
 
-        // 그룹원 추가 버튼
-        html += `
-        <div class="swiper-slide mem_box add_mem_box" ${data.sgt_cnt > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
-            <button class="btn mem_add">
-                <i class="xi-plus-min fs_20"></i>
-            </button>
-            <p class="fs_12 fw_400 text-center mt-1 line_h1_2 text_dynamic" style="word-break: break-all; line-height: 1.2; white-space: normal; overflow: visible;">
-                <?= $translations['txt_add_member'] ?>
-            </p>
-        </div>
-        `;
 
-        return { html, firstMemberKey };
+        return { html }; // firstMemberKey 제거 (createGroupMember에서 처리)
     }
 
     function createGroupMember(sgdt_idx) {
@@ -720,7 +713,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         return new Promise((resolve, reject) => {
             var form_data = new FormData();
             form_data.append("act", "member_schedule_list");
-            form_data.append("sgdt_idx", sgdt_idx);
+            form_data.append("sgdt_idx", sgdt_idx); // 그룹원 목록 전체를 가져오기 위한 기준 sgdt_idx
             form_data.append("event_start_date", '<?= $s_date ?>');
             form_data.append("mt_lang", '<?= $userLang ?>');
 
@@ -736,57 +729,62 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 timeout: 5000,
                 dataType: 'json',
                 success: function(data) {
+                    console.log('[location.php] createGroupMember AJAX success. 응답 데이터:', data); // 로그 추가
                     if (data.result === 'Y') {
+                        console.log('[location.php] createGroupMember data.result is Y. 초기 mem_schedule 호출 시도.'); // 로그 추가
                         hideMapLoading();
                         sessionStorage.setItem('groupMemberData_' + sgdt_idx, JSON.stringify(data));
-                        
-                        // 첫 번째 그룹원 찾기
-                        let firstMemberKey = null;
-                        if (data.members && typeof data.members === 'object') {
-                            Object.keys(data.members).forEach(key => {
-                                if (!firstMemberKey && key !== data.sgdt_idx.toString()) {
-                                    firstMemberKey = key;
-                                }
-                            });
+
+                        // 현재 로그인한 사용자의 정보
+                        const currentUserSgdtIdx = <?= json_encode($sgdt_row['sgdt_idx']) ?>;
+                        const isOwnerOrLeader = <?= ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) ? 'true' : 'false' ?>;
+
+                        // 초기 선택될 사용자는 항상 현재 로그인한 사용자
+                        const initialSelectedSgdtIdx = currentUserSgdtIdx;
+
+                        // 초기 선택된 멤버(현재 사용자)의 정보로 지도 및 목록 로드
+                        const initialMemberData = data.members[initialSelectedSgdtIdx];
+                        if (initialMemberData) {
+                            console.log('[location.php] 초기 선택 멤버(현재 사용자) 데이터 찾음. mem_schedule 호출:', initialSelectedSgdtIdx); // 로그 수정
+                            mem_schedule(initialMemberData.member_info.sgt_idx, initialMemberData.member_info.sgdt_idx);
+                        } else {
+                            // 현재 사용자 데이터가 members 객체에 없는 예외적인 경우, PHP 세션 정보로 직접 호출
+                            console.warn("[location.php] 초기 멤버(현재 사용자) 데이터 없음, fallback. mem_schedule 호출:", currentUserSgdtIdx); // 로그 수정
+                            mem_schedule(<?= json_encode($sgdt_row['sgt_idx']) ?>, currentUserSgdtIdx);
+                            // 이 경우 initialSelectedSgdtIdx는 이미 currentUserSgdtIdx 이므로 별도 수정 불필요
                         }
-                        
-                        // 첫 번째 그룹원의 데이터로 초기화
-                        if (firstMemberKey && data.members[firstMemberKey]) {
-                            const firstMember = data.members[firstMemberKey];
-                            // 첫 번째 그룹원의 데이터 조회
-                            mem_schedule(firstMember.member_info.sgt_idx, firstMember.member_info.sgdt_idx);
-                            
-                            // HTML 렌더링
-                            const { html } = generateMemberItems(data);
-                            const grpWrap = $('.grp_wrap');
-                            grpWrap.html(`
-                                <div class="border bg-white rounded-lg px_16 py_16">
-                                    <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
-                                    <div id="group_member_list_box">
-                                        <div class="mem_wrap mem_swiper">
-                                            <div class="swiper-wrapper d-flex">
-                                                ${html}
-                                            </div>
+
+                        // HTML 렌더링 (초기 선택된 사용자 기준으로 checked)
+                        const { html } = generateMemberItems(data, initialSelectedSgdtIdx);
+                        const grpWrap = $('.grp_wrap');
+                        grpWrap.html(`
+                            <div class="border bg-white rounded-lg px_16 py_16">
+                                <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
+                                <div id="group_member_list_box">
+                                    <div class="mem_wrap mem_swiper">
+                                        <div class="swiper-wrapper d-flex">
+                                            ${html}
                                         </div>
                                     </div>
                                 </div>
-                            `);
+                            </div>
+                        `);
 
-                            // Swiper 초기화
-                            mem_swiper = new Swiper(".mem_swiper", {
-                                slidesPerView: 'auto',
-                                spaceBetween: 12,
-                            });
-                        }
-                        
+                        // Swiper 초기화
+                        mem_swiper = new Swiper(".mem_swiper", {
+                            slidesPerView: 'auto',
+                            spaceBetween: 12,
+                        });
+
                         resolve(data);
                     } else {
-                        console.log("No loadMemberSchedule data available");
+                        console.warn("[location.php] createGroupMember data.result is NOT Y."); // 로그 추가
+                        hideMapLoading();
                         resolve(null);
                     }
                 },
                 error: function(err) {
-                    console.error('AJAX request failed: ', err);
+                    console.error('[location.php] createGroupMember AJAX error:', err); // 로그 추가
                     hideMapLoading();
                     reject(err);
                 },
@@ -909,13 +907,92 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
     }, 100000);
 
     //멤버아이콘 클릭시
-    function mem_schedule(sgt_idx, sgdt_idx) {
+    async function mem_schedule(sgt_idx, sgdt_idx) { // async 키워드 추가
+        console.log('[location.php] mem_schedule 시작, sgdt_idx:', sgdt_idx); // 로그 추가
+
         $('#sgt_idx').val(sgt_idx);
         $('#sgdt_idx').val(sgdt_idx);
-        f_get_box_list();
-        location_map(sgdt_idx);
-        createLocationList(sgdt_idx, sgdt_idx, '');
+
+        // 0. sgdt_idx로 mt_idx 조회 (index.php와 동일 로직 추가)
+        let target_mt_idx = null;
+        if (sgdt_idx) {
+            try {
+                console.log('[location.php] mt_idx 조회 시도, sgdt_idx:', sgdt_idx); // 로그 추가
+                const mtIdxResponse = await $.ajax({
+                    url: "./ajax_get_mt_idx.php", // sgdt_idx로 mt_idx를 반환하는 API 호출
+                    type: "POST",
+                    data: { sgdt_idx: sgdt_idx },
+                    dataType: 'json',
+                    timeout: 3000
+                });
+                if (mtIdxResponse && mtIdxResponse.mt_idx) {
+                    target_mt_idx = mtIdxResponse.mt_idx;
+                    console.log('[location.php] mt_idx 조회 성공:', target_mt_idx); // 로그 추가
+                } else {
+                    console.warn('[location.php] mt_idx 조회 실패, 현재 사용자 사용:', '<?= $_SESSION['_mt_idx'] ?>'); // 로그 추가
+                    target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // fallback
+                }
+            } catch (error) {
+                console.error("[location.php] mt_idx 조회 AJAX 오류:", error); // 로그 추가
+                target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // fallback
+            }
+        } else {
+             console.warn('[location.php] sgdt_idx 없음, 현재 사용자 사용:', '<?= $_SESSION['_mt_idx'] ?>'); // 로그 추가
+            target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // sgdt_idx 없으면 현재 사용자
+        }
+
+        // target_mt_idx 를 사용하여 내 장소 목록 로드
+        console.log('[location.php] createLocationList 호출 시도, target_mt_idx:', target_mt_idx); // 로그 추가
+        createLocationList(sgt_idx, sgdt_idx, target_mt_idx);
+
+        // location_map의 핵심 로직 (위치 조회 및 지도 초기화)을 여기에 통합
+        console.log('[location.php] 위치 조회 및 지도 초기화 로직 시작'); // 로그 추가
+        showMapLoading();
+        var form_data = new FormData();
+        form_data.append("act", "my_location_list");
+        form_data.append("sgdt_idx", sgdt_idx); // 서버는 sgdt_idx를 기반으로 멤버를 식별하므로 그대로 전달
+        // 서버(location_update.php)의 my_location_list 액션은 전달된 sgdt_idx의 mt_idx를 사용해야 함
+        form_data.append("event_start_date", '<?= $s_date ?>');
+
+        try { // try-catch 추가
+            console.log('[location.php] my_location_list AJAX 요청 시도, sgdt_idx:', sgdt_idx); // 로그 추가
+            const data = await $.ajax({
+                url: "./location_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: true,
+                timeout: 10000,
+                dataType: 'json'
+            });
+            console.log('[location.php] my_location_list AJAX 응답 수신:', data); // 로그 추가
+
+            if (data && data.my_lat && data.mt_long) {
+                var my_profile = data.my_profile;
+                var st_lat = parseFloat(data.my_lat);
+                var st_lng = parseFloat(data.mt_long);
+
+                if ('ko' == '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                    initNaverMap(my_profile, st_lat, st_lng, data);
+                } else {
+                    await initGoogleMap(my_profile, st_lat, st_lng, data);
+                }
+                map_panto(st_lat, st_lng);
+                 console.log('[location.php] 지도 초기화 및 이동 완료'); // 로그 추가
+                 hideMapLoading();
+            } else {
+                console.error("[location.php] my_location_list 응답 데이터 오류:", data); // 로그 수정
+                hideMapLoading();
+            }
+        } catch (err) {
+             console.error("[location.php] my_location_list AJAX 요청 실패:", err); // 로그 수정
+             hideMapLoading();
+        }
     }
+
     // 내장소 추가 팝업 띄우기
     function map_info_box_show() {
         $(".flt_map_pin_wrap").addClass("on");
@@ -1155,7 +1232,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         showMapLoading();
         await loadGoogleMapsScript();
 
-        // sgdt_idx에 해당하는 멤버의 위치 정��를 사용하여 지도 중심 설정
+        // sgdt_idx에 해당하는 멤버의 위치 정를 사용하여 지도 중심 설정
         if (!map) {
             await initMap(st_lat, st_lng);
         }
@@ -1416,56 +1493,6 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         });
     }
 
-    async function location_map(sgdt_idx) {
-        showMapLoading();
-        var form_data = new FormData();
-        form_data.append("act", "my_location_list");
-        form_data.append("sgdt_idx", sgdt_idx);
-        form_data.append("event_start_date", '<?= $s_date ?>');
-
-        $.ajax({
-            url: "./location_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 10000,
-            dataType: 'json',
-            success: async function(data) {
-                if (data && data.my_lat && data.mt_long) {
-                    var my_profile = data.my_profile;
-                    var st_lat = parseFloat(data.my_lat);
-                    var st_lng = parseFloat(data.mt_long);
-
-                    if ('ko' == '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
-                        initNaverMap(my_profile, st_lat, st_lng, data);
-                    } else {
-                        await initGoogleMap(my_profile, st_lat, st_lng, data);
-                    }
-
-                    // 마커 추가와 지도 이동을 동시에 수행
-                    map_panto(st_lat, st_lng);
-                    hideMapLoading();
-                } else {
-                    console.error("Invalid data received:", data);
-                    hideMapLoading();
-                    // 오류 처리 로직 추가
-                }
-            },
-            error: function(err) {
-                console.error("AJAX request failed:", err);
-                hideMapLoading();
-                // 오류 처리 로직 추가
-            },
-            complete: function() {
-                hideMapLoading(); // AJAX 요청 완료 후 무조건 실행 (success 또는 error 후에도 실행)
-            }
-        });
-    }
-
     function f_del_location_modal(i) {
         $('#slt_idx').val(i);
         $('#location_delete_modal').modal('show');
@@ -1693,7 +1720,8 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 
     // 로딩 화면을 보이게 하는 함수
     function showMapLoading(center = true) {
-        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
+        const loadingElement = document.getElementById('map-loading');
+        const spinnerDots = document.querySelectorAll('.dot');
 
         // 랜덤 색상 적용
         const randomColor = generateSpinnerColor();
@@ -1701,22 +1729,30 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             dot.style.backgroundColor = randomColor;
         });
 
-        if (optBottom) {
-            var transformY = optBottom.style.transform;
-            if (transformY == 'translateY(0px)') {
-                // 화면 중앙에서 180px 위로 이동
-                // loadingElement.style.top = 'calc(50% - 180px)';
-                loadingElement.style.transform = 'translate(0, -25%)';
-            }
-        }
-        loadingElement.style.display = 'flex'; // 로딩바 표시
+        // 부드러운 페이드인 효과 적용
+        loadingElement.style.opacity = '0';
+        loadingElement.style.display = 'flex';
+        
+        // 강제 리플로우 트리거
+        void loadingElement.offsetWidth;
+        
+        // 트랜지션 적용
+        loadingElement.style.transition = 'opacity 0.3s ease';
+        loadingElement.style.opacity = '1';
     }
 
     // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        if (loadingElement) {
+        const loadingElement = document.getElementById("map-loading");
+        
+        // 부드러운 페이드아웃 효과 적용
+        loadingElement.style.transition = 'opacity 0.3s ease';
+        loadingElement.style.opacity = '0';
+        
+        // 트랜지션이 완료된 후 display 속성 변경
+        setTimeout(() => {
             loadingElement.style.display = 'none';
-        }
+        }, 300);
     }
 
     function generateSpinnerColor() {
@@ -1752,7 +1788,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 map.panBy(new naver.maps.Point(0, verticalCenterOffset));
             }
 
-            // 해당 좌표에 있��� 마커를 찾습니다.
+            // 해당 좌표에 있 마커를 찾습니다.
             var clickedMarker = findMarkerByPosition(lat, lng);
 
             // 찾은 마커를 클릭했을 때의 동작을 시뮬레이트합니다.

@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => 'ข้อมูลตำแหน่ง',
+    'txt_location_info_minutes' => 'นาทีที่ผ่านไป',
+    'txt_location_info_hours' => 'ชั่วโมงที่ผ่านไป',
     'txt_remember_me' => 'จำฉันไว้', // 자동 로그인 설정하기
     'txt_group_delete' => 'ลบกลุ่ม', // 그룹 삭제
     'txt_group_edit' => 'แก้ไขกลุ่ม',
@@ -427,6 +430,8 @@ return [
     'txt_start' => 'เริ่ม!', // 시작!
     'txt_end' => 'สิ้นสุด', // 종료
     'txt_repeat' => 'ทำซ้ำ', // 반복
+    'txt_all_schedules_edited_notification_alert' => 'กำหนดการที่ทำซ้ำทั้งหมดได้รับการแก้ไขแล้ว',
+    'txt_schedule_edit_error_check_required' => 'เกิดข้อผิดพลาดขณะแก้ไขกำหนดการ โปรดตรวจสอบว่าได้ป้อนข้อมูลที่จำเป็นทั้งหมดแล้ว',
     'txt_select_member' => 'เลือกสมาชิก', // 구성원 선택
     'txt_notification' => 'การแจ้งเตือน', // 알림
     'txt_notification_settings_info' => 'ตั้งค่าการแจ้งเตือนสำหรับการเปลี่ยนแปลงกำหนดการและตำแหน่งที่ตั้ง', // 일정 및 위치 변경에 대한 알림을 설정하세요.
@@ -836,4 +841,15 @@ return [
     'txt_delete_all_repeat_schedules' => 'ลบกำหนดการนี้และกำหนดการที่เกิดซ้ำในอนาคตทั้งหมด',
     'txt_all_schedules_deleted_notification_alert' => 'กำหนดการที่เลือกและกำหนดการที่เกิดซ้ำในอนาคตทั้งหมดถูกลบแล้ว',
     'txt_previous_schedules_kept' => '※ กำหนดการที่เกิดซ้ำก่อนหน้านี้จะยังคงอยู่',
+
+    // 새로 추가된 번역 텍스트
+    'txt_edit_repeat_schedule' => 'แก้ไขกำหนดการที่เกิดซ้ำ',
+    'txt_repeat_schedule_edit_option' => 'นี่เป็นกำหนดการที่เกิดซ้ำ โปรดเลือกวิธีการแก้ไข',
+    'txt_edit_this_schedule_only' => 'แก้ไขกำหนดการนี้เท่านั้น',
+    'txt_edit_future_schedules' => 'แก้ไขกำหนดการนี้และกำหนดการที่เกิดซ้ำในอนาคตทั้งหมด',
+    'txt_edit_all_schedules' => 'แก้ไขกำหนดการที่เกิดซ้ำทั้งหมด',
+    'txt_delete_this_schedule' => 'ลบกำหนดการนี้เท่านั้น',
+    'txt_delete_future_schedules' => 'ลบกำหนดการนี้และกำหนดการที่เกิดซ้ำในอนาคตทั้งหมด',
+    'txt_delete_all_schedules' => 'ลบกำหนดการที่เกิดซ้ำทั้งหมด',
+    'txt_delete_schedule_confirm' => 'คุณแน่ใจหรือไม่ว่าต้องการลบกำหนดการนี้?',
 ];

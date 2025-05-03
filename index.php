@@ -117,6 +117,7 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        transition: opacity 0.3s ease;
     }
 
     .dots-spinner {
@@ -141,15 +142,18 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     }
 
     @keyframes dot-bounce {
-
-        0%,
-        100% {
+        0%, 100% {
             transform: scale(1);
         }
-
         50% {
             transform: scale(1.5);
         }
+    }
+    
+    /* 콘텐츠 컨테이너 스타일 */
+    .mbr_wr {
+        transition: opacity 0.3s ease;
+        min-height: 100px; /* 최소 높이 설정으로 레이아웃 이동 방지 */
     }
 </style>
 <div class="container-fluid idx_pg px-0 ">
@@ -545,25 +549,48 @@ $member_info_row = get_member_t_info($_SESSION['_mt_idx']);
     const groupMemberSlides = {};
     let googleMapsLoaded = false;
     let googleMapsLoadPromise = null;
+    let geocoder;
     let optBottomSelect;
     let bottomSheetHeight;
     let mapContainer = document.getElementById("map");
     let mapHeight = mapContainer.getBoundingClientRect().height;
     let verticalCenterOffset;
+    let currentLat;
+    let currentLng;
     let optBottom = document.querySelector(".opt_bottom");
     let isPannedDown = false;
     let originalCenter = null; // 초기 중심 좌표 저장
-    let currentLat;
-    let currentLng;
     const loadingElement = document.getElementById('map-loading');
     let previousTransformY = optBottom.style.transform; // 이전 transformY 값 저장
+
+    // Google Maps API 로드 함수
+    function loadGoogleMapsScript() {
+        if (googleMapsLoadPromise) {
+            return googleMapsLoadPromise;
+        }
+
+        googleMapsLoadPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&libraries=places,geometry,marker&v=weekly`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                googleMapsLoaded = true;
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+
+        return googleMapsLoadPromise;
+    }
 </script>
 <?php
 // 한국어 사용자를 위한 네이버 지도 API 스크립트
 if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 ?>
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?= NCPCLIENTID ?>&submodules=geocoder&callback=CALLBACK_FUNCTION"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly" ;></script>
+    <!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly" ;></script> -->
     <!-- SK TMAP -->
     <script>
         map = new naver.maps.Map("map", {
@@ -840,28 +867,6 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 } else {
 ?>
     <script>
-        // Google Maps API 로드 함수
-        function loadGoogleMapsScript() {
-            if (googleMapsLoadPromise) {
-                return googleMapsLoadPromise;
-            }
-
-            googleMapsLoadPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw&libraries=places,geometry,marker&v=weekly`;
-                script.async = true;
-                script.defer = true;
-                script.onload = () => {
-                    googleMapsLoaded = true;
-                    resolve();
-                };
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-
-            return googleMapsLoadPromise;
-        }
-
         // 지도 초기화 함수
         async function initMap(st_lat, st_lng) {
             if (!googleMapsLoaded) {
@@ -869,14 +874,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 await loadGoogleMapsScript();
             }
 
-            // if (map) {
-            //     map.setCenter({
-            //         lat: parseFloat(st_lat),
-            //         lng: parseFloat(st_lng)
-            //     });
-            //     return map;
-            // }
-
+            // 기존 코드 유지
             const mapOptions = {
                 center: {
                     lat: parseFloat(st_lat),
@@ -1482,27 +1480,56 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         const grpWrap = $('.grp_wrap');
         grpWrap.empty(); // 기존 내용 삭제
 
-        // 첫 번째 비본인 그룹원의 sgdt_idx 찾기
-        let firstMemberSgdtIdx = null;
+        // 현재 사용자의 sgdt_idx 가져오기
+        const currentUserSgdtIdx = <?= $sgdt_row['sgdt_idx'] ?>; // PHP 변수 사용
+        const isOwnerOrLeader = <?= ($sgt_cnt > 0 || $sgdt_leader_cnt > 0) ? 'true' : 'false' ?>;
+
+        // 오너/리더가 아닐 경우 현재 사용자를 기본 선택, 오너/리더일 경우 첫 번째 다른 멤버 선택
+        let initialSelectedSgdtIdx = currentUserSgdtIdx;
+        if (isOwnerOrLeader) {
         for (const key in data.members) {
-            if (key != <?= $sgdt_row['sgdt_idx'] ?>) {
-                firstMemberSgdtIdx = key;
+                if (key != currentUserSgdtIdx) {
+                    initialSelectedSgdtIdx = key;
                 break;
             }
         }
+            // 다른 멤버가 없는 경우 자신을 선택
+            if (initialSelectedSgdtIdx == currentUserSgdtIdx && Object.keys(data.members).length > 1) {
+                 const memberKeys = Object.keys(data.members);
+                 initialSelectedSgdtIdx = memberKeys.find(key => key != currentUserSgdtIdx) || currentUserSgdtIdx;
+            }
+        }
 
-        // HTML 구조 생성 시 첫 번째 그룹원이 선택되도록 수정
+
+        // HTML 구조 생성 시 초기 선택 그룹원이 적용되도록 수정
         const html = `
             <div class="border bg-white rounded-lg px_16 py_16">
                 <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
                 <style>
-                    // ... existing styles ...
+                    /* 기존 스타일 유지 */
+                    .mem_box input[type="radio"]:checked + .prd_img .rect_square {
+                        border: 3px solid #0046FE; /* 선택 시 파란색 테두리 */
+                        box-sizing: border-box;
+                    }
+                    .mem_box input[type="radio"] {
+                        display: none; /* 라디오 버튼 숨기기 */
+                    }
+                    .mem_box label {
+                         cursor: pointer; /* 클릭 가능 표시 */
+                    }
+                    .mem_box .prd_img {
+                        transition: transform 0.2s ease-in-out; /* 부드러운 효과 */
+                    }
+                     .mem_box input[type="radio"]:checked + div > .prd_img {
+                        transform: scale(1.1); /* 선택 시 약간 확대 */
+                    }
+
                 </style>
 
                 <div id="group_member_list_box">
                     <div class="mem_wrap mem_swiper">
                         <div class="swiper-wrapper d-flex">
-                            ${generateMemberItems(data, firstMemberSgdtIdx)}
+                            ${generateMemberItems(data, initialSelectedSgdtIdx)} // 초기 선택 sgdt_idx 전달
                         </div>
                     </div>
                 </div>
@@ -1516,26 +1543,24 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             spaceBetween: 12,
         });
 
-        // 첫 번째 그룹원의 데이터 즉시 로드
-        if (firstMemberSgdtIdx) {
-            await mem_schedule(firstMemberSgdtIdx);
-        }
+        // 초기 선택된 그룹원의 데이터 즉시 로드
+        await mem_schedule(initialSelectedSgdtIdx); // 초기 선택 sgdt_idx 사용
     }
 
     // generateMemberItems 함수도 수정
-    function generateMemberItems(data, firstMemberSgdtIdx) {
+    function generateMemberItems(data, selectedSgdtIdx) { // selectedSgdtIdx 파라미터 추가
         let html = '';
-        let currentUserHtml = '';
+        const currentUserSgdtIdx = <?= $sgdt_row['sgdt_idx'] ?>; // 현재 사용자 sgdt_idx
         
         Object.keys(data.members).forEach(sgdt_idx => {
             const member = data.members[sgdt_idx];
-            const isCurrentUser = sgdt_idx == <?= $sgdt_row['sgdt_idx'] ?>;
+            // const isCurrentUser = sgdt_idx == currentUserSgdtIdx; // 현재 사용자인지 확인 (현재 사용하지 않음)
             const mt_nickname = member.member_info.mt_nickname ? member.member_info.mt_nickname : member.member_info.mt_name;
             
             const memberHtml = `
                 <div class="swiper-slide checks mem_box">
                     <label>
-                        <input type="radio" name="rd2" ${sgdt_idx == firstMemberSgdtIdx ? 'checked' : ''} onclick="mem_schedule(${sgdt_idx});">
+                        <input type="radio" name="rd2" value="${sgdt_idx}" ${sgdt_idx == selectedSgdtIdx ? 'checked' : ''} onclick="mem_schedule(${sgdt_idx});"> 
                         <div class="prd_img mx-auto">
                             <div class="rect_square rounded_14">
                                 <img src="${member.member_info.my_profile}" alt="<?= $translations['txt_profile_image'] ?>" onerror="this.src='<?= $ct_no_profile_img_url ?>'" />
@@ -1545,17 +1570,10 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                     </label>
                 </div>`;
 
-            if (isCurrentUser) {
-                currentUserHtml = memberHtml;
-            } else {
-                html += memberHtml;
-            }
+            html += memberHtml; // 순서대로 추가
         });
 
-        // 본인 정보를 마지막에 추가
-        html += currentUserHtml;
-
-        // 그룹원추가 버튼 추가
+        // 그룹원추가 버튼 추가 (기존 로직 유지)
         html += `
             <div class="swiper-slide mem_box add_mem_box" ${data.owner_count > 0 ? 'onclick="location.href=\'./group\'"' : 'style="visibility: hidden;"'}>
                 <button class="btn mem_add">
@@ -1649,32 +1667,33 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 
     // 로딩 화면을 보이게 하는 함수
     function showMapLoading(center = true) {
-        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
-        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
-
-        // 랜덤 색상 적용
-        const randomColor = generateSpinnerColor();
-
-        // 두 스피너의 색상 변경
-        spinnerDots.forEach(dot => {
-            dot.style.backgroundColor = randomColor;
-        });
-        // otherSpinnerDots.forEach(dot => {
-        //     dot.style.backgroundColor = randomColor;
-        // });
-
-        loadingElement.style.display = 'flex'; // 로딩바 표시
-        // optBottom 이벤트 비활성화
-        // optBottom.ontouchstart = null;
-        // optBottom.ontouchmove = null;
-        // optBottom.onmousedown = null;
-        // document.onmousemove = null;
-        // document.onmouseup = null;
+        console.log("지도 로딩 화면 표시");
+        const loadingElement = document.getElementById('map-loading');
+        if (loadingElement) {
+            loadingElement.style.display = 'flex';
+            
+            // 안전장치: 10초 후에도 로딩 화면이 계속 표시된다면 자동으로 제거
+            clearTimeout(window.loadingTimeout);
+            window.loadingTimeout = setTimeout(() => {
+                hideMapLoading();
+                console.warn("로딩 시간 초과로 인한 자동 해제");
+            }, 10000);
+        } else {
+            console.error("로딩 요소를 찾을 수 없음: map-loading");
+        }
     }
 
-    // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        document.getElementById("map-loading").style.display = 'none';
+        console.log("지도 로딩 화면 숨김");
+        const loadingElement = document.getElementById('map-loading');
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+            
+            // 타임아웃 제거
+            clearTimeout(window.loadingTimeout);
+        } else {
+            console.error("로딩 요소를 찾을 수 없음: map-loading");
+        }
     }
 
     function generateSpinnerColor() {
@@ -1808,6 +1827,23 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         let mt_gu = data.member_info.mt_gu || '';
         let mt_dong = data.member_info.mt_dong || '';
         let address = '';
+        // location_info가 없거나 mlt_gps_time이 없는 경우 빈 문자열로 처리
+        let gps_time = data.location_info && data.location_info.mlt_gps_time ? data.location_info.mlt_gps_time : '';
+        
+        // GPS 시간을 현재 시간과 비교하여 몇 시간 전인지 계산
+        let timeAgoText = '';
+        if (gps_time) {
+            const gpsDate = new Date(gps_time);
+            const currentDate = new Date();
+            const timeDiff = Math.floor((currentDate - gpsDate) / (1000 * 60 * 60)); // 시간 단위로 계산
+            
+            if (timeDiff < 1) {
+                const minutesDiff = Math.floor((currentDate - gpsDate) / (1000 * 60));
+                timeAgoText = `<?= $translations['txt_location_info'] ?> - ${minutesDiff}<?= $translations['txt_location_info_minutes'] ?>`;
+            } else {
+                timeAgoText = `<?= $translations['txt_location_info'] ?> - ${timeDiff}<?= $translations['txt_location_info_hours'] ?>`;
+            }
+        }
 
         address = updateAddress(mt_sido, mt_gu, mt_dong);
 
@@ -1816,6 +1852,18 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         const locationInfo = data.location_info || {};
         const movingText = (locationInfo.mlt_speed > 1) ? '<?= $translations['txt_moving'] ?>' : '';
         const batteryPercentage = locationInfo.mlt_battery !== undefined ? `${locationInfo.mlt_battery}%` : '?';
+
+        // GPS 시간 포맷팅 (월일시만 표시)
+        let formattedGpsTime = '';
+        if (gps_time) {
+            const gpsDate = new Date(gps_time);
+            const month = gpsDate.getMonth() + 1; // 월 (0부터 시작하므로 +1)
+            const day = gpsDate.getDate(); // 일
+            const hour = gpsDate.getHours(); // 시간
+            formattedGpsTime = `${month}<?= $translations['txt_month'] ?> ${day}<?= $translations['txt_day'] ?> ${hour}<?= $translations['txt_hour'] ?>`;
+        } else {
+            formattedGpsTime = '데이터 없음';
+        }
 
         let locationHTML = `
             <div class="border-bottom pb-3">
@@ -1832,6 +1880,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                     </div>
                 </div>
                 <p class="fs_14 fw_500 text_light_gray text_dynamic line_h1_3 mt-2" style="white-space: pre-line;">${address}</p>
+                <p class="fs_14 fw_500 text_primary text_dynamic line_h1_3 mt-2" style="color: blue;">${timeAgoText}</p>
             </div>
         `;
 
@@ -2036,65 +2085,105 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
     async function mem_schedule(sgdt_idx, mlt_lat = 37.5666805, mlt_lng = 126.9784147) {
         console.log('-----------------------------------');
         console.log('함수 호출: mem_schedule');
-        console.log('매개변수:', {
-            sgdt_idx,
-            mlt_lat,
-            mlt_lng
-        });
+        console.log('매개변수:', { sgdt_idx, mlt_lat, mlt_lng });
 
         try {
             console.log('showMapLoading 호출');
             showMapLoading();
 
-            // 1. 경로 데이터를 먼저 로드
-            const pathData = await pedestrian_path_check(sgdt_idx).catch(error => {
-                console.warn('경로 데이터 로드 실패:', error);
-                return null; // 경로 데이터 로드 실패시 null 반환하고 계속 진행
-            });
-
-            // 2. 경로 데이터 로드 후 멤버 데이터와 스케줄 데이터 로드
-            const memberScheduleData = await loadMemberSchedule(sgdt_idx);
-            if (!memberScheduleData) {
-                throw new Error('멤버 스케줄 데이터를 불러오는데 실패했습니다.');
+            // 0. sgdt_idx로 mt_idx 조회
+            let target_mt_idx = null;
+            if (sgdt_idx) {
+                try {
+                    const mtIdxResponse = await $.ajax({
+                        url: "./ajax_get_mt_idx.php", // sgdt_idx로 mt_idx를 반환하는 새 API 엔드포인트 호출
+                        type: "POST",
+                        data: { sgdt_idx: sgdt_idx },
+                        dataType: 'json',
+                        timeout: 3000
+                    });
+                    if (mtIdxResponse && mtIdxResponse.mt_idx) {
+                        target_mt_idx = mtIdxResponse.mt_idx;
+                        console.log('sgdt_idx ' + sgdt_idx + '에 해당하는 mt_idx 조회 성공: ' + target_mt_idx);
+                    } else {
+                        console.warn('sgdt_idx ' + sgdt_idx + '에 해당하는 mt_idx를 찾지 못했습니다. 현재 사용자 mt_idx 사용.');
+                        target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // fallback
+                    }
+                } catch (error) {
+                    console.error("mt_idx 조회 실패:", error);
+                    target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // fallback
+                }
+            } else {
+                target_mt_idx = '<?= $_SESSION['_mt_idx'] ?>'; // sgdt_idx 없으면 현재 사용자
             }
 
-            console.log("받은 데이터:", memberScheduleData);
+            // 1. 위치 정보 가져와서 지도 이동 (조회된 target_mt_idx 사용)
+            var locationForm = new FormData();
+            locationForm.append("act", "my_location_search");
+            locationForm.append("mt_idx", target_mt_idx); // 조회된 mt_idx 사용
 
-            // 3. 지도 초기화
-            await initializeMapAndMarkers(memberScheduleData.members, sgdt_idx);
+            const locationResponse = await $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: locationForm,
+                type: "POST",
+                contentType: false,
+                processData: false,
+                cache: false,
+                timeout: 5000,
+                dataType: 'json'
+            });
 
-            // 4. 지도 초기화 완료 후 마커 및 경로 표시
-            if (map) {
-                google.maps.event.addListenerOnce(map, 'idle', () => {
-                    // 경로 데이터가 있다면 지도에 경로 표시
-                    if (pathData && pathData.members && pathData.members[sgdt_idx]) {
-                        processPathDataGoogle(pathData, sgdt_idx);
-                        console.log('경로 그리기 함수 호출');
-                        drawPathOnMap();
-                    }
-                });
-
-                // 5. 현재 주소 표시
-                if (memberScheduleData.members[sgdt_idx] && memberScheduleData.members[sgdt_idx].member_info) {
-                    const memberInfo = memberScheduleData.members[sgdt_idx].member_info;
-                    let address = updateAddress(
-                        memberInfo.mt_sido || '',
-                        memberInfo.mt_gu || '',
-                        memberInfo.mt_dong || ''
-                    );
-
-                    console.log('f_my_location_btn 호출');
-                    f_my_location_btn(memberInfo.mt_idx);
-                } else {
-                    // 가입 후 그룹을 생성하지 않았을 경우 본인 정보 표시
-                    const defaultMemberInfo = memberScheduleData.members[<?= $_SESSION['_mt_idx'] ?>].member_info;
-                    if (defaultMemberInfo) {
-                        f_my_location_btn(defaultMemberInfo.mt_idx);
+            if (locationResponse && locationResponse.mlt_lat && locationResponse.mlt_long) {
+                const lat = parseFloat(locationResponse.mlt_lat);
+                const lng = parseFloat(locationResponse.mlt_long);
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentLat = lat;
+                    currentLng = lng;
+                    
+                    // 즉시 지도 이동
+                    if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                        map.setCenter(new naver.maps.LatLng(lat, lng));
+                    } else {
+                        map.setCenter({lat: lat, lng: lng});
                     }
                 }
             }
 
-            console.log("Map data and member schedule loaded successfully");
+            // 2. 병렬로 경로 데이터와 멤버 스케줄 데이터 로드
+            const [pathData, memberScheduleData] = await Promise.all([
+                pedestrian_path_check(sgdt_idx).catch(error => {
+                    console.warn('경로 데이터 로드 실패:', error);
+                    return null;
+                }),
+                loadMemberSchedule(sgdt_idx)
+            ]);
+
+            if (!memberScheduleData) {
+                throw new Error('멤버 스케줄 데이터를 불러오는데 실패했습니다.');
+            }
+
+            // 3. 지도 초기화 및 마커 표시
+            await initializeMapAndMarkers(memberScheduleData.members, sgdt_idx);
+
+            // 4. 경로 데이터가 있다면 표시
+            if (map && pathData && pathData.members && pathData.members[sgdt_idx]) {
+                if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                    processPathDataNaver(pathData, sgdt_idx);
+                } else {
+                    processPathDataGoogle(pathData, sgdt_idx);
+                    drawPathOnMap();
+                }
+            }
+
+            // 5. 지도 위치 최종 조정
+            if (previousTransformY === 'translateY(0px)') {
+                panMapDown();
+            } else {
+                panMapUp();
+            }
+
         } catch (error) {
             console.error("Failed to load map data or member schedule:", error);
             showErrorToUser("지도 또는 일정 정보를 불러오는 데 실패했습니다. 다시 시도해 주세요.");
@@ -2204,11 +2293,11 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
             console.log('네이버 지도 초기화 시작');
             await initNaverMap(data, sgdt_idx);
-            console.log('네이버 지도 ���기화 완료');
+            console.log('네이버 지도 기화 완료');
         } else {
             console.log('구글 지도 초기화 시작');
             await initGoogleMap(data, sgdt_idx);
-            console.log('구글 지도 초기��� 완료');
+            console.log('구글 지도 초기 완료');
         }
     }
 
@@ -2245,7 +2334,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             return point !== null; // 출발지와 도착지를 제외하기 위해 null을 제거
         });
 
-        // 좌표��만을 추출하여 passList에 저장
+        // 좌표만을 추출하여 passList에 저장
         passList = viaPoints.map(function(point) {
             // 좌표값을 EPSG3857로 변환
             var latlng = new Tmapv2.Point(point.viaY, point.viaX);
@@ -2614,45 +2703,22 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             return;
         }
 
-        const geocoder = new google.maps.Geocoder();
-        const latlng = new google.maps.LatLng(startX, startY); // 경도, 위도 순서 주의
-
-        geocoder.geocode({
-            location: latlng
-        }, (results, status) => {
-            if (status === "OK") {
-                if (results[0]) {
-                    const country = results[0].address_components.find(component =>
-                        component.types.includes("country")
-                    );
-
-                    if (country && country.short_name === "KR") {
-                        // 대한민국 에 있는 경우
-                        Promise.resolve(showOptimalPath(startX, startY, endX, endY, scheduleMarkerCoordinates, scheduleStatus))
-                            .catch(error => {
-                                console.error("showOptimalPath Error:", error);
-                                return showGoogleOptimalPath(startX, startY, endX, endY, scheduleMarkerCoordinates, scheduleStatus);
-                            })
-                            .finally(() => {
-                                loadMemberSchedule($('#pedestrian_path_modal_sgdt_idx').val());
-                                $('#optimal_modal').modal('hide');
-                            });
-                    } else {
-                        // 대한민국 외의 경우
-                        showGoogleOptimalPath(startX, startY, endX, endY, scheduleMarkerCoordinates, scheduleStatus);
-                        loadMemberSchedule($('#pedestrian_path_modal_sgdt_idx').val());
-                        $('#optimal_modal').modal('hide');
-                    }
-                } else {
-                    console.error("No results found");
-                    // 결과가 없는 경우 처리
-                }
-            } else {
-                console.error("Geocoder failed due to: " + status);
-                // Geocoding 실패 처리
-            }
-        });
+        // 새로운 네이버 지도 API 처리 함수 호출
+        processNaverOptimalPath();
     });
+
+    // 최적 경로 처리를 위한 네이버 지도 API 함수
+    function processNaverOptimalPath() {
+        Promise.resolve(showOptimalPath(startX, startY, endX, endY, scheduleMarkerCoordinates, scheduleStatus))
+            .catch(error => {
+                console.error("showOptimalPath Error:", error);
+                jalert('<?= $translations['txt_system_error'] ?>');
+            })
+            .finally(() => {
+                loadMemberSchedule($('#pedestrian_path_modal_sgdt_idx').val());
+                $('#optimal_modal').modal('hide');
+            });
+    }
 
     function getAdData() {
         return <?= $ad_data ?>;
@@ -2792,7 +2858,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         const colorSteps = colors.length - 1; // 색상 단계 수
 
         for (let i = 0; i <= steps; i++) {
-            const colorIndex = Math.floor(i / steps * colorSteps); // 현재 ���상 인덱스
+            const colorIndex = Math.floor(i / steps * colorSteps); // 현재 상 인덱스
             const nextColorIndex = Math.min(colorIndex + 1, colorSteps); // 다음 색상 인덱스
             const ratio = (i / steps * colorSteps) - colorIndex; // 현재 색상 구간 내 비율
 
@@ -2899,7 +2965,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             const curLon = scheduleMarkerCoordinates[i]._lng;
             const segmentDistance = calculateSegmentDistance(lat1, lon1, curLat, curLon);
 
-            // 현재까지의 총 거리와 경유지까지의 거리를 합산하여 최대 ���리를 초과하는지 확인합니다.
+            // 현재까지의 총 거리와 경유지까지의 거리를 합산하여 최대 리를 초과하는지 확인합니다.
             if (segmentDistance > maxDistance) {
                 // 최대 거리를 초과하는 경우에는 반복문을 종료합니다.
                 return segmentDistance;
@@ -2913,7 +2979,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
         return 0;
 
     }
-    // 두 지점 ���이의 직선 거리를 계산하는 보조 함수
+    // 두 지점 이의 직선 거리를 계산하는 보조 함수
     function calculateSegmentDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // 지구의 반지름 (단위: km)
         const dLat = deg2rad(lat2 - lat1);
@@ -2977,7 +3043,7 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
             data: JSON.stringify(requestData),
             async: false, // 동기적 요청 (비동기적으로 설정할 경우 결과를 반환하기 전에 함수가 종료될 수 있음)
             success: function(response) {
-                // API 응��에서 예상 소요 시간 추출
+                // API 응에서 예상 소요 시간 추출
                 var totalTime = ((response.features[0].properties.totalTime) / 60).toFixed(0);
                 var totalidstance = ((response.features[0].properties.totalDistance) / 1000).toFixed(1);
                 // 결과를 콜백 함수를 통해 반환
@@ -3064,50 +3130,152 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
 
     function f_my_location_btn(mt_idx) {
         console.log('f_my_location_btn 함수 시작, mt_idx:', mt_idx);
+        
+        // 로딩 표시
+        showMapLoading();
+        
+        if (!mt_idx) {
+            console.error('유효하지 않은 mt_idx:', mt_idx);
+            hideMapLoading(); // 로딩 화면 숨기기
+            return;
+        }
+        
+        // 서버에 위치 정보 요청
         var form_data = new FormData();
         var sgdt_idx = $('#sgdt_idx').val();
 
         form_data.append("act", "my_location_search");
         form_data.append("mt_idx", mt_idx);
+        
+        console.log('위치 정보 요청 시작 - 회원 ID:', mt_idx);
 
-        $.ajax({
-            url: "./schedule_update",
-            enctype: "multipart/form-data",
-            data: form_data,
-            type: "POST",
-            async: true,
-            contentType: false,
-            processData: false,
-            cache: true,
-            timeout: 5000,
-            dataType: 'json',
-            success: function(data) {
-                if (data) {
-                    var lat = parseFloat(data.mlt_lat); // 숫자로 변환
-                    var lng = parseFloat(data.mlt_long); // 숫자로 변환
-                    console.log('f_my_location_btn lat : ' + lat + ' lng : ' + lng);
-
-                    currentLat = lat;
-                    currentLng = lng;
-                    if (previousTransformY === 'translateY(0px)') {
-                        panMapDown();
-                        console.log('panMapDown');
-                    } else {
-                        console.log('panMapUp');
-                        panMapUp();
-                    }
-
-                    // pedestrian_path_check 호출 제거
-                } else {
-                    console.log('Error: No data received from server');
-                }
-            },
-            error: function(err) {
-                console.log('Error:', err);
-            },
+        // 타임아웃 설정
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('위치 정보 요청 시간 초과')), 10000);
         });
 
-        // console.timeEnd("forEachLoopExecutionTime");
+        // AJAX 요청 래핑
+        const ajaxPromise = new Promise((resolve, reject) => {
+            // 이전 요청이 있으면 취소
+            if (window.locationAjaxRequest) {
+                try {
+                    window.locationAjaxRequest.abort();
+                    console.log('이전 위치 요청 취소');
+                } catch (e) {
+                    console.error('이전 요청 취소 실패:', e);
+                }
+            }
+            
+            window.locationAjaxRequest = $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: false, // 캐시 사용하지 않음
+                timeout: 10000,
+                dataType: 'json',
+                success: function(data) {
+                    console.log('서버로부터 받은 데이터:', data);
+                    
+                    // 오류 응답 처리
+                    if (data && data.error) {
+                        console.error('서버에서 오류 응답:', data.message);
+                        reject(new Error(data.message || '위치 정보를 가져올 수 없습니다.'));
+                        return;
+                    }
+                    
+                    // 유효한 위치 데이터 확인
+                    if (data && data.mlt_lat && data.mlt_long) {
+                        var lat = parseFloat(data.mlt_lat);
+                        var lng = parseFloat(data.mlt_long);
+                        console.log('위치 정보 수신 성공. mt_idx:', mt_idx, 'lat:', lat, 'lng:', lng, 'source:', data.source);
+                        
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            // 전역 변수에 위치 저장
+                            currentLat = lat;
+                            currentLng = lng;
+                            
+                            // 명시적으로 마커 위치 업데이트 (필요한 경우)
+                            try {
+                                updateMemberMarker(mt_idx, lat, lng);
+                            } catch (err) {
+                                console.log('마커 업데이트 중 오류(무시 가능):', err);
+                            }
+                            
+                            // 지도 이동 처리
+                            moveMapToCoordinates(lat, lng, mt_idx);
+                            
+                            resolve(data);
+                        } else {
+                            console.error('유효하지 않은 좌표 값:', data);
+                            reject(new Error('유효하지 않은 좌표 값'));
+                        }
+                    } else {
+                        console.error('서버에서 위치 데이터를 받지 못함:', data);
+                        reject(new Error('서버에서 위치 데이터를 받지 못함'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('위치 정보 요청 실패:', error, 'status:', status);
+                    reject(new Error('위치 정보 요청 실패: ' + error));
+                }
+            });
+        });
+
+        // 실행 및 오류 처리
+        Promise.race([ajaxPromise, timeoutPromise])
+            .catch(error => {
+                console.error('f_my_location_btn 실행 중 오류:', error);
+                hideMapLoading(); // 오류 발생 시 로딩 화면 숨기기
+            })
+            .finally(() => {
+                // 위치 요청 완료 후 일정 시간이 지나도 로딩 화면이 계속 표시되는 경우 처리
+                setTimeout(() => {
+                    if (document.getElementById('map-loading') && 
+                        document.getElementById('map-loading').style.display !== 'none') {
+                        console.log('로딩 화면 자동 해제');
+                        hideMapLoading();
+                    }
+                }, 3000);
+            });
+    }
+
+    // 지도 이동 및 업데이트를 처리하는 공통 함수
+    function moveMapToCoordinates(lat, lng, mt_idx) {
+        console.log('지도 이동 처리 - 좌표:', lat, lng, 'mt_idx:', mt_idx);
+        
+        // 지도 이동 처리 (즉시 실행)
+        setTimeout(() => {
+            if (previousTransformY === 'translateY(0px)') {
+                console.log('아래쪽으로 지도 이동 - mt_idx:', mt_idx);
+                panMapDown();
+            } else {
+                console.log('정상 위치로 지도 이동 - mt_idx:', mt_idx);
+                panMapUp();
+            }
+            
+            // 지도 중심을 직접 설정 (백업 방법)
+            setTimeout(() => {
+                try {
+                    if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                        // 네이버 지도의 경우
+                        map.setCenter(new naver.maps.LatLng(lat, lng));
+                    } else {
+                        // 구글 지도의 경우
+                        map.setCenter(new google.maps.LatLng(lat, lng));
+                    }
+                    console.log('지도 중심 직접 설정 완료 - mt_idx:', mt_idx);
+                } catch (e) {
+                    console.error('지도 중심 직접 설정 실패:', e);
+                }
+                
+                // 로딩 화면 숨기기
+                hideMapLoading();
+            }, 200);
+        }, 100);
     }
 
     function checkAdCount() {
@@ -3272,77 +3440,142 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
     });
 
     function panMapDown() {
-        originalCenter = map.getCenter();
-        let newLat = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ?
-            (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 :
-            (currentLat || originalCenter.lat()) - (300 / 111000) * 1.8;
-        let newCenter = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
+        console.log('panMapDown 호출됨, 현재 좌표:', currentLat, currentLng);
+        
+        try {
+            originalCenter = map.getCenter();
+            console.log('원본 중심:', originalCenter);
+            
+            // 새로운 중심점 계산 (아래로 이동)
+            let newLat = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ?
+                (currentLat || originalCenter.lat()) - (300 / 111000) * 1.05 :
+                (currentLat || originalCenter.lat()) - (300 / 111000) * 1.5;
+                
+            let newCenter = 'ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? 
+                new naver.maps.LatLng(newLat, currentLng || originalCenter.lng()) : 
+                new google.maps.LatLng(newLat, currentLng || originalCenter.lng());
 
-        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
-            map.panTo(newCenter, {
-                duration: 700,
-                easing: 'easeOutCubic'
-            });
-        } else {
-            // map.setOptions({
-            //     animation: null
-            // });
-            // map.setCenter(newCenter);
+            console.log('새 지도 중심 좌표:', newLat, currentLng || originalCenter.lng());
 
-            // 애니메이션 시간 설정 (밀리초 단위)
-            const duration = 700; // 0.7초
-
-            map.setOptions({
-                animation: google.maps.Animation.BOUNCE
-            });
-            map.panTo(newCenter);
-
-            // 애니메이션 시간 이후 애니메이션 옵션 초기화
-            setTimeout(() => {
+            if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                // 네이버 지도
+                map.panTo(newCenter, {
+                    duration: 500, // 시간 단축
+                    easing: 'easeOutCubic'
+                });
+                
+                // 보험으로 setCenter도 호출
+                setTimeout(() => {
+                    map.setCenter(newCenter);
+                }, 600);
+            } else {
+                // 구글 지도
+                // 바운스 애니메이션 제거하고 직접 이동 (안정성 향상)
                 map.setOptions({
                     animation: null
                 });
-            }, duration);
+                
+                // 즉시 이동
+                map.setCenter(newCenter);
+                
+                // 추가로 panTo 호출
+                map.panTo(newCenter);
+            }
+            
+            // 상태 업데이트
+            isPannedDown = true;
+        } catch (error) {
+            console.error('panMapDown 처리 중 오류 발생:', error);
+            
+            // 오류 발생 시 기본 방식으로 이동 시도
+            try {
+                if (currentLat && currentLng) {
+                    if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                        map.setCenter(new naver.maps.LatLng(currentLat, currentLng));
+                    } else {
+                        map.setCenter(new google.maps.LatLng(currentLat, currentLng));
+                    }
+                }
+            } catch (e) {
+                console.error('백업 이동 중 오류:', e);
+            }
         }
-
-        isPannedDown = true;
     }
 
     function panMapUp() {
-        let targetLatLng = currentLat ? ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N' ? new naver.maps.LatLng(currentLat, currentLng) : new google.maps.LatLng(currentLat, currentLng)) : originalCenter;
-
-        if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
-            map.panTo(targetLatLng, {
-                duration: 700,
-                easing: 'easeOutCubic',
-                onComplete: function() {
-                    isPannedDown = false;
-                    originalCenter = null;
+        console.log('panMapUp 호출됨, 현재 좌표:', currentLat, currentLng);
+        
+        try {
+            // 사용할 좌표 결정 (현재 좌표 사용)
+            let targetLatLng = null;
+            
+            if (currentLat && currentLng) {
+                console.log('현재 저장된 좌표 사용');
+                if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                    // 네이버 지도
+                    targetLatLng = new naver.maps.LatLng(currentLat, currentLng);
+                } else {
+                    // 구글 지도
+                    targetLatLng = new google.maps.LatLng(currentLat, currentLng);
                 }
-            });
-        } else {
-            if (targetLatLng) {
-                // map.setOptions({
-                //     animation: null
-                // });
-                // map.setCenter(targetLatLng);
-                // 애니메이션 시간 설정 (밀리초 단위)
-                const duration = 700; // 0.7초
+            } else if (originalCenter) {
+                console.log('원본 중심 좌표 사용');
+                targetLatLng = originalCenter;
+            } else {
+                console.error('유효한 좌표가 없음');
+                return;
+            }
+            
+            console.log('지도 중심 이동 대상 좌표:', targetLatLng);
 
-                map.setOptions({
-                    animation: google.maps.Animation.BOUNCE
+            if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                // 네이버 지도
+                map.panTo(targetLatLng, {
+                    duration: 500, // 시간 단축
+                    easing: 'easeOutCubic'
                 });
-                map.panTo(targetLatLng);
-
-                // 애니메이션 시간 이후 애니메이션 옵션 초기화
+                
+                // 보험으로 setCenter도 호출
                 setTimeout(() => {
+                    map.setCenter(targetLatLng);
+                }, 600);
+            } else {
+                // 구글 지도
+                if (targetLatLng) {
+                    // 바운스 애니메이션 제거하고 직접 이동 (안정성 향상)
                     map.setOptions({
                         animation: null
                     });
-                }, duration);
-
-                isPannedDown = false;
-                originalCenter = null;
+                    
+                    // 즉시 이동
+                    map.setCenter(targetLatLng);
+                    
+                    // 추가로 panTo 호출
+                    map.panTo(targetLatLng);
+                }
+            }
+            
+            // 상태 업데이트
+            isPannedDown = false;
+            originalCenter = null;
+            
+            console.log('panMapUp 완료');
+        } catch (error) {
+            console.error('panMapUp 처리 중 오류 발생:', error);
+            
+            // 오류 발생 시 기본 방식으로 이동 시도
+            try {
+                if (currentLat && currentLng) {
+                    if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                        map.setCenter(new naver.maps.LatLng(currentLat, currentLng));
+                    } else {
+                        map.setCenter(new google.maps.LatLng(currentLat, currentLng));
+                    }
+                    isPannedDown = false;
+                    originalCenter = null;
+                }
+            } catch (e) {
+                console.error('백업 이동 중 오류:', e);
             }
         }
     }
@@ -3385,8 +3618,260 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
     //     // marker_reload(sgdt_idx);
     //     // console.log(sgdt_idx);
     // }, 30000);
+
+    // 페이지 로드 완료 시 로딩 요소 초기화 및 이벤트 리스너 설정
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded 이벤트 발생: 페이지 초기화 시작');
+        
+        // 페이지 로드 후 지도 로딩 요소 초기화
+        const loadingElement = document.getElementById('map-loading');
+        if (loadingElement) {
+            // 이미 존재하는 타임아웃 제거
+            clearTimeout(window.loadingTimeout);
+            
+            // 만약 페이지 로드 후에도 로딩 표시가 있다면 강제로 해제
+            setTimeout(() => {
+                if (loadingElement.style.display !== 'none') {
+                    hideMapLoading();
+                    console.warn("페이지 로드 완료 후 로딩 화면 강제 해제");
+                }
+            }, 3000);
+        }
+        
+        // 브라우저 뒤로가기 이벤트 처리
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                console.log("페이지가 캐시에서 복원됨");
+                hideMapLoading();
+            }
+        });
+
+        // 오류 복구 메커니즘: 30초 후에 페이지가 여전히 로딩 중이면 새로고침
+        setTimeout(() => {
+            if (document.getElementById('map-loading') && 
+                document.getElementById('map-loading').style.display !== 'none') {
+                console.error("장시간 로딩 상태 감지, 페이지 초기화 시도");
+                // 오류 정보 로깅
+                const logData = {
+                    error_type: 'long_loading',
+                    timestamp: new Date().toISOString(),
+                    user_id: '<?= $_SESSION['_mt_idx'] ?>',
+                    page: 'index.php',
+                    browser_info: navigator.userAgent
+                };
+                
+                // 오류 정보 서버에 로깅
+                fetch('./log_error.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(logData)
+                }).finally(() => {
+                    // 새로고침
+                    location.reload(true);
+                });
+            }
+        }, 30000);
+
+        // 수동 페이지 새로고침 버튼 추가
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            const refreshButton = document.createElement('button');
+            refreshButton.innerHTML = '<i class="xi-refresh"></i>';
+            refreshButton.className = 'btn btn-sm btn-light refresh-map-btn';
+            refreshButton.style.position = 'absolute';
+            refreshButton.style.top = '10px';
+            refreshButton.style.right = '10px';
+            refreshButton.style.zIndex = '1000';
+            refreshButton.style.opacity = '0.7';
+            refreshButton.style.padding = '5px 10px';
+            refreshButton.style.borderRadius = '4px';
+            refreshButton.onclick = function() {
+                console.log('지도 새로고침 버튼 클릭');
+                location.reload(true);
+            };
+            mapContainer.parentNode.appendChild(refreshButton);
+        }
+    });
+
+    // 필요한 경우 마커 업데이트를 위한 함수 추가
+    function updateMemberMarker(mt_idx, lat, lng) {
+        // 이미 구현된 멤버 마커 업데이트 함수가 있다면 사용
+        console.log('멤버 마커 업데이트 - mt_idx:', mt_idx, 'lat:', lat, 'lng:', lng);
+        
+        try {
+            // 모든 마커 제거 함수가 있다면 호출
+            if (typeof clearMapElements === 'function') {
+                clearMapElements(markers || []);
+            }
+            
+            // 기존에 구현된 마커 생성 함수가 있는지 확인
+            if (typeof createMemberMarker === 'function') {
+                createMemberMarker(mt_idx, lat, lng);
+                return;
+            }
+            
+            // 기본 마커 생성 구현
+            if ('ko' === '<?= $userLang ?>' && '<?= $mem_row['mt_map'] ?>' == 'N') {
+                // 네이버 지도 마커
+                var marker = new naver.maps.Marker({
+                    position: new naver.maps.LatLng(lat, lng),
+                    map: map
+                });
+                
+                // 전역 마커 배열이 있다면 추가
+                if (typeof markers !== 'undefined') {
+                    markers.push(marker);
+                }
+            } else if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                // 구글 지도 마커
+                var marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(lat, lng),
+                    map: map
+                });
+                
+                // 전역 마커 배열이 있다면 추가
+                if (typeof markers !== 'undefined') {
+                    markers.push(marker);
+                }
+            }
+        } catch (err) {
+            console.error('마커 생성 중 오류:', err);
+        }
+    }
+
+    // 멤버 위치 직접 이동 함수 (그룹원으로 직접 이동하기 위한 헬퍼 함수)
+    function moveTo990Member() {
+        console.log('990 멤버로 직접 이동 시도');
+        
+        try {
+            // 특정 멤버(990)로 직접 이동
+            const targetMemberId = '990'; // 타겟 멤버 ID
+            
+            // 로딩 화면 표시
+            showMapLoading();
+            
+            // AJAX 요청으로 해당 멤버의 위치 정보 가져오기
+            var form_data = new FormData();
+            form_data.append("act", "my_location_search");
+            form_data.append("mt_idx", targetMemberId);
+            
+            // 기존 요청 취소
+            if (window.locationAjaxRequest) {
+                try {
+                    window.locationAjaxRequest.abort();
+                } catch(e) {}
+            }
+            
+            // 새 요청 시작
+            window.locationAjaxRequest = $.ajax({
+                url: "./schedule_update",
+                enctype: "multipart/form-data",
+                data: form_data,
+                type: "POST",
+                async: true,
+                contentType: false,
+                processData: false,
+                cache: false,
+                timeout: 10000,
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.mlt_lat && data.mlt_long) {
+                        var lat = parseFloat(data.mlt_lat);
+                        var lng = parseFloat(data.mlt_long);
+                        console.log('990 위치 정보 수신 성공. lat:', lat, 'lng:', lng, 'source:', data.source);
+                        
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            // 전역 변수에 위치 저장
+                            currentLat = lat;
+                            currentLng = lng;
+                            
+                            // 마커 업데이트
+                            try {
+                                updateMemberMarker(targetMemberId, lat, lng);
+                            } catch (err) {
+                                console.log('마커 업데이트 중 오류:', err);
+                            }
+                            
+                            // 지도 이동 처리
+                            moveMapToCoordinates(lat, lng, targetMemberId);
+                        }
+                    } else {
+                        console.error('서버에서 990 멤버의 위치 데이터를 받지 못함:', data);
+                    }
+                    
+                    // 작업 완료 후 로딩 화면 숨기기
+                    hideMapLoading();
+                },
+                error: function(xhr, status, error) {
+                    console.error('990 위치 정보 요청 실패:', error);
+                    hideMapLoading();
+                }
+            });
+            
+            // 10초 후에도 로딩 화면이 계속 표시된다면 자동으로 숨김
+            setTimeout(() => {
+                hideMapLoading();
+            }, 10000);
+        } catch (err) {
+            console.error('990 멤버로 이동 중 오류:', err);
+            hideMapLoading();
+        }
+    }
 </script>
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/tail.inc.php";
 ?>
+<script>
+// 페이지 로드 후 990 멤버로 자동 이동
+setTimeout(function() {
+    console.log('990 멤버로 자동 이동 시도');
+    if (typeof moveTo990Member === 'function') {
+        moveTo990Member();
+    } else {
+        console.error('moveTo990Member 함수를 찾을 수 없음');
+    }
+}, 3000);
+
+// 990 멤버로 이동 버튼 추가
+(function() {
+    const addButton = function() {
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            // 이미 버튼이 있는지 확인
+            if (document.querySelector('.move-to-990-btn')) {
+                return;
+            }
+            
+            const moveButton = document.createElement('button');
+            moveButton.innerHTML = '990 멤버로 이동';
+            moveButton.className = 'btn btn-sm btn-primary move-to-990-btn';
+            moveButton.style.position = 'absolute';
+            moveButton.style.top = '50px';
+            moveButton.style.right = '10px';
+            moveButton.style.zIndex = '1000';
+            moveButton.style.opacity = '0.8';
+            moveButton.style.padding = '5px 10px';
+            moveButton.style.borderRadius = '4px';
+            moveButton.onclick = function() {
+                if (typeof moveTo990Member === 'function') {
+                    moveTo990Member();
+                } else {
+                    console.error('moveTo990Member 함수를 찾을 수 없음');
+                    alert('990 멤버로 이동할 수 없습니다.');
+                }
+            };
+            mapContainer.parentNode.appendChild(moveButton);
+        }
+    };
+    
+    // 페이지 로드 완료 시 버튼 추가
+    if (document.readyState === 'complete') {
+        addButton();
+    } else {
+        window.addEventListener('load', addButton);
+    }
+})();
+</script>

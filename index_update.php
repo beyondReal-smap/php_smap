@@ -180,7 +180,7 @@ if ($_POST['act'] == "weather_get") {
                 $mt_file1_url = get_image_url($mt_info['mt_file1']);
                 $rtn = get_gps_distance_k($row_slmt['sgdt_mt_idx'], $s_date);
                 $mt_location_info = get_member_location_log_t_info($row_slmt['sgdt_mt_idx']);
-
+                
                 $arr_rtn = array();
                 if ($mt_location_info['mlt_speed']) {
                     $arr_rtn['speed_info'] = $translations['txt_moving'];

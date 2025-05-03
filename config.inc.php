@@ -84,6 +84,7 @@ define("SECRETKEY", 'Ga5JDKv/PSY3vyS0XF5AjZodEFMBM2Eca2hRCtqnLS0nVqnfBnCM/5/IML6
 define("AUTH_SECRETKEY", '518cbe9ed50bf7e72913eb6b5a5e5fc6a8b99d56200ebda3a5bb365dbdccbdf6');
 define("SERVER_NAME", 'API_SMAP');
 define("NCPCLIENTID", 'unxdi5mt3f');
+define("NCPAPIKEY", "bKRzkFBbAvfdHDTZB0mJ81jmO8ufULvQavQIQZmp");
 // define("GOOGLE_MAPS_API_KEY", 'AIzaSyD5TS3jrOEIotHnrxcLqwkqzUcd7lC1sjY'); //My First Project
 define("GOOGLE_MAPS_API_KEY", 'AIzaSyBkWlND5fvW4tmxaj11y24XNs_LQfplwpw'); //com.dmonster.smap
 define("NCPCLIENTSECRET", 'bKRzkFBbAvfdHDTZB0mJ81jmO8ufULvQavQIQZmp');

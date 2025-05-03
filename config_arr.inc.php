@@ -1,9 +1,11 @@
 <?php
 
+// 세션 변수 확인
+$mt_idx = isset($_SESSION['_mt_idx']) ? $_SESSION['_mt_idx'] : null;
 
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
+$DB->where('mt_idx', $mt_idx);
 $row = $DB->getone('member_t', 'mt_lang');
-$userLangConfig = $row['mt_lang'] ? $row['mt_lang'] : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+$userLangConfig = isset($row['mt_lang']) && $row['mt_lang'] ? $row['mt_lang'] : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 $translationsConfig = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLangConfig . '.php';
 
 $arr_mt_type = array(

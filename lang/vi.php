@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => 'Thông tin vị trí',
+    'txt_location_info_minutes' => 'phút trước',
+    'txt_location_info_hours' => 'giờ trước',
     'txt_remember_me' => 'Ghi nhớ tôi', // 자동 로그인 설정하기
     'txt_group_delete' => 'Xóa nhóm', // 그룹 삭제
     'txt_group_edit' => 'Chỉnh sửa nhóm',
@@ -435,6 +438,8 @@ return [
     'txt_notification' => 'Thông báo', // 알림
     'txt_notification_settings_info' => 'Cài đặt thông báo cho thay đổi lịch trình & vị trí.',
     // 일정 및 위치 변경에 대한 알림을 설정하세요.
+    'txt_all_schedules_edited_notification_alert' => 'Tất cả các lịch trình lặp lại đã được chỉnh sửa.',
+    'txt_schedule_edit_error_check_required' => 'Đã xảy ra lỗi khi chỉnh sửa lịch trình. Vui lòng kiểm tra xem tất cả các trường bắt buộc đã được điền đầy đủ chưa.',
     'txt_enter_schedule_location' => 'Nhập vị trí lịch trình.', // 일정 위치를 입력하세요.
     'txt_items_to_prepare' => 'Mục cần chuẩn bị', // 준비물
     'txt_enter_preparations' => 'Nhập các bước chuẩn bị cần thiết.', // 필요한 준비 사항을 입력하세요.
@@ -537,7 +542,7 @@ return [
     'txt_changed' => 'Đã thay đổi.', // 변경되었습니다.
     'txt_cancel' => 'Hủy', // 취소
     'txt_warning' => 'Cảnh báo', // 경고
-    'txt_confirm_delete_irreversible' => 'Bạn có chắc chắn muốn xóa? Dữ liệu đã xóa không thể khôi phục.', // 정말 삭제하시겠습니까? 삭제된 자료는 복구되지 않습니다.
+    'txt_confirm_delete_irreversible' => 'Bạn có chắc chắn muốn xóa? Dữ liệu đã xóa không thể khôi phục.', // 정말 삭제하시겠습니까? 삭제된 자료는 복구할 수 없습니다.
     'txt_deleted' => 'Đã xóa.', // 삭제되었습니다.
     'txt_upload_size_limit_10mb' => 'Giới hạn tải lên là 10MB.', // 업로드는 10메가 이하만 가능합니다.
     'txt_phone_number_example_2' => '(123) 456-7890',
@@ -840,6 +845,21 @@ return [
     'txt_repeat_schedule_delete_option' => 'Đây là lịch trình lặp lại. Vui lòng chọn phương thức xóa.',
     'txt_delete_this_schedule_only' => 'Chỉ xóa lịch trình này',
     'txt_delete_all_repeat_schedules' => 'Xóa lịch trình này và tất cả lịch trình lặp lại trong tương lai',
-    'txt_all_schedules_deleted_notification_alert' => 'Lịch trình đã chọn và tất cả lịch trình lặp lại trong tương lai đã được xóa.',
+    'txt_all_schedules_deleted_notification_alert' => 'Lịch trình đã chọn và tất cả lịch trình lặp lại trong tương lai đã bị xóa.',
     'txt_previous_schedules_kept' => '※ Các lịch trình lặp lại trước đó sẽ được giữ nguyên.',
+    'txt_edit_repeat_schedule' => 'Chỉnh sửa lịch trình lặp lại',
+    'txt_repeat_schedule_edit_option' => 'Đây là lịch trình lặp lại. Vui lòng chọn phương thức chỉnh sửa.',
+    'txt_edit_this_schedule_only' => 'Chỉ chỉnh sửa lịch trình này',
+    'txt_edit_future_schedules' => 'Chỉnh sửa lịch trình này và tất cả lịch trình lặp lại trong tương lai',
+    'txt_edit_all_schedules' => 'Chỉnh sửa tất cả lịch trình lặp lại',
+    'txt_delete_this_schedule' => 'Chỉ xóa lịch trình này',
+    'txt_delete_future_schedules' => 'Xóa lịch trình này và tất cả lịch trình lặp lại trong tương lai',
+    'txt_delete_all_schedules' => 'Xóa tất cả lịch trình lặp lại',
+    'txt_delete_schedule_confirm' => 'Bạn có chắc chắn muốn xóa lịch trình này không?',
+    'txt_edit_recurring_schedule' => 'Chỉnh sửa lịch trình định kỳ', // 반복 일정 편집
+    'txt_edit_this_only' => 'Chỉ chỉnh sửa lịch trình này', // 이 일정만 수정
+    'txt_edit_all_recurring' => 'Chỉnh sửa tất cả các lịch trình định kỳ', // 모든 반복 일정 수정
+    'txt_edit_this_and_future' => 'Chỉnh sửa lịch trình này và các lịch trình trong tương lai', // 이 일정 및 향후 일정 수정
+    'txt_recurring_schedule_options' => 'Tùy chọn lịch trình định kỳ', // 반복 일정 옵션
+    'txt_how_to_edit_recurring' => 'Bạn muốn chỉnh sửa lịch trình định kỳ này như thế nào?', // 이 반복 일정을 어떻게 수정하시겠습니까?
 ];

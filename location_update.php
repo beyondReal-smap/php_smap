@@ -254,7 +254,7 @@ if ($_POST['act'] == "recom_list") {
     <form>
         <div class="date_conent">
             <div class="cld_content">
-                <div class="swiper cld_swiper cld_body fs_15 fw_500">
+                <div class="swiper cld_swiper cld_body fs_15 fw_500" style="padding-top: 4px;">
                     <ul class="swiper-wrapper flex-nowrap">
                         <?php
                         for ($d = 0; $d <= $diff_days; $d++) {

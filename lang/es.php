@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => 'Información de ubicación',
+    'txt_location_info_minutes' => 'minutos atrás',
+    'txt_location_info_hours' => 'horas atrás',
     'txt_remember_me' => 'Recordarme', // 자동 로그인 설정하기
     'txt_group_delete' => 'Eliminar grupo', // 그룹 삭제
     'txt_group_edit' => 'Editar grupo',
@@ -460,6 +463,8 @@ return [
     'txt_select_member' => 'Seleccionar miembro', // Select Member // 구성원 선택
     'txt_notification' => 'Notificación', // Notification // 알림
     'txt_notification_settings_info' => 'Establecer notificaciones para cambios de horario y ubicación.', // Set Notifications For Schedule & Location Changes.
+    'txt_all_schedules_edited_notification_alert' => 'Todos los horarios recurrentes han sido modificados.', // 모든 반복 일정이 수정되었습니다.
+    'txt_schedule_edit_error_check_required' => 'Se produjo un error al modificar el horario. Por favor, compruebe que todos los campos requeridos están completos.', // 일정 수정 중 오류가 발생했습니다. 필수 값이 모두 입력되었는지 확인해주세요.
     // 일정 및 위치 변경에 대한 알림을 설정하세요.
     'txt_enter_schedule_location' => 'Introduce la ubicación del horario.', // Enter Schedule Location. // 일정 위치를 입력하세요.
     'txt_items_to_prepare' => 'Artículos para preparar', // Items To Prepare // 준비물
@@ -835,7 +840,16 @@ return [
         ', // 비밀번호 재설정 안내
     'txt_repeat_schedule_delete_option' => 'Este es un horario recurrente. Por favor, seleccione un método de eliminación.',
     'txt_delete_this_schedule_only' => 'Eliminar solo este horario',
-    'txt_delete_all_repeat_schedules' => 'Eliminar este y todos los horarios recurrentes futuros',
+    'txt_delete_all_repeat_schedules' => 'Eliminar este horario y todos los horarios recurrentes futuros',
     'txt_all_schedules_deleted_notification_alert' => 'El horario seleccionado y todos los horarios recurrentes futuros han sido eliminados.',
     'txt_previous_schedules_kept' => '※ Los horarios recurrentes anteriores se mantendrán.',
+    'txt_edit_repeat_schedule' => 'Editar horario recurrente',
+    'txt_repeat_schedule_edit_option' => 'Este es un horario recurrente. Por favor, seleccione un método de edición.',
+    'txt_edit_this_schedule_only' => 'Editar solo este horario',
+    'txt_edit_future_schedules' => 'Editar este horario y todos los horarios recurrentes futuros',
+    'txt_edit_all_schedules' => 'Editar todos los horarios recurrentes',
+    'txt_delete_this_schedule' => 'Eliminar solo este horario',
+    'txt_delete_future_schedules' => 'Eliminar este horario y todos los horarios recurrentes futuros',
+    'txt_delete_all_schedules' => 'Eliminar todos los horarios recurrentes',
+    'txt_delete_schedule_confirm' => '¿Está seguro de que desea eliminar este horario?',
 ];

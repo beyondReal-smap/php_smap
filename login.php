@@ -77,6 +77,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                     <div class="form-check text-end pe-4">
                         <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
                         <label class="form-check-label text_gray fs_14" for="remember_me" style="margin-left: 1rem"><?= $translations['txt_remember_me'] ?></label>
+                        <p class="form-text text-muted fs_12"><?= $translations['txt_remember_me_info'] ?? '자동 로그인 설정 시 1년간 로그인 상태가 유지됩니다.' ?></p>
                     </div>
                     <div class="mt-5 text-center">
                         <button type="button" class="btn fs_14 text_gray" onclick="javascript:location.href='./join_entry'"><?= $translations['txt_no_membership'] ?></button>
@@ -230,46 +231,48 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
             $("#frm_login").validate({
                 submitHandler: function() {
                     var f = document.frm_login;
-
-                    // $('#splinner_modal').modal('toggle');
-
+                    // 로그인 시도 로깅
+                    console.log("Login form submitted");
+                    
+                    // 자동 로그인 상태 저장
+                    localStorage.setItem('remember_me_status', $('#remember_me').is(':checked'));
+                    console.log("Remember me status saved: " + $('#remember_me').is(':checked'));
+                    
                     return true;
-
                 },
                 rules: {
                     <?php if ($userLang == 'ko'): ?>
-                        mt_hp: {
-                            required: true,
-                            minlength: 11,
-                        }, // 추가된 쉼표
+                    mt_hp: {
+                        required: true,
+                        minlength: 11
+                    },
                     <?php else: ?>
-                        mt_email: {
-                            required: true,
-                            email: true,
-                            // ... existing code ...
-                        },
+                    mt_email: {
+                        required: true,
+                        email: true
+                    },
                     <?php endif; ?>
                     mt_pass: {
                         required: true,
                         minlength: 8,
                         regex: /^(?=[a-zA-Z0-9!@#$^]*$)(?!.*[^a-zA-Z0-9!@#$^])/i
-                    },
+                    }
                 },
                 messages: {
                     <?php if ($userLang == 'ko'): ?>
-                        mt_hp: {
-                            required: "<?= $translations['txt_enter_phone_number'] ?>",
-                            minlength: "<?= $translations['txt_min_length_error'] ?>",
-                        },
+                    mt_hp: {
+                        required: "<?= $translations['txt_enter_phone_number'] ?>",
+                        minlength: "<?= $translations['txt_min_length_error'] ?>"
+                    },
                     <?php else: ?>
-                        mt_email: {
-                            required: "<?= $translations['txt_enter_email'] ?>",
-                            email: "<?= $translations['txt_invalid_email_format'] ?>"
-                        },
+                    mt_email: {
+                        required: "<?= $translations['txt_enter_email'] ?>",
+                        email: "<?= $translations['txt_invalid_email_format'] ?>"
+                    },
                     <?php endif; ?>
                     mt_pass: {
                         required: "<?= $translations['txt_enter_password'] ?>",
-                        minlength: "<?= $translations['txt_min_length_error'] ?>",
+                        minlength: "<?= $translations['txt_min_length_error'] ?>"
                     }
                 },
                 errorPlacement: function(error, element) {
@@ -277,11 +280,30 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
                         .closest("form")
                         .find("span[for='" + element.attr("id") + "']")
                         .append(error);
-                },
+                }
             });
 
             $("#mt_hp").filter(".lower").on("keyup", function() {
                 $(this).val($(this).val().toLowerCase());
+            });
+
+            // 페이지 로드 시 로컬 스토리지에서 자동 로그인 설정 상태 불러오기
+            $(document).ready(function() {
+                // 로컬 스토리지에서 자동 로그인 상태 불러오기
+                var rememberMeStatus = localStorage.getItem('remember_me_status');
+                if (rememberMeStatus === 'true') {
+                    $('#remember_me').prop('checked', true);
+                }
+                
+                // 자동 로그인 체크박스 상태 변경 시 로컬 스토리지에 저장
+                $('#remember_me').change(function() {
+                    localStorage.setItem('remember_me_status', $(this).is(':checked'));
+                });
+                
+                // 자동 로그인 쿠키 확인
+                if (document.cookie.indexOf('remember_token') !== -1) {
+                    console.log('Auto login cookie detected');
+                }
             });
         </script>
     </div>

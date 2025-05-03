@@ -842,8 +842,24 @@ return [
     </html>
     ', // 비밀번호 재설정 안내
     'txt_repeat_schedule_delete_option' => 'This is a recurring schedule. Please select a deletion method.',
-    'txt_delete_this_schedule_only' => 'Delete this schedule only',
-    'txt_delete_all_repeat_schedules' => 'Delete this and all future recurring schedules',
-    'txt_all_schedules_deleted_notification_alert' => 'Selected schedule and all future recurring schedules have been deleted.',
-    'txt_previous_schedules_kept' => '※ Previous recurring schedules will be kept.',
+    'txt_delete_this_schedule_only' => 'Delete This Schedule Only',
+    'txt_delete_all_repeat_schedules' => 'Delete This Schedule and All Future Recurring Schedules',
+    'txt_all_schedules_deleted_notification_alert' => 'The selected schedule and all future recurring schedules have been deleted.',
+    'txt_previous_schedules_kept' => '※ Previous recurring schedules will be maintained.',
+
+    // 새로 추가된 번역 텍스트
+    'txt_edit_repeat_schedule' => 'Edit Recurring Schedule',
+    'txt_repeat_schedule_edit_option' => 'This is a recurring schedule. Please select an editing method.',
+    'txt_edit_this_schedule_only' => 'Edit This Schedule Only',
+    'txt_edit_future_schedules' => 'Edit This Schedule and All Future Recurring Schedules',
+    'txt_edit_all_schedules' => 'Edit All Recurring Schedules',
+    'txt_delete_this_schedule' => 'Delete This Schedule Only',
+    'txt_delete_future_schedules' => 'Delete This Schedule and All Future Recurring Schedules',
+    'txt_delete_all_schedules' => 'Delete All Recurring Schedules',
+    'txt_delete_schedule_confirm' => 'Are you sure you want to delete this schedule?',
+    'txt_all_schedules_edited_notification_alert' => 'All recurring schedules have been modified.',
+    'txt_schedule_edit_error_check_required' => 'An error occurred while editing the schedule. Please check if all required fields are filled out.',
+    'txt_location_info' => 'Location Info',
+    'txt_location_info_minutes' => 'minutes ago',
+    'txt_location_info_hours' => 'hours ago'
 ];

@@ -1,5 +1,8 @@
 <?php
 return [
+    'txt_location_info' => 'Informasi Lokasi',
+    'txt_location_info_minutes' => 'menit yang lalu',
+    'txt_location_info_hours' => 'jam yang lalu',
     'txt_remember_me' => 'Ingat Saya', // 자동 로그인 설정하기
     'txt_group_delete' => 'Hapus Grup', // 그룹 삭제
     'txt_group_edit' => 'Edit Grup',
@@ -424,6 +427,8 @@ return [
     'txt_start' => 'Mulai!', // 시작!
     'txt_end' => 'Selesai', // 종료
     'txt_repeat' => 'Ulangi', // 반복
+    'txt_all_schedules_edited_notification_alert' => 'Semua jadwal berulang telah dimodifikasi.',
+    'txt_schedule_edit_error_check_required' => 'Terjadi kesalahan saat mengedit jadwal. Harap periksa apakah semua bidang yang wajib diisi telah terisi.',
     'txt_select_member' => 'Pilih Anggota', // 구성원 선택
     'txt_notification' => 'Notifikasi', // 알림
     'txt_notification_settings_info' => 'Atur Notifikasi untuk Perubahan Jadwal & Lokasi.', // 일정 및 위치 변경에 대한 알림을 설정하세요.
@@ -826,8 +831,17 @@ return [
     </html>
     ', // 비밀번호 재설정 안내
     'txt_repeat_schedule_delete_option' => 'Ini adalah jadwal berulang. Silakan pilih metode penghapusan.',
-    'txt_delete_this_schedule_only' => 'Hapus jadwal ini saja',
-    'txt_delete_all_repeat_schedules' => 'Hapus jadwal ini dan semua jadwal berulang di masa depan',
+    'txt_delete_this_schedule_only' => 'Hapus Jadwal Ini Saja',
+    'txt_delete_all_repeat_schedules' => 'Hapus Jadwal Ini dan Semua Jadwal Berulang di Masa Depan',
     'txt_all_schedules_deleted_notification_alert' => 'Jadwal yang dipilih dan semua jadwal berulang di masa depan telah dihapus.',
-    'txt_previous_schedules_kept' => '※ Jadwal berulang sebelumnya akan tetap dipertahankan.',
+    'txt_previous_schedules_kept' => '※ Jadwal berulang sebelumnya akan dipertahankan.',
+    'txt_edit_repeat_schedule' => 'Edit Jadwal Berulang',
+    'txt_repeat_schedule_edit_option' => 'Ini adalah jadwal berulang. Silakan pilih metode pengeditan.',
+    'txt_edit_this_schedule_only' => 'Edit Jadwal Ini Saja',
+    'txt_edit_future_schedules' => 'Edit Jadwal Ini dan Semua Jadwal Berulang di Masa Depan',
+    'txt_edit_all_schedules' => 'Edit Semua Jadwal Berulang',
+    'txt_delete_this_schedule' => 'Hapus Jadwal Ini Saja',
+    'txt_delete_future_schedules' => 'Hapus Jadwal Ini dan Semua Jadwal Berulang di Masa Depan',
+    'txt_delete_all_schedules' => 'Hapus Semua Jadwal Berulang',
+    'txt_delete_schedule_confirm' => 'Apakah Anda yakin ingin menghapus jadwal ini?',
 ];

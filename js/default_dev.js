@@ -915,14 +915,79 @@ function dateFormat(date) {
     return dateFormat2;
 }
 
-function f_calendar_init(t = "") {
+function f_calendar_init(t = "", callback) {
   var form_data = new FormData();
   var week_chk = $("#week_calendar").val();
+  var selectedDate = '';
+
+  // 오늘 날짜 가져오기
+  var today = new Date();
+  var todayFormatted = dateFormat(today);
+
+  // 선택된 날짜 결정 - 전역변수, 로컬스토리지, URL 순서로 확인
+  // 전역 변수 우선 (가장 최근 선택)
+  if (window.selectedDate) {
+    selectedDate = window.selectedDate;
+    console.log('Using global variable for date:', selectedDate);
+  } else {
+    // 로컬스토리지에서 저장된 날짜 가져오기
+    try {
+      var storedDate = localStorage.getItem('selectedDate');
+      if (storedDate) {
+        selectedDate = storedDate;
+        console.log('Using localStorage for date:', selectedDate);
+      }
+    } catch (storageError) {
+      console.error('Error reading from localStorage:', storageError);
+    }
+  }
+
+  // URL에서 현재 sdate 파라미터 가져오기
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlDate = urlParams.get('sdate');
+  if (urlDate && !selectedDate) {
+    selectedDate = urlDate;
+    console.log('Using URL parameter for date:', selectedDate);
+  }
+
+  // 아무것도 없으면 오늘 날짜 사용
+  if (!selectedDate) {
+    selectedDate = todayFormatted;
+    console.log('No date found, using today:', selectedDate);
+  }
 
   if (t == "today") {
+    // 오늘 날짜로 명시적 설정
     var cday = new Date();
+    selectedDate = dateFormat(cday);
+    // 전역 변수 및 로컬스토리지 업데이트
+    window.selectedDate = selectedDate;
+    try {
+      localStorage.setItem('selectedDate', selectedDate);
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
+    }
+    console.log('Setting date to today:', selectedDate);
+  } else if (t == "date" || t == "selected_date") {
+    if (t == "selected_date") {
+      // 주간/월간 뷰 전환 시 선택된 날짜 유지 - 전역변수 우선
+      var sdate = window.selectedDate || $("#event_start_date").val();
+      if (sdate) {
+        selectedDate = sdate;
+        // 전역 변수 및 로컬스토리지 업데이트
+        window.selectedDate = selectedDate;
+        try {
+          localStorage.setItem('selectedDate', selectedDate);
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
+      console.log('Calendar init with selected_date mode:', selectedDate);
+    }
+    var cday = new Date(selectedDate);
   } else {
-    var sdate = $("#csdate").val();
+    // 이전/다음 월 이동 등에서는 선택된 날짜를 기준으로 동작
+    var sdate = selectedDate;
     var cday = new Date(sdate);
   }
 
@@ -938,6 +1003,11 @@ function f_calendar_init(t = "") {
       form_data.append("sdate", dateFormat(cday));
     } else if (t == "today") {
       form_data.append("sdate", dateFormat(cday));
+      // 오늘 날짜로 모든 히든 필드 업데이트
+      selectedDate = dateFormat(cday);
+    } else if (t == "selected_date") {
+      // 선택된 날짜 유지 (주간/월간 뷰 전환 시)
+      form_data.append("sdate", selectedDate);
     } else {
       form_data.append("sdate", dateFormat(cday));
     }
@@ -948,7 +1018,9 @@ function f_calendar_init(t = "") {
       (cday.getMonth() + 1 < 9
         ? "0" + (cday.getMonth() + 1)
         : cday.getMonth() + 1) +
-      "-02";
+      "-01"; // 월의 첫날로 설정
+    
+    // 현재 csdate 값으로 표시되는 월 설정
     $("#csdate").val(cday2);
   } else {
     if (t == "prev") {
@@ -959,9 +1031,16 @@ function f_calendar_init(t = "") {
       form_data.append("sdate", dateFormat(cday));
     } else if (t == "today") {
       form_data.append("sdate", dateFormat(cday));
+      // 오늘 날짜로 모든 히든 필드 업데이트
+      selectedDate = dateFormat(cday);
+    } else if (t == "selected_date") {
+      // 선택된 날짜 유지 (주간/월간 뷰 전환 시)
+      form_data.append("sdate", selectedDate);
     } else {
       form_data.append("sdate", dateFormat(cday));
     }
+    
+    // 현재 csdate 값 설정
     $("#csdate").val(dateFormat(cday));
   }
 
@@ -970,7 +1049,14 @@ function f_calendar_init(t = "") {
   var month = (cday.getMonth() + 1).toString().padStart(2, '0');
   $("#calendar_date_title").text(year + "." + month);
 
-  $.ajax({
+  // 이전 요청 취소 (중복 방지)
+  if (window.currentCalendarRequest) {
+    try {
+      window.currentCalendarRequest.abort();
+    } catch (e) {}
+  }
+
+  window.currentCalendarRequest = $.ajax({
     url: "./schedule_update",
     enctype: "multipart/form-data",
     data: form_data,
@@ -978,27 +1064,65 @@ function f_calendar_init(t = "") {
     async: true,
     contentType: false,
     processData: false,
-    cache: true,
-    timeout: 5000,
+    cache: false, // 캐시 방지
+    timeout: 10000, // 타임아웃 시간 증가
     success: function (data) {
+      window.currentCalendarRequest = null;
+      
       if (data) {
+        // 캘린더 HTML 업데이트
         $("#schedule_calandar_box").html(data);
         
-        // 저장된 선택 날짜 복원
-        var selectedDate = localStorage.getItem('selectedDate');
-        if (selectedDate) {
-          $('.c_id').removeClass('active selected');
-          $('#calendar_' + selectedDate).addClass('active selected');
+        // 월간 뷰일 때 모든 주가 표시되도록 설정
+        if ($("#week_calendar").val() === 'N') {
+          // 캘린더 컨테이너의 높이를 자동으로 조정
+          $("#schedule_calandar_box").css({
+            'height': 'auto',
+            'max-height': 'none',
+            'overflow-y': 'visible'
+          });
           
-          // 일정 등록 폼에서만 실행
-          if ($("#sdate_txt").length > 0) {
-            f_schedule_form_day_click(selectedDate);
-          }
+          // 캘린더 날짜 컨테이너의 높이도 조정
+          $(".cld_date_wrap").css({
+            'height': 'auto',
+            'max-height': 'none',
+            'overflow-y': 'visible'
+          });
+        }
+        
+        // 최종 선택 날짜 - 전역변수 우선
+        var finalSelectedDate = window.selectedDate || selectedDate;
+        console.log('Final selected date:', finalSelectedDate);
+        
+        // 모든 히든 필드 동기화
+        $("#event_start_date").val(finalSelectedDate);
+        if (t != "prev" && t != "next") {
+          $("#csdate").val(finalSelectedDate);
+        }
+        
+        // 즉시 선택한 날짜 하이라이트
+        $('.c_id').removeClass('active selected');
+        $('#calendar_' + finalSelectedDate).addClass('active selected');
+        
+        // 콜백 즉시 호출
+        if (typeof callback === 'function') {
+          callback();
         }
       }
     },
     error: function (err) {
-      console.log(err);
+      if (err.statusText === 'abort') {
+        console.log('Calendar request aborted');
+      } else {
+        console.error('Error in calendar request:', err);
+      }
+      
+      window.currentCalendarRequest = null;
+      
+      // 오류 발생해도 콜백 호출
+      if (typeof callback === 'function') {
+        callback();
+      }
     },
   });
 }
@@ -1469,26 +1593,47 @@ function toggleCalendarView() {
     var currentValue = weekCalendar.val();
     var arrowImg = $(".top_down");
     
+    // 현재 선택된 날짜 저장 - localStorage 사용 제거하고 직접 DOM에서 가져옴
+    var selectedDate = $("#event_start_date").val() || currentSelectedDate;
+    console.log('Toggle calendar view - Current selected date:', selectedDate);
+    
     if (currentValue === "Y") {
         // 주간 -> 월간 전환
         weekCalendar.val("N");
-        arrowImg.attr("src", CDN_HTTP + "/img/btn_tl_arrow.png");
-        $('.sch_wrap').css('padding-top', '38.7rem');
+        arrowImg.css('transform', 'rotate(180deg)');
+        
+        // 애니메이션 적용 (선택 사항)
+        $('#schedule_calandar_box').removeClass('calendar-week-view').addClass('calendar-month-view');
     } else {
         // 월간 -> 주간 전환
         weekCalendar.val("Y");
-        arrowImg.attr("src", CDN_HTTP + "/img/btn_bl_arrow.png");
-        $('.sch_wrap').css('padding-top', '16.8rem');
+        arrowImg.css('transform', 'rotate(0deg)');
+        
+        // 애니메이션 적용 (선택 사항)
+        $('#schedule_calandar_box').removeClass('calendar-month-view').addClass('calendar-week-view');
     }
     
-    // 현재 선택된 날짜 저장
-    var selectedDate = localStorage.getItem('selectedDate') || $("#event_start_date").val();
+    // 날짜 값 보존을 위해 명시적으로 설정
+    $('#event_start_date').val(selectedDate);
+    $('#csdate').val(selectedDate);
+    currentSelectedDate = selectedDate;
     
-    // 캘린더 새로고침
-    f_calendar_init();
-    
-    // 선택된 날짜의 일정 데이터 로드
-    if ($("#sdate_txt").length > 0) {
-        f_schedule_form_day_click(selectedDate);
-    }
+    // 'selected_date' 모드로 캘린더 초기화하여 선택된 날짜 유지
+    f_calendar_init('selected_date', function() {
+        // 캘린더가 로드된 후 날짜 선택 상태 복원
+        setTimeout(function() {
+            // 모든 하이라이트 제거 후 현재 날짜만 선택
+            $('.c_id').removeClass('active selected');
+            $('#calendar_' + selectedDate).addClass('active selected');
+            
+            // 히든 필드 값 재확인
+            $('#event_start_date').val(selectedDate);
+            $('#csdate').val(selectedDate);
+            
+            // 일정 등록 폼에서만 실행
+            if ($("#sdate_txt").length > 0) {
+                f_schedule_form_day_click(selectedDate);
+            }
+        }, 50);
+    });
 }

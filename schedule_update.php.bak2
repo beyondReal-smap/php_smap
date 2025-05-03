@@ -1545,7 +1545,7 @@ if ($_POST['act'] == "event_source") {
                 $DB->where('sst_pidx', $parent_id);
                 $DB->where("DATE(sst_sdate) >= ?", [$current_date]);
                 $children_delete = $DB->delete('smap_schedule_t');
-                logToFile("[일정 수정] 이후 하위 일정 삭제 결과: " . ($children_delete ? "성공 (" . $DB->count . "개 삭제)" : "실패") . ", SQL: " . $DB->getLastQuery());
+                logToFile("[일정 수정] 이후 하위 일정 삭제 결과: " . ($children_delete ? "성공" : "실패") . ", SQL: " . $DB->getLastQuery());
                 
                 // 부모 일정 업데이트 (삭제하지 않고 업데이트)
                 $DB->where('sst_idx', $parent_id);
@@ -1860,7 +1860,7 @@ if ($_POST['act'] == "event_source") {
                             // 날짜 배열 중복 제거 및 정렬
                             $repeat_dates = array_unique($repeat_dates);
                             sort($repeat_dates);
-                            logToFile("[일정 수정] 최종 반복 일정 날짜 (중복 제거): " . count($repeat_dates) . "개, 날짜: " . implode(", ", $repeat_dates));
+                            logToFile("[일정 수정] 최종 반복 일정 날짜 (중복 제거): " . count($repeat_dates) . "개");
                             
                             // 생성된 날짜로 하위 일정 생성
                             foreach ($repeat_dates as $date) {
@@ -2205,7 +2205,7 @@ if ($_POST['act'] == "event_source") {
                                 $week_c = '';
                             }
 
-                            // 오늘 날짜인 경우 today 클래스 추가
+                            // 오늘 날짜 또는 저장된 선택 날짜와 일치하는지 확인
                             if ($c_id == date("Y-m-d")) {
                                 $today_c = ' today';
                             } else {
@@ -2481,13 +2481,8 @@ if ($_POST['act'] == "event_source") {
 
 
     // 캐시 설정 (예: Redis 사용)
-    if (class_exists('Redis')) {
-        $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
-    } else {
-        // Redis가 없는 경우 대체 로직
-        // 이 위치에 필요한 대체 로직을 구현
-    }
+    $redis = new Redis();
+    $redis->connect('127.0.0.1', 6379);
 
     // 캐시 키 생성을 위한 함수
     function getCacheKey($mt_idx)
@@ -2498,7 +2493,7 @@ if ($_POST['act'] == "event_source") {
     // 배치로 모든 멤버의 위치 정보를 가져오는 함수
     function batchGetLocationInfo($DB, $member_indices)
     {
-        $query = "SELECT mlt.mt_idx, mlt.mlt_battery, mlt.mlt_speed, mlt.mlt_lat, mlt.mlt_long, mlt.mlt_gps_time
+        $query = "SELECT mlt.mt_idx, mlt.mlt_battery, mlt.mlt_speed, mlt.mlt_lat, mlt.mlt_long
                 FROM member_location_log_t mlt
                 INNER JOIN (
                     SELECT mt_idx, MAX(mlt_gps_time) as max_time
@@ -2564,7 +2559,6 @@ if ($_POST['act'] == "event_source") {
             }
             $member_info['mt_lat'] = $location_info['mlt_lat'];
             $member_info['mt_long'] = $location_info['mlt_long'];
-            $member_info['mt_gps_time'] = $location_info['mlt_gps_time'];
 
             // 배터리 정보 조회
             $battery_info = getBatteryInfo(intval($location_info['mlt_battery'] ?? 0));
@@ -2627,7 +2621,7 @@ if ($_POST['act'] == "event_source") {
         } else {
             $DB->where('mt_idx', $_SESSION['_mt_idx']);
             $DB->orderby('mlt_gps_time', 'desc');
-            $location_info = $DB->getone('member_location_log_t', 'mlt_battery, mlt_speed, mlt_lat, mlt_long, mlt_gps_time');
+            $location_info = $DB->getone('member_location_log_t', 'mlt_battery, mlt_speed, mlt_lat, mlt_long');
             if ($location_info) {
                 $redis->setex($cache_key, 300, json_encode($location_info)); // 5분 동안 캐시
             }
@@ -2645,8 +2639,7 @@ if ($_POST['act'] == "event_source") {
                 'mlt_battery' => 0,
                 'mlt_speed' => 0,
                 'mlt_lat' => $member_info['mt_lat'],
-                'mlt_long' => $member_info['mt_long'],
-                'mlt_gps_time' => $member_info['mt_gps_time']
+                'mlt_long' => $member_info['mt_long']
             ];
         }
         $result['members'][$_SESSION['_mt_idx']] = [
@@ -3226,72 +3219,21 @@ if ($_POST['act'] == "event_source") {
         p_alert($translations['txt_login_required'], './login', '');
     }
 
-    // 요청된 사용자 ID 유효성 검사
-    $mt_idx = isset($_POST['mt_idx']) ? $_POST['mt_idx'] : null;
-    if (!$mt_idx) {
-        $result_data = array(
-            'error' => true,
-            'message' => 'Invalid member ID'
-        );
-        echo json_encode($result_data);
-        exit;
-    }
-
-    // 1. 먼저 요청된 사용자의 최신 위치 로그 조회
-    $DB->where('mt_idx', $mt_idx);
+    $DB->where('mt_idx', $_POST['mt_idx']);
     $DB->orderby('mlt_gps_time', 'desc');
     $mllt_row = $DB->getone('member_location_log_t');
-    
-    // 2. 로그가 없으면 사용자 기본 정보 조회
-    if (!$mllt_row['mlt_idx']) {
-        $DB->where('mt_idx', $mt_idx);
-        $member_info = $DB->getOne('member_t');
-    }
+    $result_data = array();
 
-    $result_data = array(
-        'mt_idx' => $mt_idx, // 어떤 사용자의 정보인지 포함
-        'source' => 'unknown'
-    );
-
-    // 3. 로그 데이터가 있으면 로그에서 위치 가져오기
-    if ($mllt_row['mlt_idx'] && !empty($mllt_row['mlt_lat']) && !empty($mllt_row['mlt_long'])) {
+    if ($mllt_row['mlt_idx']) {
         $result_data['mlt_lat'] = $mllt_row['mlt_lat'];
         $result_data['mlt_long'] = $mllt_row['mlt_long'];
-        $result_data['source'] = 'location_log';
-        $result_data['timestamp'] = $mllt_row['mlt_gps_time'];
-        
-        // 로그 남기기 - 요청 및 응답 정보
-        error_log("Location request for user $mt_idx: Found in location_log - Lat: {$mllt_row['mlt_lat']}, Long: {$mllt_row['mlt_long']}");
-    } 
-    // 4. 멤버 테이블에 위치 정보가 있으면 사용
-    elseif ($member_info && !empty($member_info['mt_lat']) && !empty($member_info['mt_long'])) {
-        $result_data['mlt_lat'] = $member_info['mt_lat'];
-        $result_data['mlt_long'] = $member_info['mt_long'];
-        $result_data['source'] = 'member_info';
-        
-        // 로그 남기기
-        error_log("Location request for user $mt_idx: Found in member_info - Lat: {$member_info['mt_lat']}, Long: {$member_info['mt_long']}");
-    } 
-    // 5. 요청된 사용자가 현재 로그인한 사용자와 같으면 세션 위치 사용
-    elseif ($mt_idx == $_SESSION['_mt_idx'] && !empty($_SESSION['_mt_lat']) && !empty($_SESSION['_mt_long'])) {
+    } else {
         $result_data['mlt_lat'] = $_SESSION['_mt_lat'];
         $result_data['mlt_long'] = $_SESSION['_mt_long'];
-        $result_data['source'] = 'session';
-        
-        // 로그 남기기
-        error_log("Location request for user $mt_idx: Using session data - Lat: {$_SESSION['_mt_lat']}, Long: {$_SESSION['_mt_long']}");
-    } 
-    // 6. 위치 정보가 전혀 없는 경우
-    else {
-        $result_data['error'] = true;
-        $result_data['message'] = 'Location data not available for this user';
-        
-        // 로그 남기기
-        error_log("Location request for user $mt_idx: No location data available");
     }
+    $rtn = json_encode($result_data);
 
-    // 결과 반환
-    echo json_encode($result_data);
+    echo $rtn;
 } elseif ($_POST['act'] == "marker_reload") {
     if ($_SESSION['_mt_idx'] == '') {
         p_alert($translations['txt_login_required'], './login', '');
@@ -3314,22 +3256,15 @@ if ($_POST['act'] == "event_source") {
         $result_data = array(
             "mt_lat" => $mt_location_info['mlt_lat'] == "" ? $mem_row['mt_lat'] : $mt_location_info['mlt_lat'],
             "mt_long" => $mt_location_info['mlt_long'] == "" ? $mem_row['mt_long'] :  $mt_location_info['mlt_long'],
-            "mt_gps_time" => $mt_location_info['mlt_gps_time'] ?: "",
             "my_profile" => $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']),
         );
     } else {
         $DB->where('mt_idx', $_SESSION['_mt_idx']);
         $mem_row = $DB->getone('member_t');
-        
-        $DB->where('mt_idx', $_SESSION['_mt_idx']);
-        $DB->orderby('mlt_gps_time', 'desc');
-        $location_info = $DB->getone('member_location_log_t');
-        
         unset($result_data);
         $result_data = array(
             "mt_lat" => $_SESSION['_mt_lat'] == "" ? $mem_row['mt_lat'] : $_SESSION['_mt_lat'],
             "mt_long" => $_SESSION['_mt_long'] == "" ? $mem_row['mt_long'] : $_SESSION['_mt_long'],
-            "mt_gps_time" => $location_info['mlt_gps_time'] ?: "",
             "my_profile" => $_SESSION['_mt_file1'] == "" ? $ct_no_img_url : $_SESSION['_mt_file1'],
         );
     }
@@ -3357,7 +3292,6 @@ if ($_POST['act'] == "event_source") {
 
                 $result_data['profilemarkerLat_' . $profile_count] = $mt_location_info['mlt_lat'] == "" ? 37.5665 : $mt_location_info['mlt_lat'];
                 $result_data['profilemarkerLong_' . $profile_count] = $mt_location_info['mlt_long'] == "" ? 126.9780 :  $mt_location_info['mlt_long'];
-                $result_data['profilemarkerGpsTime_' . $profile_count] = $mt_location_info['mlt_gps_time'] ?: "";
                 $result_data['profilemarkerImg_' . $profile_count] = $mem_row['mt_file1'] == "" ? $ct_no_img_url : get_image_url($mem_row['mt_file1']);
                 $profile_count++;
             }

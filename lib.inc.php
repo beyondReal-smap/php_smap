@@ -12,15 +12,47 @@ ini_set("session.gc_probability", 1);
 ini_set("session.gc_divisor", 100);
 
 //redis 세션 사용
-ini_set('session.save_handler', 'redis');
-ini_set('session.save_path', 'tcp://127.0.0.1:6379');
+if (extension_loaded('redis')) {
+    ini_set('session.save_handler', 'redis');
+    ini_set('session.save_path', 'tcp://127.0.0.1:6379');
+    // Redis 연결 테스트
+    try {
+        $redis = new Redis();
+        $redis->connect('127.0.0.1', 6379);
+        if (!$redis->ping()) {
+            // Redis 연결 실패 시 파일 세션으로 대체
+            ini_set('session.save_handler', 'files');
+            session_save_path($_SERVER['DOCUMENT_ROOT'].'/sessions');
+            error_log("Redis connection failed, using file-based sessions");
+        }
+    } catch (Exception $e) {
+        // Redis 연결 예외 발생 시 파일 세션으로 대체
+        ini_set('session.save_handler', 'files');
+        session_save_path($_SERVER['DOCUMENT_ROOT'].'/sessions');
+        error_log("Redis exception: " . $e->getMessage() . ", using file-based sessions");
+    }
+} else {
+    // Redis 확장 모듈이 설치되지 않은 경우 파일 세션 사용
+    ini_set('session.save_handler', 'files');
+    session_save_path($_SERVER['DOCUMENT_ROOT'].'/sessions');
+    error_log("Redis extension not loaded, using file-based sessions");
+}
 
-//파일 세션 사용
-// session_save_path($_SERVER['DOCUMENT_ROOT'].'/sessions');
-
+// 세션 시작 전에 쿠키 설정
 session_cache_limiter('nocache, must_revalidate');
-session_set_cookie_params(36500 * 24 * 60 * 60, "/");
-session_start();
+session_set_cookie_params([
+    'lifetime' => 36500 * 24 * 60 * 60,
+    'path' => '/',
+    'secure' => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
+// 세션이 없는 경우에만 시작
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+    error_log("Session started with ID: " . session_id());
+}
 
 header('P3P: CP="ALL CURa ADMa DEVa TAIa OUR BUS IND PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE LOC OTC"');
 
@@ -80,11 +112,22 @@ $logger = new Logger();
 
 // 사용자 언어 설정 (member_t 테이블에서 가져옴)
 // $logger->write("Setting user language. Fetching member info for mt_idx: " . $_SESSION['_mt_idx']);
-$DB->where('mt_idx', $_SESSION['_mt_idx']);
-$row = $DB->getone('member_t', 'mt_lang');
-// $logger->write("Fetched member info: " . json_encode($row));
-$userLang = $row['mt_lang'] ? $row['mt_lang'] : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-// $logger->write("Determined user language: " . $userLang);
+$mt_idx = isset($_SESSION['_mt_idx']) ? $_SESSION['_mt_idx'] : null;
+$userLang = null; // 기본값 null로 설정
+
+if ($mt_idx !== null) { // mt_idx가 null이 아닐 때만 DB 조회
+    $DB->where('mt_idx', $mt_idx);
+    $row = $DB->getone('member_t', 'mt_lang');
+    if (isset($row['mt_lang']) && $row['mt_lang']) {
+        $userLang = $row['mt_lang'];
+    }
+}
+
+// userLang이 여전히 null이면 기본 언어 설정
+if ($userLang === null) {
+    $userLang = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) : 'en'; // 기본 언어 'en' 또는 다른 값
+}
+
 $translations = require $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '.php';
 // $logger->write("Loaded translations for language: " . $userLang);
 
@@ -106,7 +149,7 @@ if (!$cron_chk) {
 
         $chk_admin = true;
     } else {
-        if ($_SESSION['_mt_level'] == '9') {
+        if (isset($_SESSION['_mt_level']) && $_SESSION['_mt_level'] == '9') {
             $chk_admin = false;
         } else {
             $chk_admin = false;
@@ -2419,158 +2462,80 @@ function get_sel_fct()
 
 function get_search_coordinate2address($lat, $lng, $userLang = null)
 {
-    $userLang = getUserLang() ? getUserLang() : 'ko'; // 함수 내에서 전역 변수 $userLang 사용
-    global $logger;
+    // Google Geocoding API 비활성화
+    // $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key=" . GOOGLE_MAPS_API_KEY . "&language={$userLang}";
+    // $response = file_get_contents($url);
+    // $data = json_decode($response, true);
 
-    if ($userLang == 'ko') {
-        // 네이버 지도 API 사용
-        $url = "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?request=coordsToaddr&coords=" . $lng . "," . $lat . "&sourcecrs=epsg:4326&output=json&orders=admcode";
+    // if ($data['status'] == 'OK') {
+    //     $address_components = $data['results'][0]['address_components'];
+    //     $area1 = '';
+    //     $area2 = '';
+    //     $area3 = '';
 
-        $headers = array();
-        $headers[] = 'X-NCP-APIGW-API-KEY-ID:' . NCPCLIENTID;
-        $headers[] = 'X-NCP-APIGW-API-KEY:' . NCPCLIENTSECRET;
+    //     foreach ($address_components as $component) {
+    //         if (in_array('administrative_area_level_1', $component['types'])) {
+    //             $area1 = $component['long_name'];
+    //         } elseif (in_array('sublocality_level_1', $component['types'])) {
+    //             $area2 = $component['long_name'];
+    //         } elseif (in_array('sublocality_level_2', $component['types'])) {
+    //             $area3 = $component['long_name'];
+    //         }
+    //     }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $result = curl_exec($ch);
-        if ($result === false) {
-            die('Curl failed: ' . curl_error($ch));
+    //     return array(
+    //         'area1' => $area1,
+    //         'area2' => $area2,
+    //         'area3' => $area3
+    //     );
+    // }
+
+    // Naver Reverse Geocoding API 사용
+    $url = "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?request=coordsToaddr&coords=" . $lng . "," . $lat . "&sourcecrs=epsg:4326&output=json&orders=admcode";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'X-NCP-APIGW-API-KEY-ID: ' . NCPCLIENTID,
+        'X-NCP-APIGW-API-KEY: ' . NCPAPIKEY
+    ));
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    if (isset($data['results']) && !empty($data['results'])) {
+        $region = $data['results'][0]['region'];
+        
+        // 지역 정보 추출
+        $area1 = isset($region['area1']['name']) ? $region['area1']['name'] : '';
+        $area2 = isset($region['area2']['name']) ? $region['area2']['name'] : '';
+        $area3 = isset($region['area3']['name']) ? $region['area3']['name'] : '';
+
+        // 빈 값 처리
+        if (empty($area1) && empty($area2) && empty($area3)) {
+            return array(
+                'area1' => '알 수 없음',
+                'area2' => '',
+                'area3' => ''
+            );
         }
-        curl_close($ch);
 
-        $obj = json_decode($result, true);
-
-        $rtn = array();
-
-        if ($obj['status']['code'] == '0') {
-            $rtn['area1'] = $obj['results']['0']['region']['area1']['name'];
-            $rtn['area2'] = $obj['results']['0']['region']['area2']['name'];
-            $rtn['area3'] = $obj['results']['0']['region']['area3']['name'];
-        } else {
-            $rtn['area1'] = '서울특별시';
-            $rtn['area2'] = '중구';
-            $rtn['area3'] = '명동';
-        }
-    } else {
-        $logger->write("Google Maps API 요청 시작: lat={$lat}, lng={$lng}, language={$userLang}");
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key=" . GOOGLE_MAPS_API_KEY . "&language={$userLang}";
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $result = curl_exec($ch);
-
-        if ($result === false) {
-            $logger->write('Curl 실패: ' . curl_error($ch));
-            curl_close($ch);
-            return null;
-        }
-        curl_close($ch);
-        $logger->write("Google Maps API 응답 수신: " . $result);
-        $obj = json_decode($result, true);
-
-        $rtn = ['area1' => '', 'area2' => '', 'area3' => ''];
-
-        if ($obj['status'] == 'OK' && !empty($obj['results'])) {
-            $logger->write("Google Maps API 응답 상태: OK");
-
-            foreach ($obj['results'] as $result) {
-                $address_components = $result['address_components'];
-
-                foreach ($address_components as $component) {
-                    $logger->write($component['types'][0] . ': ' . $component['long_name']);
-                    switch ($userLang) {
-                        case 'en': // 미국
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name']; // State (시도)
-                                $logger->write("State: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
-                                $rtn['area2'] = $component['long_name']; // County (구) 
-                                $logger->write("County: " . $component['long_name']);
-                            } elseif (in_array('locality', $component['types'])) {
-                                $rtn['area3'] = $component['long_name']; // City (동) 
-                                $logger->write("City: " . $component['long_name']);
-                            }
-                            break;
-                        case 'ja': // 일본
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name']; // Prefecture (시도)
-                                $logger->write("Prefecture: " . $component['long_name']);
-                            } elseif (in_array('locality', $component['types'])) {
-                                $rtn['area2'] = $component['long_name']; // City (구)
-                                $logger->write("City: " . $component['long_name']);
-                            } elseif (in_array('sublocality_level_1', $component['types'])) {
-                                $rtn['area3'] = $component['long_name']; // Ward (동)
-                                $logger->write("Ward: " . $component['long_name']);
-                            }
-                            break;
-                        case 'id': // 인도네시아
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name']; // Province (시도)
-                                $logger->write("Province: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
-                                $rtn['area2'] = $component['long_name']; // Regency/City (구)
-                                $logger->write("Regency/City: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
-                                $rtn['area3'] = $component['long_name']; // Sub-district (동)
-                                $logger->write("Sub-district: " . $component['long_name']);
-                            }
-                            break;
-                        case 'vn': // 베트남
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name']; // Province/City (시도)
-                                $logger->write("Province/City: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
-                                $rtn['area2'] = $component['long_name']; // District (구)
-                                $logger->write("District: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
-                                $rtn['area3'] = $component['long_name']; // Ward/Commune (동)
-                                $logger->write("Ward/Commune: " . $component['long_name']);
-                            }
-                            break;
-                        case 'th': // 태국
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name']; // Province (시도)
-                                $logger->write("Province: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_2', $component['types'])) {
-                                $rtn['area2'] = $component['long_name']; // District (구)
-                                $logger->write("District: " . $component['long_name']);
-                            } elseif (in_array('administrative_area_level_3', $component['types'])) {
-                                $rtn['area3'] = $component['long_name']; // Sub-district (동)
-                                $logger->write("Sub-district: " . $component['long_name']);
-                            }
-                            break;
-                        default: // 기본 처리 (기존 로직)
-                            if (in_array('administrative_area_level_1', $component['types'])) {
-                                $rtn['area1'] = $component['long_name'];
-                                $logger->write("기본 처리 - 시도: " . $component['long_name']);
-                            } elseif (in_array('locality', $component['types']) || in_array('administrative_area_level_2', $component['types'])) {
-                                $rtn['area2'] = $component['long_name'];
-                                $logger->write("기본 처리 - 구: " . $component['long_name']);
-                            } elseif (in_array('sublocality_level_1', $component['types']) || in_array('administrative_area_level_3', $component['types'])) {
-                                $rtn['area3'] = $component['long_name'];
-                                $logger->write("기본 처리 - 동: " . $component['long_name']);
-                            }
-                            break;
-                    }
-
-                }
-
-                $logger->write('area1: ' . $rtn['area1'] . ' area2: ' . $rtn['area2'] . ' area3: ' . $rtn['area3']);
-                // 모든 정보가 채워지면 루프를 종료
-                if ($rtn['area1'] && $rtn['area2'] && $rtn['area3']) {
-                    $logger->write("모든 정보가 채워졌습니다. 루프를 종료합니다.");
-                    break;
-                }
-            }
-        } else {
-            $logger->write('Google Maps API 요청 실패: ' . $obj['status']);
-        }
+        return array(
+            'area1' => $area1,
+            'area2' => $area2,
+            'area3' => $area3
+        );
     }
 
-    return array_filter($rtn) ? $rtn : null;;
+    // 기본 반환값
+    return array(
+        'area1' => '알 수 없음',
+        'area2' => '',
+        'area3' => ''
+    );
 }
 
 function get_page_nm()
@@ -3700,54 +3665,142 @@ if ($chk_mobile) {
 
 // 세션이 없을 때 자동 로그인 체크
 function checkAutoLogin() {
-    global $DB;
+    global $DB, $logger;
     
+    error_log("Checking for auto login");
+    
+    // 세션이 없고 자동 로그인 쿠키가 있는 경우에만 실행
     if (!isset($_SESSION['_mt_idx']) && isset($_COOKIE['remember_token']) && isset($_COOKIE['user_id'])) {
         $user_id = $_COOKIE['user_id'];
         $remember_token = $_COOKIE['remember_token'];
         
-        $DB->where('mt_idx', $user_id);
-        $DB->where('mt_status', '1');
-        $DB->where('mt_show', 'Y');
-        $row = $DB->getOne('member_t');
+        error_log("Auto login cookies found for user ID: " . $user_id);
         
-        if ($row && password_verify($remember_token, $row['mt_remember_token'])) {
-            // 토큰 만료 체크
-            if (strtotime($row['mt_token_expiry']) > time()) {
-                // 세션 재설정
-                $_SESSION['_mt_idx'] = $row['mt_idx'];
-                $_SESSION['_mt_id'] = $row['mt_id'];
-                $_SESSION['_mt_hp'] = $row['mt_hp'];
-                $_SESSION['_mt_name'] = $row['mt_name'];
-                $_SESSION['_mt_nickname'] = $row['mt_nickname'];
-                $_SESSION['_mt_level'] = $row['mt_level'];
-                $_SESSION['_mt_file1'] = CDN_HTTP . "/img/uploads/" . $row['mt_file1'] . "?v=" . time();
-                
-                // 토큰 갱신
-                $new_token = bin2hex(random_bytes(32));
-                $new_token_hash = password_hash($new_token, PASSWORD_DEFAULT);
-                $new_expiry = date('Y-m-d H:i:s', strtotime('+36500 days'));
-                
-                $arr_query = array(
-                    'mt_remember_token' => $new_token_hash,
-                    'mt_token_expiry' => $new_expiry,
-                    'mt_ldate' => $DB->now()
-                );
-                
-                $DB->where('mt_idx', $row['mt_idx']);
-                $DB->update('member_t', $arr_query);
-                
-                setcookie('remember_token', $new_token, time() + (36500 * 24 * 60 * 60), '/', '', false, false);
-                
-                return true;
+        // 유효한 사용자 ID인지 검사
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            // 유효하지 않은 사용자 ID인 경우 쿠키 삭제
+            error_log("Invalid user ID format: " . $user_id);
+            deleteCookies();
+            return false;
+        }
+        
+        try {
+            // 데이터베이스에서 사용자 정보 조회
+            $DB->where('mt_idx', $user_id);
+            $DB->where('mt_status', '1');
+            $DB->where('mt_show', 'Y');
+            $row = $DB->getOne('member_t');
+            
+            // 사용자 정보 디버깅
+            error_log("User data from DB: " . ($row ? "Found" : "Not found"));
+            
+            // 사용자 정보가 존재하고 토큰이 일치하는지 확인
+            if ($row && isset($row['mt_remember_token']) && !empty($row['mt_remember_token']) && password_verify($remember_token, $row['mt_remember_token'])) {
+                // 토큰 만료 시간 확인
+                if (isset($row['mt_token_expiry']) && strtotime($row['mt_token_expiry']) > time()) {
+                    error_log("Auto login token is valid. Setting up session for user ID: " . $user_id);
+                    $logger->write("Auto login successful for user ID: " . $user_id);
+                    
+                    // 세션 재설정
+                    $_SESSION['_mt_idx'] = $row['mt_idx'];
+                    $_SESSION['_mt_id'] = $row['mt_id'];
+                    $_SESSION['_mt_hp'] = $row['mt_hp'];
+                    $_SESSION['_mt_name'] = $row['mt_name'];
+                    $_SESSION['_mt_nickname'] = $row['mt_nickname'];
+                    $_SESSION['_mt_level'] = $row['mt_level'];
+                    $_SESSION['_mt_file1'] = CDN_HTTP . "/img/uploads/" . $row['mt_file1'] . "?v=" . time();
+                    
+                    // 앱 토큰 ID도 세션에 저장
+                    if (isset($row['mt_token_id']) && !empty($row['mt_token_id'])) {
+                        $_SESSION['_mt_token_id'] = $row['mt_token_id'];
+                        error_log("App token ID set in session: " . $row['mt_token_id']);
+                    }
+                    
+                    // 위치 정보 처리
+                    if (isset($row['mt_lat']) && isset($row['mt_long'])) {
+                        $_SESSION['_mt_lat'] = $row['mt_lat'];
+                        $_SESSION['_mt_long'] = $row['mt_long'];
+                        error_log("Location info set in session: " . $row['mt_lat'] . ", " . $row['mt_long']);
+                    }
+                    
+                    // 토큰 갱신 (30일마다)
+                    $token_created = strtotime($row['mt_token_expiry']) - (365 * 24 * 60 * 60); // 생성 시점 추정
+                    if (time() - $token_created > 30 * 24 * 60 * 60) {
+                        // 30일이 지난 경우 토큰 갱신
+                        $new_token = bin2hex(random_bytes(32));
+                        $new_token_hash = password_hash($new_token, PASSWORD_DEFAULT);
+                        $new_expiry = date('Y-m-d H:i:s', strtotime('+1 year'));
+                        
+                        $arr_query = array(
+                            'mt_remember_token' => $new_token_hash,
+                            'mt_token_expiry' => $new_expiry,
+                            'mt_ldate' => $DB->now()
+                        );
+                        
+                        $DB->where('mt_idx', $row['mt_idx']);
+                        $DB->update('member_t', $arr_query);
+                        
+                        // 새로운 쿠키 설정
+                        $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+                        setcookie('remember_token', $new_token, [
+                            'expires' => time() + (365 * 24 * 60 * 60),
+                            'path' => '/',
+                            'secure' => $secure,
+                            'httponly' => true,
+                            'samesite' => 'Lax'
+                        ]);
+                        
+                        error_log("Auto login token renewed for user ID: " . $user_id);
+                        $logger->write("Auto login token renewed for user ID: " . $user_id);
+                    } else {
+                        // 로그인 시간 업데이트
+                        $DB->where('mt_idx', $row['mt_idx']);
+                        $DB->update('member_t', ['mt_ldate' => $DB->now()]);
+                    }
+                    
+                    return true;
+                } else {
+                    error_log("Auto login token expired for user ID: " . $user_id);
+                }
+            } else {
+                error_log("Invalid remember token for user ID: " . $user_id);
             }
+        } catch (Exception $e) {
+            error_log("Exception during auto login: " . $e->getMessage());
         }
         
         // 토큰이 유효하지 않거나 만료된 경우 쿠키 삭제
-        setcookie('remember_token', '', time() - 3600, '/');
-        setcookie('user_id', '', time() - 3600, '/');
+        error_log("Invalid or expired auto login token for user ID: " . $user_id);
+        $logger->write("Invalid or expired auto login token for user ID: " . $user_id);
+        deleteCookies();
+    } else {
+        if(isset($_SESSION['_mt_idx'])) {
+            error_log("Session already exists, no need for auto login");
+        } else if(!isset($_COOKIE['remember_token']) || !isset($_COOKIE['user_id'])) {
+            error_log("No auto login cookies found");
+        }
     }
     return false;
+}
+
+// 자동 로그인 쿠키 삭제 함수
+function deleteCookies() {
+    $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+    setcookie('remember_token', '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    
+    setcookie('user_id', '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
 }
 
 // 매 요청마다 자동 로그인 체크

@@ -8,14 +8,57 @@ include $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 include $_SERVER['DOCUMENT_ROOT'] . "/b_menu.inc.php";
 
 if (empty($_SESSION['_mt_idx'])) {
-    alert($translations['txt_login_required'], './login', '');
-} else {
+    // 세션이 없는 경우 자동 로그인 시도
+    error_log("No session found in alarm_list.php. Attempting auto login.");
+    if (function_exists('checkAutoLogin')) {
+        $auto_login_result = checkAutoLogin();
+        if ($auto_login_result) {
+            error_log("Auto login successful in alarm_list.php");
+        } else {
+            error_log("Auto login failed in alarm_list.php");
+            alert($translations['txt_login_required'], './login', '');
+            exit;
+        }
+    } else {
+        error_log("checkAutoLogin function not available");
+        alert($translations['txt_login_required'], './login', '');
+        exit;
+    }
+}
+
+// 세션이 있는 경우 앱토큰값 확인
+if (!empty($_SESSION['_mt_idx'])) {
+    error_log("Session found in alarm_list.php. User ID: " . $_SESSION['_mt_idx']);
     // 앱토큰값이 DB와 같은지 확인
     $DB->where('mt_idx', $_SESSION['_mt_idx']);
     $mem_row = $DB->getone('member_t');
-    if ($_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
-        alert($translations['txt_login_attempt_other_device'], './logout');
+    
+    if (!$mem_row) {
+        error_log("User not found in DB for ID: " . $_SESSION['_mt_idx']);
+        alert($translations['txt_login_required'], './login', '');
+        exit;
     }
+    
+    if (!isset($_SESSION['_mt_token_id']) || !isset($mem_row['mt_token_id']) || $_SESSION['_mt_token_id'] != $mem_row['mt_token_id']) {
+        error_log("Token mismatch. Session token: " . (isset($_SESSION['_mt_token_id']) ? $_SESSION['_mt_token_id'] : 'Not set') . 
+                 ", DB token: " . (isset($mem_row['mt_token_id']) ? $mem_row['mt_token_id'] : 'Not set'));
+        
+        // 자동 로그인 인증을 통해 로그인된 사용자의 경우 토큰 업데이트
+        if (isset($_COOKIE['remember_token']) && isset($_COOKIE['user_id'])) {
+            error_log("Auto login cookies found. Updating token ID.");
+            $_SESSION['_mt_token_id'] = $mem_row['mt_token_id'];
+            // 세션과 쿠키가 존재하지만 토큰이 불일치하는 경우 유예
+        } else {
+            alert($translations['txt_login_attempt_other_device'], './logout');
+            exit;
+        }
+    } else {
+        error_log("Token match confirmed for user ID: " . $_SESSION['_mt_idx']);
+    }
+} else {
+    error_log("Session still not available after auto login attempt");
+    alert($translations['txt_login_required'], './login', '');
+    exit;
 }
 
 //읽지않은 알림 읽음 처리
@@ -37,12 +80,21 @@ $DB->update('push_log_t', $arr_query);
         </div>
         <?php
         unset($list);
+        // $DB->where('mt_idx', $_SESSION['_mt_idx']);
+        // $DB->where('plt_status', '2');
+        // $DB->where('plt_show', 'Y');
+        // $DB->groupBy("left(plt_sdate, 10)");
+        // $DB->orderBy("plt_sdate", "desc");
+        // $list = $DB->get('push_log_t');
+
         $DB->where('mt_idx', $_SESSION['_mt_idx']);
         $DB->where('plt_status', '2');
         $DB->where('plt_show', 'Y');
-        $DB->groupBy("left(plt_sdate, 10)");
+        $DB->groupBy("plt_date");
         $DB->orderBy("plt_sdate", "desc");
         $list = $DB->get('push_log_t');
+
+        
 
         if ($list) {
             foreach ($list as $row) {

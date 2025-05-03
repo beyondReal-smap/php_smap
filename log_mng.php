@@ -86,7 +86,7 @@ if (!$sgdt_row['sgdt_idx']) {
         flex-direction: column;
     }
 
-    /* 로딩 화면 스타일 */
+    /* 로딩 화면 스타일 개선 */
     #map-loading {
         position: absolute;
         top: 0;
@@ -98,6 +98,7 @@ if (!$sgdt_row['sgdt_idx']) {
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        transition: opacity 0.3s ease;
     }
 
     .dots-spinner {
@@ -154,6 +155,12 @@ if (!$sgdt_row['sgdt_idx']) {
 
     .mt-2.mb-3.px_16 .dot:nth-child(3) {
         animation-delay: 0.4s;
+    }
+
+    /* 콘텐츠 컨테이너 스타일 */
+    .mbr_wr {
+        transition: opacity 0.3s ease;
+        min-height: 100px; /* 최소 높이 설정으로 레이아웃 이동 방지 */
     }
 </style>
 <div id="loading">
@@ -716,41 +723,39 @@ if (!$sgdt_row['sgdt_idx']) {
 
     // 로딩 화면을 보이게 하는 함수
     function showMapLoading(center = true) {
-        const spinnerDots = document.querySelectorAll('.dot'); // 모든 .dot 요소 선택
-        // const otherSpinnerDots = document.querySelectorAll('.mt-2.mb-3.px_16 .dot'); // .mt-2.mb-3.px_16의 .dot 요소 선택
+        const loadingElement = document.getElementById('map-loading');
+        const spinnerDots = document.querySelectorAll('.dot');
 
         // 랜덤 색상 적용
         const randomColor = generateSpinnerColor();
-
-        // 두 스피너의 색상 변경
         spinnerDots.forEach(dot => {
             dot.style.backgroundColor = randomColor;
         });
-        // otherSpinnerDots.forEach(dot => {
-        //     dot.style.backgroundColor = randomColor;
-        // });
 
-        loadingElement.style.display = 'flex'; // 로딩바 표시
-        // optBottom 이벤트 비활성화
-        optBottom.ontouchstart = null;
-        optBottom.ontouchmove = null;
-        optBottom.onmousedown = null;
-        document.onmousemove = null;
-        document.onmouseup = null;
+        // 부드러운 페이드인 효과 적용
+        loadingElement.style.opacity = '0';
+        loadingElement.style.display = 'flex';
+        
+        // 강제 리플로우 트리거
+        void loadingElement.offsetWidth;
+        
+        // 트랜지션 적용
+        loadingElement.style.transition = 'opacity 0.3s ease';
+        loadingElement.style.opacity = '1';
     }
 
     // 로딩 화면을 숨기는 함수
     function hideMapLoading() {
-        if (loadingElement) {
+        const loadingElement = document.getElementById("map-loading");
+        
+        // 부드러운 페이드아웃 효과 적용
+        loadingElement.style.transition = 'opacity 0.3s ease';
+        loadingElement.style.opacity = '0';
+        
+        // 트랜지션이 완료된 후 display 속성 변경
+        setTimeout(() => {
             loadingElement.style.display = 'none';
-        }
-
-        // optBottom 이벤트 활성화
-        optBottom.ontouchstart = optBottomTouchStartListener;
-        optBottom.ontouchmove = optBottomTouchMoveListener;
-        optBottom.onmousedown = optBottomMouseDownListener;
-        document.onmousemove = optBottomMouseMoveListener;
-        document.onmouseup = optBottomMouseUpListener;
+        }, 300);
     }
 
     // 그라데이션 폴리라인 생성 함수
