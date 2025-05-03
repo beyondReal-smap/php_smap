@@ -1444,6 +1444,30 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 console.error('비동기 작업 중 오류가 발생했습니다:', error);
             });
         });
+        
+        // 그룹원 선택 관련 이벤트 리스너 추가
+        $(document).on('change', 'input[name="rd2"]', function() {
+            // 모든 mem_box에서 selected 클래스 제거
+            $('.mem_box').removeClass('selected');
+            
+            // 클릭된 라디오 버튼의 부모 mem_box에 selected 클래스 추가
+            $(this).closest('.mem_box').addClass('selected');
+            
+            // 모든 rect_square 스타일 초기화
+            $('.mem_box .prd_img .rect_square').css({
+                'border': '0',
+                'padding': '3px'
+            });
+            
+            // 선택된 rect_square에 테두리 적용
+            $(this).closest('.mem_box').find('.prd_img .rect_square').css({
+                'border': '3px solid #0046FE',
+                'padding': '0'
+            });
+            
+            // 모든 이미지 테두리 제거
+            $('.rect_square img').css('border', '0');
+        });
     });
 
     // function createGroupMember(sgdt_idx) {
@@ -1507,23 +1531,13 @@ if ($userLang == 'ko' && $mem_row['mt_map'] == 'N') {
                 <p class="fs_16 fw_600 mb-3"><?= $translations['txt_group_members'] ?></p>
                 <style>
                     /* 기존 스타일 유지 */
-                    .mem_box input[type="radio"]:checked + .prd_img .rect_square {
-                        border: 3px solid #0046FE; /* 선택 시 파란색 테두리 */
-                        box-sizing: border-box;
-                    }
                     .mem_box input[type="radio"] {
                         display: none; /* 라디오 버튼 숨기기 */
                     }
                     .mem_box label {
                          cursor: pointer; /* 클릭 가능 표시 */
                     }
-                    .mem_box .prd_img {
-                        transition: transform 0.2s ease-in-out; /* 부드러운 효과 */
-                    }
-                     .mem_box input[type="radio"]:checked + div > .prd_img {
-                        transform: scale(1.1); /* 선택 시 약간 확대 */
-                    }
-
+                    /* 테두리 관련 스타일은 JavaScript로 처리하므로 제거 */
                 </style>
 
                 <div id="group_member_list_box">
